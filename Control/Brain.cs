@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 
 namespace SBR {
+    [DisallowMultipleComponent]
     public class Brain : MonoBehaviour {
         [TypeSelect(typeof(Channels))]
         public string channelsType;
