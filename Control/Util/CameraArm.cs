@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
-    public class CameraArm : BasicMotor<CharacterChannels> {
+    public class CameraArm : Motor<CharacterChannels> {
         public bool useControlRotationX = true;
         public bool useControlRotationY = true;
 

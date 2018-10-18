@@ -10,7 +10,6 @@ namespace SBR {
 
         private bool isEnabled;
         
-
         public virtual void Initialize() {
             var brain = GetComponent<Brain>();
             if (brain) {
@@ -20,5 +19,14 @@ namespace SBR {
         }
 
         public virtual void GetInput() { }
+    }
+
+    public abstract class Controller<T> : Controller where T : Channels{
+        public new T channels { get; private set; }
+
+        public override void Initialize() {
+            base.Initialize();
+            channels = base.channels as T;
+        }
     }
 }

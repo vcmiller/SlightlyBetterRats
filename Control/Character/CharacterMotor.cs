@@ -10,7 +10,7 @@ using UnityEngine;
 namespace SBR {
     [RequireComponent(typeof(CapsuleCollider))]
     [RequireComponent(typeof(Rigidbody))]
-    public class CharacterMotor : BasicMotor<CharacterChannels> {
+    public class CharacterMotor : Motor<CharacterChannels> {
         public CapsuleCollider capsule { get; private set; }
         new public Rigidbody rigidbody { get; private set; }
         public Animator animator { get; private set; }

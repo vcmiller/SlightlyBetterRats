@@ -26,11 +26,8 @@ namespace SBR.Editor {
             // Don't make child fields be indented
             var indent = EditorGUI.indentLevel;
 
-            EditorGUI.DrawRect(new Rect(position.x, position.y + 2, position.width, position.height - 4), new Color32(221, 221, 221, 255));
-
             //EditorGUI.indentLevel = 0;
             position.height = 16;
-            position.y += 10;
             position.width -= 10;
 
             // Draw fields - passs GUIContent.none to each so they are drawn without labels

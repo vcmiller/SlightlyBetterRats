@@ -306,7 +306,7 @@ namespace SBR {
                 child.parent = null;
             }
 
-            if (toConvert.parent != null) {
+            if (!string.IsNullOrEmpty(toConvert.parent)) {
                 FitStateToChildren(GetState(toConvert.parent), padding);
             }
         }

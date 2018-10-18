@@ -277,4 +277,13 @@ namespace SBR {
             rootMachine.TransitionTo(t);
         }
     }
+
+    public abstract class StateMachine<T> : StateMachine where T : Channels {
+        public new T channels { get; private set; }
+
+        public override void Initialize() {
+            base.Initialize();
+            channels = base.channels as T;
+        }
+    }
 }

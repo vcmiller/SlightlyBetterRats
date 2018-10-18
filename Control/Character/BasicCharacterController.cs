@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
-    public class BasicCharacterController : PlayerController {
-        public CharacterChannels character { get; private set; }
-
+    public class BasicCharacterController : PlayerController<CharacterChannels> {
         public float pitchMin = -80;
         public float pitchMax = 80;
 
@@ -13,8 +11,6 @@ namespace SBR {
 
         public override void Initialize() {
             base.Initialize();
-
-            character = channels as CharacterChannels;
         }
         
         public void Axis_Horizontal(float value) {
@@ -22,7 +18,7 @@ namespace SBR {
             right.y = 0;
             right = right.normalized;
 
-            character.movement += right * value;
+            channels.movement += right * value;
         }
 
         public void Axis_Vertical(float value) {
@@ -30,21 +26,21 @@ namespace SBR {
             fwd.y = 0;
             fwd = fwd.normalized;
 
-            character.movement += fwd * value;
+            channels.movement += fwd * value;
         }
 
         public void ButtonDown_Jump() {
-            character.jump = true;
+            channels.jump = true;
         }
 
-        public void BUttonUp_Jump() {
-            character.jump = false;
+        public void ButtonUp_Jump() {
+            channels.jump = false;
         }
 
         public void Axis_MouseX(float value) {
             angles.y += value;
 
-            character.rotation = Quaternion.Euler(angles);
+            channels.rotation = Quaternion.Euler(angles);
         }
 
         public void Axis_MouseY(float value) {
@@ -56,7 +52,7 @@ namespace SBR {
                 angles.x = pitchMax;
             }
 
-            character.rotation = Quaternion.Euler(angles);
+            channels.rotation = Quaternion.Euler(angles);
         }
     }
 }

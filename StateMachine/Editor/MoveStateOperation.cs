@@ -57,6 +57,8 @@ namespace SBR.Editor {
                 mouseLastPos = evt.mousePosition;
                 move += evt.delta;
 
+                Undo.RecordObject(definition, "Move State");
+
                 Vector2 oldPos = state.position;
                 state.position = start + move;
                 Snap(ref state.position);

@@ -33,6 +33,7 @@ namespace SBR.Editor {
         }
 
         public override void Confirm() {
+            Undo.RecordObject(definition, "Add Transition");
             var targ = definition.SelectState(window.ToWorld(target));
 
             if (definition.TransitionValid(state, targ)) {

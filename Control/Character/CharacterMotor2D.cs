@@ -10,7 +10,7 @@ using UnityEngine;
 namespace SBR {
     [RequireComponent(typeof(BoxCollider2D))]
     [RequireComponent(typeof(Rigidbody2D))]
-    public class CharacterMotor2D : BasicMotor<CharacterChannels> {
+    public class CharacterMotor2D : Motor<CharacterChannels> {
         public BoxCollider2D box { get; private set; }
         new public Rigidbody2D rigidbody { get; private set; }
 

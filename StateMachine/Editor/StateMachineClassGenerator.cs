@@ -52,6 +52,14 @@ public abstract class {0} : {5} {{
 
 {4}
 }}
+
+public abstract class {0}<T> : {0} where T : Channels {{
+    public new T channels {{ get; private set; }}
+
+    public override void Initialize() {{
+        channels = base.channels as T;
+    }}
+}}
 #pragma warning restore 649
 ";
 
@@ -229,21 +237,22 @@ public abstract class {0} : {5} {{
         }
 
         public static string GetFunctionDeclarations(StateMachineDefinition def, bool over = false) {
-            string vo = over ? "override" : "virtual";
-
+            string vo = over ? "override" : "abstract";
+            string end = over ? "() { }\n" : "();\n";
+            string end2 = over ? "() { return false; }\n" : "();\n";
 
             string str = "";
             foreach (var state in def.states) {
                 if (state.hasEnter) {
-                    str += "    protected " + vo + " void StateEnter_" + state.name + "() { }\n";
+                    str += "    protected " + vo + " void StateEnter_" + state.name + end;
                 }
 
                 if (state.hasDuring) {
-                    str += "    protected " + vo + " void State_" + state.name + "() { }\n";
+                    str += "    protected " + vo + " void State_" + state.name + end;
                 }
 
                 if (state.hasExit) {
-                    str += "    protected " + vo + " void StateExit_" + state.name + "() { }\n";
+                    str += "    protected " + vo + " void StateExit_" + state.name + end;
                 }
             }
 
@@ -252,10 +261,10 @@ public abstract class {0} : {5} {{
             foreach (var state in def.states) {
                 if (state.transitions != null) {
                     foreach (var trans in state.transitions) {
-                        str += "    protected " + vo + " bool TransitionCond_" + state.name + "_" + trans.to + "() { return false; }\n";
+                        str += "    protected " + vo + " bool TransitionCond_" + state.name + "_" + trans.to + end2;
 
                         if (trans.hasNotify) {
-                            str += "    protected " + vo + " void TransitionNotify_" + state.name + "_" + trans.to + "() { }\n";
+                            str += "    protected " + vo + " void TransitionNotify_" + state.name + "_" + trans.to + end;
                         }
                     }
                 }

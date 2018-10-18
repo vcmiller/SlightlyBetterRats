@@ -17,14 +17,10 @@ namespace SBR.Editor {
             Rigidbody rb = charObj.AddComponent<Rigidbody>();
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
-
-            GameObject arrow = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            arrow.name = "Arrow";
+            
+            var arrow = CreateArrow(true);
             arrow.transform.parent = charObj.transform;
-            arrow.transform.localPosition = new Vector3(0, 1, 1);
-            arrow.transform.localScale = new Vector3(0.2f, 0.2f, 2.0f);
-
-            Object.DestroyImmediate(arrow.GetComponent<Collider>());
+            arrow.transform.localPosition = new Vector3(0, 0, 0);
 
             Brain brain = charObj.AddComponent<Brain>();
             brain.channelsType = "CharacterChannels";
@@ -48,6 +44,7 @@ namespace SBR.Editor {
             camObj.AddComponent<ViewTarget>();
     
             Selection.activeGameObject = charObj;
+            Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
         }
 
         [MenuItem("GameObject/Character/First Person")]
@@ -63,13 +60,9 @@ namespace SBR.Editor {
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            GameObject arrow = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            arrow.name = "Arrow";
+            var arrow = CreateArrow(false);
             arrow.transform.parent = charObj.transform;
-            arrow.transform.localPosition = new Vector3(0, 1, 1);
-            arrow.transform.localScale = new Vector3(0.2f, 0.2f, 2.0f);
-
-            Object.DestroyImmediate(arrow.GetComponent<Collider>());
+            arrow.transform.localPosition = new Vector3(0, 0, 0);
 
             Brain brain = charObj.AddComponent<Brain>();
             brain.channelsType = "CharacterChannels";
@@ -95,6 +88,7 @@ namespace SBR.Editor {
             camObj.AddComponent<ViewTarget>();
 
             Selection.activeGameObject = charObj;
+            Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
         }
 
         [MenuItem("GameObject/Character/2D (Sprite)")]
@@ -125,6 +119,28 @@ namespace SBR.Editor {
             camObj.AddComponent<ViewTarget>();
 
             Selection.activeGameObject = charObj;
+            Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
+        }
+
+        private static GameObject CreateArrow(bool visibleInGame) {
+            Mesh arrowMesh = Resources.Load<Mesh>("SBR_Arrow");
+            Material arrowHeadMat = Resources.Load<Material>("SBR_ArrowHead");
+            Material arrowShaftMat = Resources.Load<Material>("SBR_ArrowShaft");
+
+            GameObject arrow = new GameObject();
+            var mf = arrow.AddComponent<MeshFilter>();
+            var mr = arrow.AddComponent<MeshRenderer>();
+            arrow.AddComponent<EditorViewMesh>().hideInGame = !visibleInGame;
+
+            mf.mesh = arrowMesh;
+            var mats = new Material[2];
+            mats[0] = arrowShaftMat;
+            mats[1] = arrowHeadMat;
+            mr.sharedMaterials = mats;
+            
+            arrow.name = "Arrow";
+
+            return arrow;
         }
     }
 

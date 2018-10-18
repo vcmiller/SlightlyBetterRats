@@ -50,9 +50,13 @@ namespace SBR {
 
         void OnValidate() {
             if (!Application.isPlaying) {
-                if (PropertyChanged != null) {
-                    PropertyChanged(false);
-                }
+                OnChanged(false);
+            }
+        }
+
+        public void OnChanged(bool update) {
+            if (PropertyChanged != null) {
+                PropertyChanged(update);
             }
         }
 

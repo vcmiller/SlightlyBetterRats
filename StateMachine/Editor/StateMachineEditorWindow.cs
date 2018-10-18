@@ -107,9 +107,7 @@ namespace SBR.Editor {
             bool repaint = false;
 
             if (def != null) {
-
                 Event cur = Event.current;
-
                 Matrix4x4 gm = GUI.matrix;
                 GUI.matrix = Matrix4x4.Scale(new Vector3(zoom, zoom, 1));
 
@@ -184,6 +182,7 @@ namespace SBR.Editor {
                                     GenericMenu menu = new GenericMenu();
 
                                     menu.AddItem(new GUIContent("Create State"), false, () => {
+                                        Undo.RecordObject(def, "Create State");
                                         var s = def.AddState();
                                         s.position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
                                         MoveStateOperation.Snap(ref s.position);
@@ -199,6 +198,7 @@ namespace SBR.Editor {
                                     GenericMenu menu = new GenericMenu();
 
                                     menu.AddItem(new GUIContent("Remove Transition"), false, () => {
+                                        Undo.RecordObject(def, "Remove Transition");
                                         selectedTr.t1.RemoveTransition(selectedTr.t2);
                                         EditorUtility.SetDirty(def);
                                         dirty = true;
@@ -212,6 +212,7 @@ namespace SBR.Editor {
                                     GenericMenu menu = new GenericMenu();
 
                                     menu.AddItem(new GUIContent("Delete State"), false, () => {
+                                        Undo.RecordObject(def, "Delete State");
                                         def.RemoveState(selected);
                                         EditorUtility.SetDirty(def);
                                         dirty = true;
@@ -231,6 +232,7 @@ namespace SBR.Editor {
                                     if (parent == null) {
                                         if (selected.name != def.defaultState) {
                                             menu.AddItem(new GUIContent("Make Default State"), false, () => {
+                                                Undo.RecordObject(def, "Set Default State");
                                                 def.defaultState = selected.name;
                                                 dirty = true;
                                                 repaint = true;
@@ -239,6 +241,7 @@ namespace SBR.Editor {
                                     } else {
                                         if (selected.name != parent.localDefault) {
                                             menu.AddItem(new GUIContent("Make Local Default"), false, () => {
+                                                Undo.RecordObject(def, "Set Local Default");
                                                 parent.localDefault = selected.name;
                                                 dirty = true;
                                                 repaint = true;
@@ -248,10 +251,12 @@ namespace SBR.Editor {
 
                                     if (selected.hasChildren) {
                                         menu.AddItem(new GUIContent("Remove Sub-Machine"), false, () => {
+                                            Undo.RecordObject(def, "Remove Sub-Machine");
                                             def.RemoveSub(selected, MoveStateOperation.snap * 2);
                                         });
 
                                         menu.AddItem(new GUIContent("Create Child State"), false, () => {
+                                            Undo.RecordObject(def, "Create Child State");
                                             var s = def.AddState();
                                             s.position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
                                             def.SetStateParent(s, selected, MoveStateOperation.snap);
@@ -262,6 +267,7 @@ namespace SBR.Editor {
                                         });
                                     } else {
                                         menu.AddItem(new GUIContent("Make Sub-Machine"), false, () => {
+                                            Undo.RecordObject(def, "Make Sub-Machine");
                                             def.CreateSub(selected, MoveStateOperation.snap * 2);
                                         });
                                     }
@@ -271,6 +277,28 @@ namespace SBR.Editor {
                                     GUI.BeginGroup(clippedArea);
                                 }
                             }
+                        } else if (cur.type == EventType.KeyDown) {
+                            if (cur.keyCode == KeyCode.Delete) {
+                                if (selected != null) {
+                                    Undo.RecordObject(def, "Delete State");
+                                    def.RemoveState(selected);
+                                    EditorUtility.SetDirty(def);
+                                    dirty = true;
+                                    repaint = true;
+                                } else if (selectedTr.t1 != null) {
+                                    Undo.RecordObject(def, "Remove Transition");
+                                    selectedTr.t1.RemoveTransition(selectedTr.t2);
+                                    EditorUtility.SetDirty(def);
+                                    dirty = true;
+                                    repaint = true;
+                                }
+                            }
+                        } else if (cur.type == EventType.ValidateCommand) {
+                            editingState = selected = lastSelectedState = null;
+                            editingTransition = selectedTr = new Pair<StateMachineDefinition.State, StateMachineDefinition.Transition>();
+                            lastSelectedTr = null;
+                            dirty = true;
+                            repaint = true;
                         }
                     }
                 }
@@ -308,6 +336,7 @@ namespace SBR.Editor {
                 Color oldColor = GUI.color;
 
                 if (def.states != null) {
+                    EditorGUI.BeginDisabledGroup(op != null && op is RenameStateOperation);
                     foreach (var state in def.states) {
                         if (op == null || op.state != state || op.showBaseGUI) {
                             string s = state.name;
@@ -378,16 +407,15 @@ namespace SBR.Editor {
                                 for (float y = rect.yMin + MoveStateOperation.snap * 2; y < rect.yMax; y += MoveStateOperation.snap) {
                                     Handles.DrawLine(new Vector3(innerRect.xMin, y), new Vector3(innerRect.xMax, y));
                                 }
-
-                                
                             }
                         }
-
-                        if (op != null && op.state == state) {
-                            op.OnGUI();
-                        }
                     }
-                    
+                    EditorGUI.EndDisabledGroup();
+
+                    if (op != null) {
+                        op.OnGUI();
+                    }
+
                     foreach (var from in def.states) {
                         if (from.transitions != null) {
                             foreach (var tr in from.transitions) {
@@ -438,10 +466,10 @@ namespace SBR.Editor {
         private void UpdateView(ref bool repaint) {
             Rect viewportRect = new Rect(0, 0, position.width - sideWidth, position.height);
             var cur = Event.current;
-             if (cur.type == EventType.MouseDrag && cur.button == 2) {
+            if (cur.type == EventType.MouseDrag && cur.button == 2) {
                 scroll -= cur.delta * zoom;
                 repaint = true;
-            } else if (cur.type == EventType.KeyDown && cur.keyCode == KeyCode.F) {
+            } else if (cur.type == EventType.KeyDown && cur.keyCode == KeyCode.F && !(op is RenameStateOperation)) {
                 var state = def.GetState(def.defaultState);
                 if (state == null && def.states.Count > 0) {
                     state = def.states[0];
@@ -541,6 +569,7 @@ namespace SBR.Editor {
 
 
                     if (enter != editingState.hasEnter || during != editingState.hasDuring || exit != editingState.hasExit) {
+                        Undo.RecordObject(def, "Edit State");
                         editingState.hasEnter = enter;
                         editingState.hasDuring = during;
                         editingState.hasExit = exit;
@@ -571,6 +600,7 @@ namespace SBR.Editor {
                     EditorGUILayout.EndHorizontal();
 
                     if (notify != editingTransition.t2.hasNotify || exitTime != editingTransition.t2.exitTime || mode != editingTransition.t2.mode) {
+                        Undo.RecordObject(def, "Edit Transition");
                         editingTransition.t2.hasNotify = notify;
                         editingTransition.t2.exitTime = exitTime;
                         editingTransition.t2.mode = mode;

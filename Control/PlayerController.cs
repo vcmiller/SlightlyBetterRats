@@ -7,7 +7,6 @@ using UnityEngine.UI;
 
 namespace SBR {
     public abstract class PlayerController : Controller {
-
         private Dictionary<string, ButtonHandler> buttonDown;
         private Dictionary<string, ButtonHandler> buttonUp;
         private Dictionary<string, ButtonHandler> buttonHeld;
@@ -101,7 +100,6 @@ namespace SBR {
                     }
                 }
             }
-
         }
 
         public override void GetInput() {
@@ -148,6 +146,15 @@ namespace SBR {
             if (curViewTarget) {
                 curViewTarget.enabled = true;
             }
+        }
+    }
+
+    public abstract class PlayerController<T> : PlayerController where T : Channels {
+        public new T channels { get; private set; }
+
+        public override void Initialize() {
+            base.Initialize();
+            channels = base.channels as T;
         }
     }
 }

@@ -58,6 +58,7 @@ namespace SBR.Editor {
             if (sm != profile.meshes[index].stretchMode) {
                 Undo.RecordObject(profile, "Edit Stretch Mode");
                 profile.meshes[index].stretchMode = sm;
+                profile.OnChanged(true);
             }
 
             EditorGUI.LabelField(new Rect(rect.x + labelWidth + colWidth + colSpacing, rect.y + l + 4, labelWidth, l), 

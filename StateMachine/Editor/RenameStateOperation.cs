@@ -46,6 +46,7 @@ namespace SBR.Editor {
         }
 
         public override void Confirm() {
+            Undo.RecordObject(definition, "Rename State");
             ensureNotEmpty();
             definition.RenameState(state, name != null ? name.Replace(" ", "") : name);
         }
