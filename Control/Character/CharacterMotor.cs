@@ -212,7 +212,7 @@ namespace SBR {
             velocity = Vector3.MoveTowards(velocity, targetVel, accel * Time.deltaTime);
 
             jumpedThisFrame = false;
-            if (grounded && channels.jump) {
+            if (grounded && channels.jump && enableInput) {
                 jumpedThisFrame = true;
                 jumping = true;
                 velocity = Vector3.ProjectOnPlane(velocity, transform.up) + transform.up * jumpSpeed;

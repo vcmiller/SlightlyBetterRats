@@ -18,6 +18,7 @@ namespace SBR {
         private delegate void ButtonHandler();
         private delegate void AxisHandler(float value);
 
+        public bool sharedViewTarget;
         public ViewTarget initialViewTarget;
 
         private ViewTarget curViewTarget;
@@ -27,11 +28,11 @@ namespace SBR {
             }
 
             set {
-                if (curViewTarget) {
+                if (curViewTarget && !sharedViewTarget) {
                     curViewTarget.enabled = false;
                 }
                 curViewTarget = value;
-                if (curViewTarget) {
+                if (curViewTarget && !sharedViewTarget) {
                     curViewTarget.enabled = enabled;
                 }
             }
@@ -133,7 +134,7 @@ namespace SBR {
         }
 
         protected virtual void OnDisable() {
-            if (curViewTarget) {
+            if (curViewTarget && !sharedViewTarget) {
                 curViewTarget.enabled = false;
             }
 
@@ -143,7 +144,7 @@ namespace SBR {
         }
 
         protected virtual void OnEnable() {
-            if (curViewTarget) {
+            if (curViewTarget && !sharedViewTarget) {
                 curViewTarget.enabled = true;
             }
         }
