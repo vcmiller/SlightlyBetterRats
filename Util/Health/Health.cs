@@ -26,7 +26,7 @@ namespace SBR {
                 healthbar = Instantiate(healthbarPrefab).GetComponent<Healthbar>();
                 healthbar.target = this;
 
-                healthbar.transform.SetParent(FindObjectOfType<Canvas>().transform, false);
+                healthbar.transform.SetParent(GameObject.FindGameObjectWithTag("MainCanvas").GetComponent<Canvas>().transform, false);
             }
         }
 
