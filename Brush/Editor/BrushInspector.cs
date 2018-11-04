@@ -339,9 +339,6 @@ namespace SBR.Editor {
                     upAxis = Vector3.up;
                 }
                 
-
-                float hs = HandleUtility.GetHandleSize(vertexCenter);
-
                 if (Tools.current == Tool.Move) {
                     MoveHandle(vertices, vertexCenter, Quaternion.LookRotation(normalAxis, upAxis), ref moved);
                 } else if (Tools.current == Tool.Rotate) {
@@ -584,7 +581,6 @@ namespace SBR.Editor {
 
         private void ScaleHandle(HashSet<int> vertices, Vector3 position, Quaternion rotation, ref bool moved) {
             float handleSize = HandleUtility.GetHandleSize(position);
-            CustomHandles.HandleResult result = CustomHandles.HandleResult.None;
 
             Vector3 dragScale = Handles.ScaleHandle(scaleMvt, position, rotation, handleSize);
             Vector3 delta = new Vector3(dragScale.x / scaleMvt.x, dragScale.y / scaleMvt.y, dragScale.z / scaleMvt.z);
