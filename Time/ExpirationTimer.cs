@@ -6,6 +6,7 @@ namespace SBR {
         public float expiration { get; set; }
         public float lastSet { get; set; }
         public bool unscaled { get; set; }
+        private bool set;
 
         private float curTime {
             get {
@@ -27,7 +28,7 @@ namespace SBR {
 
         public bool expiredThisFrame {
             get {
-                return expired && curTime - deltaTime <= lastSet + expiration;
+                return set && expired && curTime - deltaTime <= lastSet + expiration;
             }
         }
 
@@ -54,10 +55,12 @@ namespace SBR {
 
         public void Set() {
             lastSet = curTime;
+            set = true;
         }
 
         public void Clear() {
             lastSet = curTime - expiration;
+            set = false;
         }
     }
 }
