@@ -228,7 +228,7 @@ namespace SBR {
             Vector3 pnt1, pnt2;
             float radius, height;
             
-            capsule.GetPoints(out pnt1, out pnt2, out radius, out height);
+            capsule.GetCapsuleInfo(out pnt1, out pnt2, out radius, out height);
 
             var lastGround = ground;
 

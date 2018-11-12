@@ -44,7 +44,7 @@ namespace SBR {
             Debug.DrawLine(new Vector3(bounds.min.x, bounds.max.y, bounds.min.z), new Vector3(bounds.min.x, bounds.max.y, bounds.max.z), color);
         }
 
-        public static void GetPoints(this CapsuleCollider capsule, out Vector3 point1, out Vector3 point2, out float radius, out float height) {
+        public static void GetCapsuleInfo(this CapsuleCollider capsule, out Vector3 point1, out Vector3 point2, out float radius, out float height) {
             Vector3 capsuleCenter = capsule.transform.TransformPoint(capsule.center);
             Vector3 capsuleUp;
             float scaleY;

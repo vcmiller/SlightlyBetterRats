@@ -10,6 +10,7 @@ namespace SBR {
         public float maxHealth = 100;
         public float healthRegenRate = 0;
         public float healthRegenDelay = 0;
+        public bool allowRevival = true;
         public GameObject healthbarPrefab;
         
         public ExpirationTimer healthRegenTimer { get; private set; }
@@ -55,10 +56,14 @@ namespace SBR {
         }
 
         public virtual void Heal(float amount) {
-            if (enabled) {
-                hasDied = false;
+            if (enabled && (!hasDied || allowRevival)) {
                 health += amount;
                 health = Mathf.Min(health, maxHealth);
+
+                if (hasDied) {
+                    hasDied = false;
+                    SendMessage("OnRevive", SendMessageOptions.DontRequireReceiver);
+                }
             }
         }
     }
