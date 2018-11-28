@@ -16,6 +16,10 @@ namespace SBR {
             return transform.TransformVector(spline.GetTangent(pos));
         }
 
+        public Quaternion GetWorldRotation(float pos) {
+            return transform.rotation * spline.GetRotation(pos);
+        }
+
         public void GetWorldPoints(Vector3[] samples) {
             for (int i = 0; i < samples.Length; i++) {
                 samples[i] = GetWorldPoint(i / (samples.Length - 1.0f));

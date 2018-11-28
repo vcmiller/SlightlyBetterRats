@@ -58,6 +58,10 @@ namespace SBR {
             }
         }
 
+        private void Reset() {
+            spline = GetComponent<Spline>();
+        }
+
         public void MarkDirty(bool update) {
             needsUpdate = true;
 
