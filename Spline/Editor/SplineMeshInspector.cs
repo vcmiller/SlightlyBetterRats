@@ -19,7 +19,7 @@ namespace SBR.Editor {
             }
 
             var mc = myTarget.GetComponent<MeshCollider>();
-            EditorGUI.BeginDisabledGroup(!mc || !myTarget.profile.separateCollisionMesh);
+            EditorGUI.BeginDisabledGroup(!mc || !myTarget.profile || !myTarget.profile.separateCollisionMesh);
             if (GUILayout.Button("Export Collision")) {
                 ExportMesh(mc.sharedMesh, myTarget.name + "_Collision");
             }
