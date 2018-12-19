@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -21,26 +22,24 @@ namespace SBR.Editor {
         }
 
         private bool ShouldDraw(SerializedProperty property) {
-            ConditionalAttribute attr = attribute as ConditionalAttribute;
-            var obj = property.serializedObject.targetObject;
+            SerializedProperty condProperty = null;
+            var attr = attribute as ConditionalAttribute;
+            
+            string propertyPath = property.propertyPath;
+            string conditionPath = propertyPath.Replace(property.name, attr.condition);
+            condProperty = property.serializedObject.FindProperty(conditionPath);
 
-            var func = obj.GetType().GetMethod(attr.condition);
-            var prop = obj.GetType().GetProperty(attr.condition);
-            var field = obj.GetType().GetField(attr.condition);
-
-            bool draw = true;
-
-            if (func != null) {
-                draw = (bool)func.Invoke(obj, null);
-            } else if (prop != null) {
-                draw = (bool)prop.GetValue(obj, null);
-            } else if (field != null) {
-                draw = (bool)field.GetValue(obj);
-            } else {
-                Debug.LogError(string.Format("Could not find method, property, or field {0} on type {1}.", attr.condition, obj.GetType()));
+            if (condProperty == null) {
+                condProperty = property.serializedObject.FindProperty(attr.condition);
             }
 
-            return draw;
+            if (condProperty == null) {
+                Debug.LogError("Could not find property " + attr.condition + " on object " + property.serializedObject.targetObject);
+                return true;
+            } else {
+                var value = condProperty.GetValue();
+                return (Equals(value, attr.value) == attr.isEqual);
+            }
         }
     }
 }

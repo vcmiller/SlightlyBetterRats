@@ -23,6 +23,7 @@ namespace SBR {
         public float playCooldown = 0;
 
         [Tooltip("ID to use for cooldowns. Instances with the same ID share the same cooldown. If empty, cooldown is specific to this instance.")]
+        [Conditional("playCooldown", 0.0f, false)]
         public string cooldownId;
 
         private CooldownTimer playTimer;

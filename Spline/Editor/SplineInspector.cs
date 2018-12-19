@@ -36,6 +36,10 @@ namespace SBR.Editor {
             if (pointList.index >= pointList.count)
                 pointList.index = pointList.count - 1;
 
+            if (GUILayout.Button("Force Update")) {
+                spline.OnChanged(true);
+            }
+
             // Ordinary properties
             if (excludeFields == null) {
                 excludeFields = new string[] {
@@ -48,7 +52,12 @@ namespace SBR.Editor {
             DrawPropertiesExcluding(serializedObject, excludeFields);
             serializedObject.ApplyModifiedProperties();
 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("spline.closed"));
+            bool closed = spline.spline.closed;
+            spline.spline.closed = EditorGUILayout.Toggle("Closed", spline.spline.closed);
+            if (closed != spline.spline.closed) {
+                spline.OnChanged(true);
+                SceneView.lastActiveSceneView.Repaint();
+            }
 
             GUILayout.Label(new GUIContent("Selected Waypoint:"));
             EditorGUILayout.BeginVertical(GUI.skin.box);

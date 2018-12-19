@@ -7,8 +7,7 @@ public class TextureAnimation : MonoBehaviour {
     public Vector2 scaleRate;
     public Vector2 offsetRate;
     public Texture2D[] textures;
-
-    [Conditional("HasTextureAnimation")]
+    
     public int framerate = 10;
 
     private Material material;

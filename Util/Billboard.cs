@@ -7,7 +7,7 @@ namespace SBR {
         public Mode mode;
         public TargetMode targetMode;
 
-        [Conditional("UseTargetObject")]
+        [Conditional("targetMode", TargetMode.TargetObject, true)]
         public Transform targetObject;
         
         void LateUpdate() {
@@ -27,10 +27,6 @@ namespace SBR {
                 Vector3 fwd = Vector3.Cross(right, Vector3.up).normalized;
                 transform.rotation = Quaternion.LookRotation(fwd);
             }
-        }
-
-        public bool UseTargetObject() {
-            return targetMode == TargetMode.TargetObject;
         }
 
         public enum Mode {
