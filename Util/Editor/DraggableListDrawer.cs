@@ -14,7 +14,7 @@ namespace SBR.Editor {
             if (property.isExpanded) {
                 return GetList(property).GetHeight();
             } else {
-                return 10;
+                return 16;
             }
         }
 

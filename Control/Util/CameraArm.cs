@@ -27,7 +27,7 @@ namespace SBR {
             cam = GetComponentInChildren<Camera>();
         }
 
-        private void LateUpdate() {
+        private void UpdateCamera() {
             if (channels != null) {
                 Vector3 v = transform.eulerAngles;
                 Vector3 r = rot.eulerAngles;
@@ -64,6 +64,7 @@ namespace SBR {
 
         public override void TakeInput() {
             rot = channels.rotation;
+            UpdateCamera();
         }
     }
 }

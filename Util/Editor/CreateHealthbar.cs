@@ -41,7 +41,7 @@ namespace SBR.Editor {
 
             GameObject healthFill = new GameObject("Fill");
             RectTransform fillRect = healthFill.AddComponent<RectTransform>();
-            fillRect.SetParent(healthRect);
+            fillRect.SetParent(healthRect, false);
             fillRect.anchorMin = Vector2.zero;
             fillRect.anchorMax = Vector2.one;
             fillRect.sizeDelta = Vector2.zero;

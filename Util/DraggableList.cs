@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#pragma warning disable 649
 namespace SBR {
     [Serializable]
     public class DraggableList<T> : DoNotUse.DraggableList, IEnumerable<T> {

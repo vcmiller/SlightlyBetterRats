@@ -26,7 +26,7 @@ namespace SBR {
 
         public bool canUse {
             get {
-                return curTime - lastUse > cooldown;
+                return curTime - lastUse >= cooldown;
             }
         }
 
@@ -41,8 +41,8 @@ namespace SBR {
         }
 
         public bool Use() {
-            if (curTime - lastUse > cooldown) {
-                lastUse = curTime;
+            if (canUse) {
+                Reset();
                 return true;
             } else {
                 return false;

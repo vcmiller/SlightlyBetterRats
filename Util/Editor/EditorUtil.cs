@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using System.Reflection;
 
-public static class EditorUtil
-{
+public static class EditorUtil {
+
     /// <summary>
     /// Get the value of a SerializedProperty of any type.
     /// Does not work for serializable objects or gradients.
@@ -67,5 +68,29 @@ public static class EditorUtil
             default:
                 return null;
         }
+    }
+
+    public static object FindValue(this SerializedProperty prop) {
+        return prop.FindValue<object>();
+    }
+
+    // From Unify Community Wiki
+    /// <summary>
+    /// Find the value of a given property using Reflection.
+    /// Won't work if an array is involved.
+    /// </summary>
+    /// <typeparam name="T">The type to cast the value to.</typeparam>
+    /// <param name="prop">The property to read</param>
+    /// <returns>The value of the property.</returns>
+    public static T FindValue<T>(this SerializedProperty prop) {
+        string[] separatedPaths = prop.propertyPath.Split('.');
+
+        object reflectionTarget = prop.serializedObject.targetObject as object;
+
+        foreach (var path in separatedPaths) {
+            FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path);
+            reflectionTarget = fieldInfo.GetValue(reflectionTarget);
+        }
+        return (T)reflectionTarget;
     }
 }
