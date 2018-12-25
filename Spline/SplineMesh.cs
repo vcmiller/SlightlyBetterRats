@@ -6,10 +6,21 @@ using UnityEditor;
 using UnityEngine;
 
 namespace SBR {
+    /// <summary>
+    /// Component that constructs a mesh by duplicating and deforming a sequence of base meshes along a spline.
+    /// Controlled by a SplineMeshProfile.
+    /// </summary>
     [ExecuteInEditMode]
     [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
     public class SplineMesh : MonoBehaviour {
+        /// <summary>
+        /// The spline that controls the shape.
+        /// </summary>
         public Spline spline;
+
+        /// <summary>
+        /// The profile that controls the base meshes.
+        /// </summary>
         public SplineMeshProfile profile;
 
         private Mesh ownedMesh;
@@ -61,8 +72,8 @@ namespace SBR {
         private void Reset() {
             spline = GetComponent<Spline>();
         }
-
-        public void MarkDirty(bool update) {
+        
+        private void MarkDirty(bool update) {
             needsUpdate = true;
 
             if (update) {
@@ -77,6 +88,9 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Rebuild the mesh.
+        /// </summary>
         public void UpdateMesh() {
             if (!this) {
                 subscribedProfile = null;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.Reflection;
+using System;
 
 public static class EditorUtil {
 
@@ -70,6 +71,11 @@ public static class EditorUtil {
         }
     }
 
+    /// <summary>
+    /// Try to find the value of a given property using reflection.
+    /// </summary>
+    /// <param name="prop">The property to read.</param>
+    /// <returns>The value of the property.</returns>
     public static object FindValue(this SerializedProperty prop) {
         return prop.FindValue<object>();
     }
@@ -77,7 +83,6 @@ public static class EditorUtil {
     // From Unify Community Wiki
     /// <summary>
     /// Find the value of a given property using Reflection.
-    /// Won't work if an array is involved.
     /// </summary>
     /// <typeparam name="T">The type to cast the value to.</typeparam>
     /// <param name="prop">The property to read</param>
@@ -87,9 +92,20 @@ public static class EditorUtil {
 
         object reflectionTarget = prop.serializedObject.targetObject as object;
 
-        foreach (var path in separatedPaths) {
-            FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path);
-            reflectionTarget = fieldInfo.GetValue(reflectionTarget);
+
+        for (int i = 0; i < separatedPaths.Length; i++) {
+            string path = separatedPaths[i];
+            if (path == "Array" && i < separatedPaths.Length - 1 && separatedPaths[i + 1].StartsWith("data[")) {
+                continue;
+            } else if (path.StartsWith("data[")) {
+                Array array = (Array)reflectionTarget;
+                int len = "data[".Length;
+                int index = int.Parse(path.Substring(len, path.LastIndexOf("]") - len));
+                reflectionTarget = array.GetValue(index);
+            } else {
+                FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path);
+                reflectionTarget = fieldInfo.GetValue(reflectionTarget);
+            }
         }
         return (T)reflectionTarget;
     }

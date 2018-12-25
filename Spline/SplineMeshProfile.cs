@@ -1,19 +1,36 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace SBR {
+    /// <summary>
+    /// An asset used to control the appearance of a SplineMesh.
+    /// </summary>
     [CreateAssetMenu(fileName = "NewProfile", menuName = "Spline Mesh Profile")]
     public class SplineMeshProfile : ScriptableObject {
+        /// <summary>
+        /// Invoked when the profile changes and thus the mesh needs to update.
+        /// </summary>
         public event Action<bool> PropertyChanged;
 
+        /// <summary>
+        /// Whether to build a separate mesh for the collision, or just use the render mesh.
+        /// </summary>
         [Tooltip("Whether to build a separate mesh for the collision, or just use the render mesh.")]
         public bool separateCollisionMesh;
 
+        /// <summary>
+        /// Whether to separate all materials in the MeshRenderer, or combine them all into one material slot.
+        /// </summary>
         [Tooltip("Whether to separate all materials in the MeshRenderer, or combine them all into one material slot.")]
         public bool keepSeparateMaterials;
+
+        /// <summary>
+        /// The sequence of meshes that is repeated along the spline.
+        /// </summary>
+        [Tooltip("The sequence of meshes that is repeated along the spline.")]
+        public MeshInfo[] meshes = new MeshInfo[0];
 
         private int[] submeshStartIndices;
 
@@ -31,35 +48,82 @@ namespace SBR {
             NoRotation
         }
 
-        [System.Serializable]
+        /// <summary>
+        /// A single mesh in the sequence.
+        /// </summary>
+        [Serializable]
         public class MeshInfo {
+            /// <summary>
+            /// Mesh used to create render mesh. Also used for collision if separateCollisionMesh is false.
+            /// </summary>
+            [Tooltip("Mesh used to create render mesh. Also used for collision if separateCollisionMesh is false.")]
             public Mesh render;
+
+            /// <summary>
+            /// Mesh used for collision if separateCollisionMesh is true.
+            /// </summary>
+            [Tooltip("Mesh used for collision if separateCollisionMesh is true.")]
             public Mesh collision;
+
+            /// <summary>
+            /// Number of times to repeat the mesh before moving to the next.
+            /// </summary>
+            [Tooltip("Number of times to repeat the mesh before moving to the next.")]
             public int repeat = 1;
+
+            /// <summary>
+            /// How the mesh is stretched along the spline in order to perfectly reach the end.
+            /// </summary>
+            [Tooltip("How the mesh is stretched along the spline in order to perfectly reach the end.")]
+            [MultiEnum]
             public StretchMode stretchMode = StretchMode.Nothing;
+
+            /// <summary>
+            /// How the mesh is aligned and deformed along the spline.
+            /// </summary>
+            [Tooltip("How the mesh is aligned and deformed along the spline.")]
             public AlignMode alignMode = AlignMode.Deform;
+
+            /// <summary>
+            /// Empty space before each occurance of the mesh.
+            /// </summary>
+            [Tooltip("Empty space before each occurance of the mesh.")]
             public float gapBefore;
+
+            /// <summary>
+            /// Empty space after each occurance of the mesh.
+            /// </summary>
+            [Tooltip("Empty space after each occurance of the mesh.")]
             public float gapAfter;
 
+            /// <summary>
+            /// Length of the mesh along the spline.
+            /// </summary>
             public float meshLength { get { return render != null ? render.bounds.size.z : 0; } }
+
+            /// <summary>
+            /// Length of the gaps along the spline.
+            /// </summary>
             public float gapLength { get { return gapBefore + gapAfter; } }
+
+            /// <summary>
+            /// Length of mesh + gaps along the spline.
+            /// </summary>
             public float totalLength { get { return meshLength + gapLength; } }
         }
 
-        public MeshInfo[] meshes = new MeshInfo[0];
-
-        void OnValidate() {
+        private void OnValidate() {
             if (!Application.isPlaying) {
-                OnChanged(false);
+                PropertyChanged?.Invoke(false);
             }
         }
 
-        public void OnChanged(bool update) {
-            if (PropertyChanged != null) {
-                PropertyChanged(update);
-            }
-        }
-
+        /// <summary>
+        /// Create or update the rendering and collision mesh, and return them in out parameters.
+        /// </summary>
+        /// <param name="spline">The spline to align to.</param>
+        /// <param name="mesh">The resulting render mesh.</param>
+        /// <param name="collisionMesh">The resulting collision mesh.</param>
         public virtual void CreateMeshes(SplineData spline, out Mesh mesh, out Mesh collisionMesh) {
             if (meshes.Length == 0) {
                 Debug.LogError("SplineMeshProfile needs at least one mesh!");
@@ -132,6 +196,10 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Get the number of submeshes that are used in the render mesh.
+        /// </summary>
+        /// <returns>The number of submeshes.</returns>
         public int GetSubmeshCount() {
             if (keepSeparateMaterials) {
                 int submeshCount = 0;

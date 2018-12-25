@@ -5,8 +5,16 @@ using UnityEngine;
 // Some code in this class is adapted from Cinemachine
 
 namespace SBR {
+    /// <summary>
+    /// Class for storing the data of a spline and performing spline calculations.
+    /// This does not give you a nice editor. If you want a GameObject contains a spline,
+    /// use the Spline component instead.
+    /// </summary>
     [System.Serializable]
     public class SplineData {
+        /// <summary>
+        /// A control point on the spline.
+        /// </summary>
         [System.Serializable]
         public class Point {
             public Vector3 position;
@@ -14,16 +22,33 @@ namespace SBR {
             public float roll;
         }
 
+        /// <summary>
+        /// Whether the spline is a circuit.
+        /// </summary>
         public bool closed;
 
+        /// <summary>
+        /// The points of the spline.
+        /// </summary>
         public Point[] points = new Point[0];
+
         private float[] samples = new float[100];
         private bool samplesDirty = true;
         private float _length;
 
+        /// <summary>
+        /// The minimum position on the spline (always 0).
+        /// </summary>
         public float min { get { return 0; } }
+
+        /// <summary>
+        /// The maximum non-normalized position on the spline.
+        /// </summary>
         public float max { get { return Mathf.Max(0, closed ? points.Length : points.Length - 1); } }
 
+        /// <summary>
+        /// Number of samples for spline calculations.
+        /// </summary>
         public int sampleCount {
             get { return samples.Length; }
             set {
@@ -34,6 +59,9 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Non-normalized length of the spline.
+        /// </summary>
         public float length {
             get {
                 RefreshSamples();
@@ -41,6 +69,9 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Invalidate calculated samples so they are recalculated later.
+        /// </summary>
         public void InvalidateSamples() {
             samplesDirty = true;
         }
@@ -114,6 +145,11 @@ namespace SBR {
             return pos;
         }
         
+        /// <summary>
+        /// Get the rotation of a control point.
+        /// </summary>
+        /// <param name="index">The control point.</param>
+        /// <returns>The rotation of the control point.</returns>
         public Quaternion GetPointRotation(int index) {
             Quaternion q = Quaternion.identity;
 
@@ -129,6 +165,11 @@ namespace SBR {
             return q;
         }
 
+        /// <summary>
+        /// Get a point along the spline. Position will change at different rates at different parts of the spline.
+        /// </summary>
+        /// <param name="pos">The non-uniform position in range [0, 1].</param>
+        /// <returns>The point on the spline.</returns>
         public Vector3 GetPointNonUniform(float pos) {
             if (points.Length == 0)
                 return Vector3.zero;
@@ -150,10 +191,20 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Get a point along the spline.
+        /// </summary>
+        /// <param name="pos">The position in range [0, 1].</param>
+        /// <returns>The point on the spline.</returns>
         public Vector3 GetPoint(float pos) {
             return GetPointNonUniform(ToNonUniform(pos));
         }
 
+        /// <summary>
+        /// Get a tangent along the spline. Position will change at different rates at different parts of the spline.
+        /// </summary>
+        /// <param name="pos">The non-uniform position in range [0, 1].</param>
+        /// <returns>The tangent on the spline.</returns>
         public Vector3 GetTangentNonUniform(float pos) {
             if (points.Length == 0)
                 return Vector3.forward;
@@ -175,10 +226,20 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Get a tangent along the spline.
+        /// </summary>
+        /// <param name="pos">The position in range [0, 1].</param>
+        /// <returns>The tangent on the spline.</returns>
         public Vector3 GetTangent(float pos) {
             return GetTangentNonUniform(ToNonUniform(pos));
         }
 
+        /// <summary>
+        /// Get a roll along the spline. Position will change at different rates at different parts of the spline.
+        /// </summary>
+        /// <param name="pos">The non-uniform position in range [0, 1].</param>
+        /// <returns>The roll on the spline.</returns>
         public float GetRollNonUniform(float pos) {
             if (points.Length == 0) {
                 return 0;
@@ -199,10 +260,20 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Get a roll along the spline.
+        /// </summary>
+        /// <param name="pos">The position in range [0, 1].</param>
+        /// <returns>The roll on the spline.</returns>
         public float GetRoll(float pos) {
             return GetRollNonUniform(ToNonUniform(pos));
         }
 
+        /// <summary>
+        /// Get a rotation along the spline. Position will change at different rates at different parts of the spline.
+        /// </summary>
+        /// <param name="pos">The non-uniform position in range [0, 1].</param>
+        /// <returns>The rotation on the spline.</returns>
         public Quaternion GetRotationNonUniform(float pos) {
             if (points.Length == 0) {
                 return Quaternion.identity;
@@ -222,6 +293,11 @@ namespace SBR {
             }
         }
 
+        /// <summary>
+        /// Get a rotation along the spline.
+        /// </summary>
+        /// <param name="pos">The position in range [0, 1].</param>
+        /// <returns>The rotation on the spline.</returns>
         public Quaternion GetRotation(float pos) {
             return GetRotationNonUniform(ToNonUniform(pos));
         }

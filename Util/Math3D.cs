@@ -1,7 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using UnityEngine;
 
 namespace SBR {
     // This is from Unify community wiki. I did not write these functions. I've included them for convenience and because I use them at some places.
@@ -19,15 +18,14 @@ namespace SBR {
         private static int rotationSamplesTaken = 0;
 
         public static void Init() {
-
             tempChild = (new GameObject("Math3d_TempChild")).transform;
             tempParent = (new GameObject("Math3d_TempParent")).transform;
 
             tempChild.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            MonoBehaviour.DontDestroyOnLoad(tempChild.gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(tempChild.gameObject);
 
             tempParent.gameObject.hideFlags = HideFlags.HideAndDontSave;
-            MonoBehaviour.DontDestroyOnLoad(tempParent.gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(tempParent.gameObject);
 
             //set the parent
             tempChild.parent = tempParent;

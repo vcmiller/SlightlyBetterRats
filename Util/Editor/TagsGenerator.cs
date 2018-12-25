@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System;
+using UnityEngine;
 
 namespace SBR.Editor {
     [InitializeOnLoad]

@@ -51,16 +51,10 @@ namespace SBR.Editor {
             
             EditorGUI.LabelField(new Rect(rect.x, rect.y + l + 4, labelWidth, l), 
                 new GUIContent("Stretch", "How (if at all) the mesh is allowed to stretch in order to completely fill the spline."));
-            var sm = (SplineMeshProfile.StretchMode)
-                EditorGUI.EnumFlagsField(new Rect(rect.x + labelWidth, rect.y + l + 4, colWidth, l),
-                profile.meshes[index].stretchMode);
-
-            if (sm != profile.meshes[index].stretchMode) {
-                Undo.RecordObject(profile, "Edit Stretch Mode");
-                profile.meshes[index].stretchMode = sm;
-                profile.OnChanged(true);
-            }
-
+            EditorGUI.PropertyField(
+                new Rect(rect.x + labelWidth, rect.y + l + 4, colWidth, l),
+                element.FindPropertyRelative("stretchMode"), GUIContent.none);
+            
             EditorGUI.LabelField(new Rect(rect.x + labelWidth + colWidth + colSpacing, rect.y + l + 4, labelWidth, l), 
                 new GUIContent("Repeats", "How many times to repeat the mesh each cycle. Values <= 0 are ignored."));
             EditorGUI.PropertyField(

@@ -37,7 +37,7 @@ namespace SBR.Editor {
                 Debug.LogError("Could not find property " + attr.condition + " on object " + property.serializedObject.targetObject);
                 return true;
             } else {
-                var value = condProperty.GetValue();
+                var value = condProperty.FindValue();
                 return (Equals(value, attr.value) == attr.isEqual);
             }
         }
