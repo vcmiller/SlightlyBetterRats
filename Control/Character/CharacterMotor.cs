@@ -326,7 +326,7 @@ namespace SBR {
             }
         }
 
-        protected override void PostOutput() {
+        protected override void PostOutput(CharacterChannels channels) {
             UpdateGrounded();
 
             if (!enableInput) {

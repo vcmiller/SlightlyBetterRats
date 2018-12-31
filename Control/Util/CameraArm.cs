@@ -86,8 +86,7 @@ namespace SBR {
             rot = c.rotation;
         }
 
-        protected override void PostOutput() {
-            base.PostOutput();
+        protected override void PostOutput(CharacterChannels c) {
             UpdateCamera();
         }
     }

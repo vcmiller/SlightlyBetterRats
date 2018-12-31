@@ -28,10 +28,10 @@ public class CharacterChannels : SBR.Channels {
     }
 
 
-    public override void ClearInput() {
+    public override void ClearInput(bool force = false) {
         _movement = new Vector3(0f, 0f, 0f);
-        _rotation = new Quaternion(0f, 0f, 0f, 1f);
-        _jump = false;
+        if (force) _rotation = new Quaternion(0f, 0f, 0f, 1f);
+        if (force) _jump = false;
 
     }
 }

@@ -14,7 +14,7 @@ using SBR;
 public class {0} : {1} {{
 {2}
 
-    public override void ClearInput() {{
+    public override void ClearInput(bool force = false) {{
 {3}
     }}
 }}
@@ -31,6 +31,8 @@ public class {0} : {1} {{
 ";
 
         private static string clearTemplate = @"        _{0} = {1};
+";
+        private static string clearTemplateIf = @"        if (force) _{0} = {1};
 ";
 
         public static void GenerateClass(ChannelsDefinition def) {
@@ -53,7 +55,8 @@ public class {0} : {1} {{
         }
 
         private static string GetClear(ChannelsDefinition.Channel channel) {
-            return string.Format(clearTemplate, channel.name, GetChannelDefault(channel));
+            string template = channel.clears ? clearTemplate : clearTemplateIf;
+            return string.Format(template, channel.name, GetChannelDefault(channel));
         }
         
         private static string GetChannelDefault(ChannelsDefinition.Channel def) {

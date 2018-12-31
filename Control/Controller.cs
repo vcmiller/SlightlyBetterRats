@@ -17,7 +17,7 @@ namespace SBR {
         /// <summary>
         /// Invoked each frame after InputReceived.
         /// </summary>
-        event Action PostInputReceived;
+        event Action<T> PostInputReceived;
     }
 
     public abstract class Controller<T> : MonoBehaviour, IController<T> where T : Channels, new() {
@@ -26,6 +26,7 @@ namespace SBR {
         /// </summary>
         public T channels { get; private set; }
         private readonly HashSet<Action<T>> _inputReceived = new HashSet<Action<T>>();
+        private readonly HashSet<Action<T>> _postInputReceived = new HashSet<Action<T>>();
 
         /// <summary>
         /// Invoked each frame after Channels have been updated.
@@ -38,9 +39,12 @@ namespace SBR {
         /// <summary>
         /// Invoked each frame after InputReceived.
         /// </summary>
-        public event Action PostInputReceived;
+        public event Action<T> PostInputReceived {
+            add { _postInputReceived.Add(value); }
+            remove { _postInputReceived.Remove(value); }
+        }
 
-        protected virtual void Awake() {
+        public Controller() {
             channels = new T();
         }
 
@@ -57,10 +61,18 @@ namespace SBR {
 
             channels.ClearInput();
 
-            PostInputReceived?.Invoke();
+            foreach (var callback in _postInputReceived) {
+                callback(channels);
+            }
         }
 
         protected abstract void DoInput();
+    }
+
+    public static class ControllerExtensions {
+        public static Behaviour GetController(this GameObject obj) {
+            return obj.GetComponentInParent<DoNotUse.IController>() as Behaviour;
+        }
     }
 }
 

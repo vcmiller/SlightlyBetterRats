@@ -17,6 +17,12 @@ namespace SBR {
 
         private IController<T>[] controllers;
 
+        /// <summary>
+        /// The last Channels object passed to DoOutput.
+        /// This may be null! Use the passed-in object where possible.
+        /// </summary>
+        protected T lastChannels { get; private set; }
+
         protected virtual void Awake() {
             controllers = GetComponentsInParent<SBR.DoNotUse.IController>().OfType<IController<T>>().ToArray();
         }
@@ -36,6 +42,7 @@ namespace SBR {
         }
 
         private void ControllerInputReceived(T channels) {
+            lastChannels = channels;
             if (enableInput) {
                 try {
                     DoOutput(channels);
@@ -45,9 +52,9 @@ namespace SBR {
             }
         }
 
-        private void ControllerPostInputReceived() {
+        private void ControllerPostInputReceived(T channels) {
             try {
-                PostOutput();
+                PostOutput(channels);
             } catch (Exception ex) {
                 Debug.LogException(ex, this);
             }
@@ -64,6 +71,6 @@ namespace SBR {
         /// Called after DoOutput has been called on all Motors. Use this for post-input updates, such as rotating a third-person camera.
         /// This will still be called if enableInput is false.
         /// </summary>
-        protected virtual void PostOutput() { }
+        protected virtual void PostOutput(T channels) { }
     }
 }

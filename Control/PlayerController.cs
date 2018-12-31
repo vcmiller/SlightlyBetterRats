@@ -80,9 +80,7 @@ namespace SBR {
             }
         }
 
-        protected override void Awake() {
-            base.Awake();
-
+        protected virtual void Awake() {
             axes = new Dictionary<string, Action<float>>();
             buttonDown = new Dictionary<string, Action>();
             buttonUp = new Dictionary<string, Action>();
