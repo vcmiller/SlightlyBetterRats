@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using UnityEditor;
 using UnityEngine;
-using UnityEditor;
 
 namespace SBR.Editor {
     public static class CharacterCreator {
@@ -21,9 +19,7 @@ namespace SBR.Editor {
             var arrow = CreateArrow(true);
             arrow.transform.parent = charObj.transform;
             arrow.transform.localPosition = new Vector3(0, 0, 0);
-
-            Brain brain = charObj.AddComponent<Brain>();
-            brain.channelsType = "CharacterChannels";
+            
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
@@ -63,9 +59,7 @@ namespace SBR.Editor {
             var arrow = CreateArrow(false);
             arrow.transform.parent = charObj.transform;
             arrow.transform.localPosition = new Vector3(0, 0, 0);
-
-            Brain brain = charObj.AddComponent<Brain>();
-            brain.channelsType = "CharacterChannels";
+            
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
@@ -102,9 +96,7 @@ namespace SBR.Editor {
             Rigidbody2D rb = charObj.AddComponent<Rigidbody2D>();
             rb.gravityScale = 0;
             rb.constraints |= RigidbodyConstraints2D.FreezeRotation;
-
-            Brain brain = charObj.AddComponent<Brain>();
-            brain.channelsType = "CharacterChannels";
+            
             charObj.AddComponent<BasicCharacterController2D>().grabMouse = false;
 
             charObj.AddComponent<CharacterMotor2D>();

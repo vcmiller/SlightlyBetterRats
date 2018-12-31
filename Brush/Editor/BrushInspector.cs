@@ -1,8 +1,7 @@
-﻿using System.Collections;
+﻿using SBR.Geometry;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
-using SBR.Geometry;
+using UnityEngine;
 
 namespace SBR.Editor {
     [CustomEditor(typeof(Brush))]

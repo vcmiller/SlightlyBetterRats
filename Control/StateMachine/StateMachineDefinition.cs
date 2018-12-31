@@ -2,22 +2,61 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Text.RegularExpressions;
 
 namespace SBR {
     [CreateAssetMenu(menuName = "State Machine Definition")]
     public class StateMachineDefinition : ScriptableObject {
         [Serializable]
         public class State {
+            /// <summary>
+            /// Name of the state. Must be a valid variable name.
+            /// </summary>
+            [Tooltip("Name of the state. Must be a valid variable name.")]
             public string name;
+
+            /// <summary>
+            /// Parent state. Must be another state in this StateMachine.
+            /// </summary>
+            [StateSelect]
+            [Tooltip("Parent state name.")]
             public string parent;
 
+            /// <summary>
+            /// Whether the state receives a callback when it is entered.
+            /// </summary>
+            [Tooltip("Whether the state receives a callback when it is entered.")]
             public bool hasEnter = false;
+
+            /// <summary>
+            /// Whether the state receives a callback every frame while it is active.
+            /// </summary>
+            [Tooltip("Whether the state receives a callback every frame while it is active.")]
             public bool hasDuring = true;
+
+            /// <summary>
+            /// Whether the state receives a callback when it is exited.
+            /// </summary>
+            [Tooltip("Whether the state receives a callback when it is exited.")]
             public bool hasExit = false;
 
+            /// <summary>
+            /// Transitions to other states.
+            /// </summary>
+            [Tooltip("Transitions to other states.")]
             public List<Transition> transitions;
             
+            /// <summary>
+            /// Whether the state is a sub state machine, and thus allowed to have children.
+            /// </summary>
+            [Tooltip("Whether the state is a sub state machine, and thus allowed to have children.")]
             public bool hasChildren;
+
+            /// <summary>
+            /// Default state of the local sub state machine.
+            /// </summary>
+            [StateSelect]
+            [Tooltip("Default state of the local sub state machine.")]
             public string localDefault;
 
             [HideInInspector]
@@ -26,17 +65,8 @@ namespace SBR {
             [HideInInspector]
             public Vector2 size = new Vector2(192, 48);
 
-            public Rect rect {
-                get {
-                    return new Rect(position, size);
-                }
-            }
-
-            public Vector2 center {
-                get {
-                    return position + size / 2;
-                }
-            }
+            public Rect rect => new Rect(position, size);
+            public Vector2 center => position + size / 2;
 
             public Transition GetTransition(State target) {
                 if (transitions == null) {
@@ -79,29 +109,92 @@ namespace SBR {
 
         [Serializable]
         public class Transition {
+            /// <summary>
+            /// Which state the transition leads to.
+            /// </summary>
+            [StateSelect]
+            [Tooltip("Which state the transition leads to.")]
             public string to;
+
+            /// <summary>
+            /// Whether the transition receives a callback when it is taken.
+            /// </summary>
+            [Tooltip("Whether the transition receives a callback when it is taken.")]
             public bool hasNotify = false;
 
-            [Tooltip("Time after which the transition is exited.")]
-            public float exitTime = 0.0f;
-
+            /// <summary>
+            /// Whether the transition is controlled by time or a condition function.
+            /// </summary>
             [Tooltip("Whether the transition is controlled by time or a condition function.")]
             public TransitionMode mode = TransitionMode.ConditionOnly;
 
-            public int width {
-                get {
-                    return 2;
-                }
-            }
+            /// <summary>
+            /// Time after which the transition is exited.
+            /// </summary>
+            [Conditional("mode", TransitionMode.ConditionOnly, false)]
+            [Tooltip("Time after which the transition is exited.")]
+            public float exitTime = 0.0f;
+
+            public int width => 2;
         }
 
         public enum TransitionMode {
             ConditionOnly, TimeOnly, TimeAndCondition, TimeOrCondition
         }
 
+        /// <summary>
+        /// Default state of the StateMachine.
+        /// </summary>
+        [StateSelect]
+        [Tooltip("Default state of the StateMachine.")]
         public string defaultState;
+
+        /// <summary>
+        /// All states of the StateMachine.
+        /// </summary>
+        [Tooltip("All states of the StateMachine.")]
         public List<State> states;
-        public string baseClass;
+
+        [TypeSelect(typeof(StateMachines.IStateMachine), true, true)]
+        public string baseClass = "SBR.StateMachines.StateMachine`1";
+
+        public void OnValidate() {
+            if (defaultState != "" && GetState(defaultState) == null) {
+                defaultState = "";
+            }
+
+            HashSet<string> names = new HashSet<string>();
+            foreach (var state in states) {
+                state.name = Regex.Replace(state.name, "[^_a-zA-Z0-9]", "");
+                string s = state.name;
+                int dup = 1;
+                while (!names.Add(state.name)) {
+                    state.name = s + "_" + dup++;
+                }
+
+                if (state.parent != "") {
+                    var parent = GetState(state.parent);
+                    if (parent == null) {
+                        state.parent = "";
+                    } else {
+                        parent.hasChildren = true;
+                    }
+                }
+
+                if (state.localDefault != "") {
+                    var localDefault = GetState(state.localDefault);
+                    if (localDefault == null) {
+                        state.localDefault = "";
+                    }
+                }
+
+                foreach (var transition in state.transitions) {
+                    if (transition.to != "" && GetState(transition.to) == null) {
+                        transition.to = "";
+                    }
+                }
+            }
+        }
         
         public State GetState(string name) {
             if (name == null || name.Length == 0) {

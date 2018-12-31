@@ -1,50 +1,92 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using System;
 using System.Reflection;
-using UnityEngine.UI;
+using UnityEngine;
 
 namespace SBR {
-    public abstract class PlayerController : Controller {
-        private Dictionary<string, ButtonHandler> buttonDown;
-        private Dictionary<string, ButtonHandler> buttonUp;
-        private Dictionary<string, ButtonHandler> buttonHeld;
-        private Dictionary<string, AxisHandler> axes;
+    /// <summary>
+    /// Used to get input from a player using the Unity input system.
+    /// </summary>
+    /// <example>
+    /// To write your PlayerController, create methods in the following format.
+    /// These functions are called automatically.
+    /// <code>
+    /// public void Axis_Horizontal(float value) { }
+    /// public void Button_Fire1() { }
+    /// public void ButtonDown_Fire1() { }
+    /// public void ButtonUp_Fire1() { }
+    /// </code>
+    /// </example>
+    /// <typeparam name="T">The type of Channels to use.</typeparam>
+    public abstract class PlayerController<T> : Controller<T> where T : Channels, new() {
+        private Dictionary<string, Action> buttonDown;
+        private Dictionary<string, Action> buttonUp;
+        private Dictionary<string, Action> buttonHeld;
+        private Dictionary<string, Action<float>> axes;
 
+        /// <summary>
+        /// Suffix to apply to input axis/button names. 
+        /// </summary>
+        /// <remarks>
+        /// This can be used for local multiplayer games.
+        /// For example, there could be multiple characters using the same input code with suffixes set to _1 and _2.
+        /// They would then use movement axes Vertical_1/Horizontal_1 and Vertical_2/Horizontal_2 respectively.
+        /// </remarks>
+        [Tooltip("Suffix to apply to input axis/button names.")]
         public string inputSuffix;
+
+        /// <summary>
+        /// Whether to hide and confine the mouse cursor automatically.
+        /// </summary>
+        [Tooltip("Whether to hide and confine the mouse cursor automatically.")]
         public bool grabMouse = true;
 
-        private delegate void ButtonHandler();
-        private delegate void AxisHandler(float value);
+        /// <summary>
+        /// Whether invalid axis/button function names should be logged.
+        /// </summary>
+        [Tooltip("Whether invalid axis/button function names should be logged.")]
+        public bool logBadAxes = true;
 
+        /// <summary>
+        /// Whether to control the ViewTarget's enabled state (if true, don't control).
+        /// </summary>
+        [Tooltip("If true, don't control the ViewTarget's enabled state.")]
         public bool sharedViewTarget;
-        public ViewTarget initialViewTarget;
 
-        private ViewTarget curViewTarget;
+        /// <summary>
+        /// Initial ViewTarget to use for movement and view.
+        /// </summary>
+        [Tooltip("Initial ViewTarget to use for movement and view.")]
+        public ViewTarget initialViewTarget;
+        
+        private ViewTarget _viewTarget;
+
+        /// <summary>
+        /// ViewTarget to use for movement and view.
+        /// </summary>
         public ViewTarget viewTarget {
             get {
-                return curViewTarget;
+                return _viewTarget;
             }
 
             set {
-                if (curViewTarget && !sharedViewTarget) {
-                    curViewTarget.enabled = false;
+                if (_viewTarget && !sharedViewTarget) {
+                    _viewTarget.enabled = false;
                 }
-                curViewTarget = value;
-                if (curViewTarget && !sharedViewTarget) {
-                    curViewTarget.enabled = enabled;
+                _viewTarget = value;
+                if (_viewTarget && !sharedViewTarget) {
+                    _viewTarget.enabled = enabled;
                 }
             }
         }
 
-        public override void Initialize() {
-            base.Initialize();
+        protected override void Awake() {
+            base.Awake();
 
-            axes = new Dictionary<string, AxisHandler>();
-            buttonDown = new Dictionary<string, ButtonHandler>();
-            buttonUp = new Dictionary<string, ButtonHandler>();
-            buttonHeld = new Dictionary<string, ButtonHandler>();
+            axes = new Dictionary<string, Action<float>>();
+            buttonDown = new Dictionary<string, Action>();
+            buttonUp = new Dictionary<string, Action>();
+            buttonHeld = new Dictionary<string, Action>();
 
             if (initialViewTarget) {
                 viewTarget = initialViewTarget;
@@ -61,7 +103,7 @@ namespace SBR {
                         if (axes.ContainsKey(axis)) {
                             Debug.LogWarning("Waring: Duplicate event handler found for axis " + axis + ".");
                         } else {
-                            axes.Add(axis, (AxisHandler)Delegate.CreateDelegate(typeof(AxisHandler), this, m));
+                            axes.Add(axis, (Action<float>)Delegate.CreateDelegate(typeof(Action<float>), this, m));
                         }
                     } else {
                         Debug.LogWarning("Warning: Axis event handler " + m.Name + " should take one argument of type float.");
@@ -72,7 +114,7 @@ namespace SBR {
                         if (buttonHeld.ContainsKey(btn)) {
                             Debug.LogWarning("Waring: Duplicate event handler found for button " + btn + ".");
                         } else {
-                            buttonHeld.Add(btn, (ButtonHandler)Delegate.CreateDelegate(typeof(ButtonHandler), this, m));
+                            buttonHeld.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
                         }
                     } else {
                         Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
@@ -83,7 +125,7 @@ namespace SBR {
                         if (buttonUp.ContainsKey(btn)) {
                             Debug.LogWarning("Waring: Duplicate event handler found for button up " + btn + ".");
                         } else {
-                            buttonUp.Add(btn, (ButtonHandler)Delegate.CreateDelegate(typeof(ButtonHandler), this, m));
+                            buttonUp.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
                         }
                     } else {
                         Debug.LogWarning("Warning: ButtonUp event handler " + m.Name + " should take no arguments.");
@@ -94,7 +136,7 @@ namespace SBR {
                         if (buttonDown.ContainsKey(btn)) {
                             Debug.LogWarning("Waring: Duplicate event handler found for button down " + btn + ".");
                         } else {
-                            buttonDown.Add(btn, (ButtonHandler)Delegate.CreateDelegate(typeof(ButtonHandler), this, m));
+                            buttonDown.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
                         }
                     } else {
                         Debug.LogWarning("Warning: ButtonDown event handler " + m.Name + " should take no arguments.");
@@ -103,39 +145,51 @@ namespace SBR {
             }
         }
 
-        public override void GetInput() {
+        protected override void DoInput() {
             if (enabled) {
-                if (grabMouse) {
-                    Cursor.lockState = CursorLockMode.Locked;
-                }
-
                 foreach (var m in axes) {
-                    m.Value(Input.GetAxis(m.Key + inputSuffix));
+                    try {
+                        m.Value(Input.GetAxis(m.Key + inputSuffix));
+                    } catch (UnityException ex) {
+                        if (logBadAxes) Debug.LogException(ex, this);
+                    }
                 }
 
                 foreach (var m in buttonDown) {
-                    if (Input.GetButtonDown(m.Key + inputSuffix)) {
-                        m.Value();
+                    try {
+                        if (Input.GetButtonDown(m.Key + inputSuffix)) {
+                            m.Value();
+                        }
+                    } catch (UnityException ex) {
+                        if (logBadAxes) Debug.LogException(ex, this);
                     }
                 }
 
                 foreach (var m in buttonHeld) {
-                    if (Input.GetButton(m.Key + inputSuffix)) {
-                        m.Value();
+                    try {
+                        if (Input.GetButton(m.Key + inputSuffix)) {
+                            m.Value();
+                        }
+                    } catch (UnityException ex) {
+                        if (logBadAxes) Debug.LogException(ex, this);
                     }
                 }
 
                 foreach (var m in buttonUp) {
-                    if (Input.GetButtonUp(m.Key + inputSuffix)) {
-                        m.Value();
+                    try {
+                        if (Input.GetButtonUp(m.Key + inputSuffix)) {
+                            m.Value();
+                        }
+                    } catch (UnityException ex) {
+                        if (logBadAxes) Debug.LogException(ex, this);
                     }
                 }
             }
         }
 
         protected virtual void OnDisable() {
-            if (curViewTarget && !sharedViewTarget) {
-                curViewTarget.enabled = false;
+            if (_viewTarget && !sharedViewTarget) {
+                _viewTarget.enabled = false;
             }
 
             if (grabMouse) {
@@ -144,18 +198,13 @@ namespace SBR {
         }
 
         protected virtual void OnEnable() {
-            if (curViewTarget && !sharedViewTarget) {
-                curViewTarget.enabled = true;
+            if (grabMouse) {
+                Cursor.lockState = CursorLockMode.Locked;
             }
-        }
-    }
 
-    public abstract class PlayerController<T> : PlayerController where T : Channels {
-        public new T channels { get; private set; }
-
-        public override void Initialize() {
-            base.Initialize();
-            channels = base.channels as T;
+            if (_viewTarget && !sharedViewTarget) {
+                _viewTarget.enabled = true;
+            }
         }
     }
 }

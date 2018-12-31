@@ -1,9 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using SBR.StateMachines;
 using System;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace SBR.Editor {
     public class StateMachineEditorWindow : EditorWindow {
@@ -16,13 +15,15 @@ namespace SBR.Editor {
         private readonly Color panelColor = new Color32(194, 194, 194, 255);
         private const float editorWindowTabHeight = 21.0f;
         
-        private StateMachine observing;
+        private IStateMachine observing;
 
         [NonSerialized]
         private bool showSide = true;
 
         [NonSerialized]
         private string[] types;
+        [NonSerialized]
+        private string[] displayTypes;
         
         public static StateMachineDefinition def;
 
@@ -323,11 +324,7 @@ namespace SBR.Editor {
                 if (Application.isPlaying) {
                     if (observing == null || observing.gameObject != Selection.activeGameObject) {
                         if (Selection.activeGameObject) {
-                            observing = Selection.activeGameObject.GetComponent<StateMachine>();
-                        }
-
-                        if (observing == null) {
-                            observing = (StateMachine)FindObjectOfType(typeof(StateMachine).Assembly.GetType(def.name));
+                            observing = Selection.activeGameObject.GetComponent<IStateMachine>();
                         }
                     }
                 } else if (!Application.isPlaying) {
@@ -352,7 +349,7 @@ namespace SBR.Editor {
 
                             GUI.SetNextControlName("StateButton");
                             
-                            if (observing && cur.type == EventType.Repaint) {
+                            if (observing != null && cur.type == EventType.Repaint) {
                                 if (observing.IsStateActive(state.name)) {
                                     GUI.color = new Color(0.5f, 0.7f, 1.0f);
                                 } else if (observing.IsStateRemembered(state.name)) {
@@ -421,7 +418,7 @@ namespace SBR.Editor {
                             foreach (var tr in from.transitions) {
                                 if (Application.isPlaying) {
                                     Handles.color = Color.black;
-                                    if (observing) {
+                                    if (observing != null) {
                                         float t = Time.unscaledTime - observing.TransitionLastTime(from.name, tr.to);
                                         if (t < 0.5f) {
                                             Handles.color = Color.Lerp(Color.black, Color.green, 1.0f - t * 2);
@@ -526,20 +523,30 @@ namespace SBR.Editor {
                 }
 
                 if (types == null) {
-                    types = typeof(StateMachine).Assembly.GetTypes()
-                        .Where(p => !p.IsGenericType && typeof(StateMachine).IsAssignableFrom(p))
+                    types = typeof(IStateMachine).Assembly.GetTypes()
+                        .Where(p => !p.IsInterface && typeof(IStateMachine).IsAssignableFrom(p))
                         .Select(t => t.FullName).ToArray();
+                }
+
+                if (displayTypes == null) {
+                    displayTypes = types.Select(s => {
+                        int i = s.LastIndexOf('.');
+                        if (i >= 0 && i < s.Length - 1) {
+                            s = s.Substring(i + 1);
+                        }
+                        return s;
+                    }).ToArray();
                 }
 
                 int index = Array.IndexOf(types, def.baseClass);
                 if (index < 0) {
-                    index = Array.IndexOf(types, typeof(StateMachine).FullName);
+                    index = Array.IndexOf(types, typeof(StateMachine<>).FullName);
                 }
                 int prev = index;
 
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Base Class");
-                index = EditorGUILayout.Popup(index, types);
+                index = EditorGUILayout.Popup(index, displayTypes);
 
                 if (prev != index) {
                     dirty = true;

@@ -1,29 +1,69 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 
 namespace SBR {
-    public abstract class Motor : MonoBehaviour {
-        public bool enableInput { get; set; }
+    /// <summary>
+    /// An output component that takes input from enabled Controllers on this or parent GameObjects.
+    /// Will only take input from compatible Controllers.
+    /// (Controllers whose channels type is assignable to the Motor's channels type).
+    /// </summary>
+    /// <typeparam name="T">The channels type.</typeparam>
+    public abstract class Motor<T> : MonoBehaviour where T : Channels, new() {
+        /// <summary>
+        /// Allows enabling/disabling DoOutput callback without disabling the entire Component.
+        /// </summary>
+        public bool enableInput { get; set; } = true;
 
-        protected virtual void Start() {
-            enableInput = true;
+        private IController<T>[] controllers;
+
+        protected virtual void Awake() {
+            controllers = GetComponentsInParent<SBR.DoNotUse.IController>().OfType<IController<T>>().ToArray();
         }
 
-        public abstract void TakeInput();
-
-        public virtual void UpdateAfterInput() { }
-    }
-
-    public abstract class Motor<T> : Motor where T : Channels {
-        public T channels { get; private set; }
-
-        protected override void Start() {
-            base.Start();
-            Brain b = GetComponentInParent<Brain>();
-            if (b) {
-                channels = b.channels as T;
+        protected virtual void OnEnable() {
+            foreach (var ctrl in controllers) {
+                ctrl.InputReceived += ControllerInputReceived;
+                ctrl.PostInputReceived += ControllerPostInputReceived;
             }
         }
+
+        protected virtual void OnDisable() {
+            foreach (var ctrl in controllers) {
+                ctrl.InputReceived -= ControllerInputReceived;
+                ctrl.PostInputReceived -= ControllerPostInputReceived;
+            }
+        }
+
+        private void ControllerInputReceived(T channels) {
+            if (enableInput) {
+                try {
+                    DoOutput(channels);
+                } catch (Exception ex) {
+                    Debug.LogException(ex, this);
+                }
+            }
+        }
+
+        private void ControllerPostInputReceived() {
+            try {
+                PostOutput();
+            } catch (Exception ex) {
+                Debug.LogException(ex, this);
+            }
+        }
+
+        /// <summary>
+        /// Called after receiving input from the Controller. Use this to read any input information.
+        /// This will only be called if enableInput is true.
+        /// </summary>
+        /// <param name="channels">Channels carrying input information.</param>
+        protected abstract void DoOutput(T channels);
+
+        /// <summary>
+        /// Called after DoOutput has been called on all Motors. Use this for post-input updates, such as rotating a third-person camera.
+        /// This will still be called if enableInput is false.
+        /// </summary>
+        protected virtual void PostOutput() { }
     }
 }

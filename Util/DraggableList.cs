@@ -12,8 +12,10 @@ namespace SBR {
     /// <typeparam name="T"></typeparam>
     [Serializable]
     public class DraggableList<T> : DoNotUse.DraggableList, IEnumerable<T> {
-        [SerializeField]
-        private T[] items;
+        /// <summary>
+        /// Directly access the backing array.
+        /// </summary>
+        public T[] items;
 
         /// <summary>
         /// Get or set item at position in array.
@@ -31,14 +33,9 @@ namespace SBR {
         public int length { get { return items.Length; } }
 
         /// <summary>
-        /// A reference to the array used to store items.
-        /// </summary>
-        public T[] array { get { return items; } }
-
-        /// <summary>
         /// Get a copy of the items array.
         /// </summary>
-        public T[] arrayCopy { get { return (T[])items.Clone(); } }
+        public T[] itemsCopy { get { return (T[])items.Clone(); } }
 
         public IEnumerator<T> GetEnumerator() {
             return ((IEnumerable<T>)items).GetEnumerator();

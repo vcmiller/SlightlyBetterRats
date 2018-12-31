@@ -1,32 +1,32 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using SBR.StateMachines;
+using System;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace SBR.Editor {
     public static class StateMachineClassGenerator {
-        private static string implClassTemplate = @"using UnityEngine;
+        private static readonly string implClassTemplate = @"using UnityEngine;
 using SBR;
 using System.Collections.Generic;
 
-public class {0} : {1} {{
-{2}
+public class {0} {{
+{1}
 }}
 ";
 
-        private static string abstractClassTemplate = @"using UnityEngine;
-using SBR;
+        private static readonly string abstractClassTemplate = @"using SBR;
+using SBR.StateMachines;
 using System.Collections.Generic;
 
 #pragma warning disable 649
-public abstract class {0} : {5} {{
+public abstract class {5} {{
     public enum StateID {{
         {1}
     }}
 
-    new private class State : StateMachine.State {{
+    private class State : SBR.StateMachines.State {{
         public StateID id;
 
         public override string ToString() {{
@@ -52,22 +52,22 @@ public abstract class {0} : {5} {{
 
 {4}
 }}
+";
 
-public abstract class {0}<T> : {0} where T : Channels {{
-    public new T channels {{ get; private set; }}
-
-    public override void Initialize() {{
-        base.Initialize();
-        channels = base.channels as T;
-    }}
-}}
-#pragma warning restore 649
+        private static readonly string nl = @"
 ";
 
         public static void GenerateImplClass(StateMachineDefinition def, string path) {
-            string className = Path.GetFileNameWithoutExtension(path);
+            string newClassName = Path.GetFileNameWithoutExtension(path);
+            string abstractClassName = def.name;
+            Type baseType = GetType(def.baseClass);
+            if (baseType.ContainsGenericParameters) {
+                abstractClassName += "`1";
+            }
 
-            string generated = string.Format(implClassTemplate, className, def.name, GetFunctionDeclarations(def, true));
+            string classDeclaration = GetClassDeclaration(abstractClassName, newClassName);
+
+            string generated = string.Format(implClassTemplate, classDeclaration, GetFunctionDeclarations(def, true));
 
             StreamWriter outStream = new StreamWriter(path);
             outStream.Write(generated);
@@ -76,7 +76,8 @@ public abstract class {0}<T> : {0} where T : Channels {{
         }
 
         public static void GenerateAbstractClass(StateMachineDefinition def) {
-            string generated = string.Format(abstractClassTemplate, def.name, GetStateEnums(def), GetStateInitializers(def), GetTransitionInitializers(def), GetFunctionDeclarations(def), def.baseClass);
+            string classDeclaration = GetClassDeclaration(def.baseClass, def.name);
+            string generated = string.Format(abstractClassTemplate, def.name, GetStateEnums(def), GetStateInitializers(def), GetTransitionInitializers(def), GetFunctionDeclarations(def), classDeclaration);
 
             string defPath = AssetDatabase.GetAssetPath(def);
 
@@ -88,6 +89,31 @@ public abstract class {0}<T> : {0} where T : Channels {{
                 outStream.Close();
                 AssetDatabase.Refresh();
             }
+        }
+
+        private static Type GetType(string typeName) {
+            return typeof(StateMachine<>).Assembly.GetType(typeName);
+        }
+
+        private static string GetClassDeclaration(string baseClass, string className) {
+            Type type = GetType(baseClass);
+            if (type.ContainsGenericParameters) {
+                var args = type.GetGenericArguments();
+                if (args.Length > 1) {
+                    throw new UnityException("StateMachine base class may only have one type parameter.");
+                } else {
+                    className += "<T>";
+                    baseClass = baseClass.Substring(0, baseClass.IndexOf('`'));
+
+                    var param = args[0];
+                    var constraints = param.GetGenericParameterConstraints();
+                    if (constraints.Length > 0) {
+                        baseClass += "<T> where T : " + string.Join(", ", constraints.Select(c => c.FullName)) + ", new()";
+                    }
+                }
+            }
+
+            return className + " : " + baseClass;
         }
 
         private static string GetStateEnums(StateMachineDefinition def) {
@@ -105,15 +131,15 @@ public abstract class {0}<T> : {0} where T : Channels {{
         }
 
         public static string GetStateInitializers(StateMachineDefinition def) {
-            string str = "        allStates = new State[" + def.states.Count + "];\n\n";
+            string str = "        allStates = new State[" + def.states.Count + "];" + nl + nl;
             for (int i = 0; i < def.states.Count; i++) {
                 str += GetStateInitializer(def, i);
             }
 
             if (def.defaultState != null && def.defaultState.Length > 0 && def.GetState(def.defaultState) != null) {
-                str += "        rootMachine.defaultState = state" + def.defaultState + ";\n";
+                str += "        rootMachine.defaultState = state" + def.defaultState + ";" + nl;
             } else {
-                str += "        rootMachine.defaultState = allStates[0];\n";
+                str += "        rootMachine.defaultState = allStates[0];" + nl;
             }
 
             for (int i = 0; i < def.states.Count; i++) {
@@ -127,30 +153,30 @@ public abstract class {0}<T> : {0} where T : Channels {{
             var state = def.states[index];
             string variable = "state" + state.name;
 
-            string str = "        State " + variable + " = new State() {\n";
-            str += "            id = StateID." + state.name + ",\n";
+            string str = "        State " + variable + " = new State() {" + nl;
+            str += "            id = StateID." + state.name + "," + nl;
 
             if (state.hasEnter) {
-                str += "            enter = StateEnter_" + state.name + ",\n";
+                str += "            enter = StateEnter_" + state.name + "," + nl;
             }
 
             if (state.hasDuring) {
-                str += "            during = State_" + state.name + ",\n";
+                str += "            during = State_" + state.name + "," + nl;
             }
 
             if (state.hasExit) {
-                str += "            exit = StateExit_" + state.name + ",\n";
+                str += "            exit = StateExit_" + state.name + "," + nl;
             }
 
             if (state.hasChildren && def.GetChildren(state.name).Count > 0) {
-                str += "            subMachine = new SubStateMachine(),\n";
+                str += "            subMachine = new SubStateMachine()," + nl;
             }
 
-            str += "            transitions = new List<Transition>(" + (state.transitions == null ? 0 : state.transitions.Count) + ")\n";
-            str += "        };\n";
-            str += "        allStates[" + index + "] = " + variable + ";\n";
+            str += "            transitions = new List<Transition>(" + (state.transitions == null ? 0 : state.transitions.Count) + ")" + nl;
+            str += "        };" + nl;
+            str += "        allStates[" + index + "] = " + variable + ";" + nl;
 
-            str += "\n";
+            str += nl;
             return str;
         }
 
@@ -162,14 +188,14 @@ public abstract class {0}<T> : {0} where T : Channels {{
             if (p != null && p.Length > 0) {
                 var parent = def.GetState(p);
                 if (parent != null && parent.hasChildren) {
-                    str += "        state" + state.name + ".parent = state" + p + ";\n";
-                    str += "        state" + state.name + ".parentMachine = state" + p + ".subMachine;\n";
+                    str += "        state" + state.name + ".parent = state" + p + ";" + nl;
+                    str += "        state" + state.name + ".parentMachine = state" + p + ".subMachine;" + nl;
                 } else {
                     Debug.LogWarning("State " + state.name + " has non-existant parent " + p + ".");
-                    str += "        state" + state.name + ".parentMachine = rootMachine;\n";
+                    str += "        state" + state.name + ".parentMachine = rootMachine;" + nl;
                 }
             } else {
-                str += "        state" + state.name + ".parentMachine = rootMachine;\n";
+                str += "        state" + state.name + ".parentMachine = rootMachine;" + nl;
             }
 
             if (state.hasChildren) {
@@ -188,7 +214,7 @@ public abstract class {0}<T> : {0} where T : Channels {{
                         defState = children[0];
                     }
 
-                    str += "        state" + state.name + ".subMachine.defaultState = state" + defState.name + ";\n";
+                    str += "        state" + state.name + ".subMachine.defaultState = state" + defState.name + ";" + nl;
                 }
             }
 
@@ -218,29 +244,29 @@ public abstract class {0}<T> : {0} where T : Channels {{
         public static string GetTransitionInitializer(StateMachineDefinition.State from, StateMachineDefinition.Transition to, int index) {
             string variable = "transition" + from.name + to.to;
 
-            string str = "        Transition " + variable + " = new Transition() {\n";
-            str += "            from = state" + from.name + ",\n";
-            str += "            to = state" + to.to + ",\n";
-            str += "            exitTime = " + to.exitTime + "f,\n";
-            str += "            mode = StateMachineDefinition.TransitionMode." + to.mode.ToString() + ",\n";
+            string str = "        Transition " + variable + " = new Transition() {" + nl;
+            str += "            from = state" + from.name + "," + nl;
+            str += "            to = state" + to.to + "," + nl;
+            str += "            exitTime = " + to.exitTime + "f," + nl;
+            str += "            mode = StateMachineDefinition.TransitionMode." + to.mode.ToString() + "," + nl;
 
             if (to.hasNotify) {
-                str += "            notify = TransitionNotify_" + from.name + "_" + to.to + ",\n";
+                str += "            notify = TransitionNotify_" + from.name + "_" + to.to + "," + nl;
             }
 
-            str += "            cond = TransitionCond_" + from.name + "_" + to.to + "\n";
-            str += "        };\n";
+            str += "            cond = TransitionCond_" + from.name + "_" + to.to + "" + nl;
+            str += "        };" + nl;
 
-            str += "        state" + from.name + ".transitions.Add(" + variable + ");\n";
+            str += "        state" + from.name + ".transitions.Add(" + variable + ");" + nl;
 
-            str += "\n";
+            str += nl;
             return str;
         }
 
         public static string GetFunctionDeclarations(StateMachineDefinition def, bool over = false) {
             string vo = over ? "override" : "abstract";
-            string end = over ? "() { }\n" : "();\n";
-            string end2 = over ? "() { return false; }\n" : "();\n";
+            string end = over ? "() { }" + nl : "();" + nl;
+            string end2 = over ? "() { return false; }" + nl : "();" + nl;
 
             string str = "";
             foreach (var state in def.states) {
@@ -257,7 +283,7 @@ public abstract class {0}<T> : {0} where T : Channels {{
                 }
             }
 
-            str += "\n";
+            str += "" + nl;
 
             foreach (var state in def.states) {
                 if (state.transitions != null) {

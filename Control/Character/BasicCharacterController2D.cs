@@ -3,29 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
-    public class BasicCharacterController2D : PlayerController {
-        public CharacterChannels character { get; private set; }
+    /// <summary>
+    /// A default PlayerController for the CharacterMotor2D.
+    /// </summary>
+    public class BasicCharacterController2D : BasicCharacterController2D<CharacterChannels> { }
 
-        public override void Initialize() {
-            base.Initialize();
-
-            character = channels as CharacterChannels;
-        }
+    /// <summary>
+    /// A default PlayerController for the CharacterMotor2D.
+    /// </summary>
+    public class BasicCharacterController2D<T> : PlayerController<T> where T : CharacterChannels, new() {
 
         public void Axis_Horizontal(float value) {
             Vector3 right = viewTarget.transform.right;
             right.y = 0;
             right = right.normalized;
 
-            character.movement += right * value;
+            channels.movement += right * value;
         }
 
         public void ButtonDown_Jump() {
-            character.jump = true;
+            channels.jump = true;
         }
 
         public void ButtonUp_Jump() {
-            character.jump = false;
+            channels.jump = false;
         }
     }
 }

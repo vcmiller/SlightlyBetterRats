@@ -67,8 +67,8 @@ namespace SBR {
         [Tooltip("Air control multiplier (air acceleration is Air Control * Walk Acceleration.")]
         public float airControl = 0.5f;
 
-        protected override void Start() {
-            base.Start();
+        protected override void Awake() {
+            base.Awake();
 
             box = GetComponent<BoxCollider2D>();
             rigidbody = GetComponent<Rigidbody2D>();
@@ -84,7 +84,7 @@ namespace SBR {
             Time.fixedDeltaTime = 1.0f / 60.0f;
         }
 
-        public override void TakeInput() {
+        protected override void DoOutput(CharacterChannels channels) {
             Vector2 move = Vector2.zero;
 
             if (enableInput) {
@@ -173,7 +173,7 @@ namespace SBR {
             }
         }
         
-        public override void UpdateAfterInput() {
+        private void Update() {
             UpdateGrounded();
             
             if (!grounded) {

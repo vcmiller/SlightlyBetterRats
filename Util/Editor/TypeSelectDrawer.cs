@@ -17,7 +17,7 @@ namespace SBR.Editor {
             if (property.propertyType == SerializedPropertyType.String) {
                 if (types == null) {
                     types = typeof(Channels).Assembly.GetTypes()
-                        .Where(p => !p.IsGenericType && (attr.allowAbstract || !p.IsAbstract) && attr.baseClass.IsAssignableFrom(p))
+                        .Where(p => !p.IsInterface && (attr.allowGeneric || !p.IsGenericType) && (attr.allowAbstract || !p.IsAbstract) && attr.baseClass.IsAssignableFrom(p))
                         .Select(t => t.FullName).ToArray();
                 }
 
@@ -26,9 +26,11 @@ namespace SBR.Editor {
                     index = Mathf.Max(Array.IndexOf(types, attr.baseClass.FullName), 0);
                 }
 
+                EditorGUI.BeginProperty(position, label, property);
                 EditorGUI.LabelField(new Rect(position.x, position.y, position.width / 2, position.height), property.displayName);
                 index = EditorGUI.Popup(new Rect(position.x + position.width / 2, position.y, position.width / 2, position.height), index, types);
                 property.stringValue = types[index];
+                EditorGUI.EndProperty();
             } else {
                 EditorGUI.LabelField(position, label.text, "Use TypeSelect with string.");
             }

@@ -1,31 +1,34 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SBR {
-    public class BasicCharacterController : PlayerController<CharacterChannels> {
+    /// <summary>
+    /// A default PlayerController for the CharacterMotor.
+    /// </summary>
+    public class BasicCharacterController : BasicCharacterController<CharacterChannels> { }
+
+    /// <summary>
+    /// A default PlayerController for the CharacterMotor.
+    /// </summary>
+    public class BasicCharacterController<T> : PlayerController<T> where T : CharacterChannels, new() {
+        /// <summary>
+        /// Minimum pitch value for channels.rotation.
+        /// </summary>
         public float pitchMin = -80;
+
+        /// <summary>
+        /// Maximum pitch value for channels.rotation.
+        /// </summary>
         public float pitchMax = 80;
 
         private Vector3 angles;
-
-        public override void Initialize() {
-            base.Initialize();
-        }
         
         public void Axis_Horizontal(float value) {
-            Vector3 right = viewTarget ? viewTarget.transform.right : transform.right;
-            right.y = 0;
-            right = right.normalized;
-
+            Vector3 right = viewTarget ? viewTarget.flatRight : Vector3.right;
             channels.movement += right * value;
         }
 
         public void Axis_Vertical(float value) {
-            Vector3 fwd = viewTarget ? viewTarget.transform.forward : transform.forward;
-            fwd.y = 0;
-            fwd = fwd.normalized;
-
+            Vector3 fwd = viewTarget ? viewTarget.flatForward : Vector3.forward;
             channels.movement += fwd * value;
         }
 

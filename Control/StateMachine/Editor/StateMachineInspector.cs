@@ -14,7 +14,7 @@ namespace SBR.Editor {
             }
 
             serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, "baseClass");
+            DrawPropertiesExcluding(serializedObject, "m_Script");
             serializedObject.ApplyModifiedProperties();
         }
     }

@@ -92,18 +92,22 @@ public static class EditorUtil {
 
         object reflectionTarget = prop.serializedObject.targetObject as object;
 
-
         for (int i = 0; i < separatedPaths.Length; i++) {
             string path = separatedPaths[i];
             if (path == "Array" && i < separatedPaths.Length - 1 && separatedPaths[i + 1].StartsWith("data[")) {
                 continue;
             } else if (path.StartsWith("data[")) {
-                Array array = (Array)reflectionTarget;
                 int len = "data[".Length;
                 int index = int.Parse(path.Substring(len, path.LastIndexOf("]") - len));
-                reflectionTarget = array.GetValue(index);
+                if (reflectionTarget is Array) {
+                    Array array = (Array)reflectionTarget;
+                    reflectionTarget = array.GetValue(index);
+                } else if (reflectionTarget is IList) {
+                    IList list = (IList)reflectionTarget;
+                    reflectionTarget = list[index];
+                }
             } else {
-                FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path);
+                FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
                 reflectionTarget = fieldInfo.GetValue(reflectionTarget);
             }
         }

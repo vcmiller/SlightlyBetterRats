@@ -2,42 +2,36 @@ using UnityEngine;
 using SBR;
 
 public class CharacterChannels : SBR.Channels {
-    public CharacterChannels() {
-        RegisterInputChannel("movement", new Vector3(0, 0, 0), true);
-        RegisterInputChannel("rotation", new Quaternion(0, 0, 0, 1), false);
-        RegisterInputChannel("jump", false, false);
 
-    }
-    
-
+    private Vector3 _movement;
     public Vector3 movement {
-        get {
-            return GetInput<Vector3>("movement");
-        }
-
+        get { return _movement; }
         set {
-            SetVector("movement", value, 1);
+            movement = value.sqrMagnitude > 1f ? value.normalized * 1f : value;
         }
     }
 
+    private Quaternion _rotation;
     public Quaternion rotation {
-        get {
-            return GetInput<Quaternion>("rotation");
-        }
-
+        get { return _rotation; }
         set {
-            SetInput("rotation", value);
+            rotation = value;
         }
     }
 
+    private bool _jump;
     public bool jump {
-        get {
-            return GetInput<bool>("jump");
-        }
-
+        get { return _jump; }
         set {
-            SetInput("jump", value);
+            jump = value;
         }
     }
 
+
+    public override void ClearInput() {
+        _movement = new Vector3(0f, 0f, 0f);
+        _rotation = new Quaternion(0f, 0f, 0f, 1f);
+        _jump = false;
+
+    }
 }
