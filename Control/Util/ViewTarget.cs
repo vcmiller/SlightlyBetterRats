@@ -61,7 +61,7 @@ namespace SBR {
         public Vector3 GetAlignedRight(Vector3 plane) => GetAlignedVector(transform.right, plane);
         
         private static Vector3 GetAlignedVector(Vector3 vector, Vector3 plane) {
-            Vector3 align = Vector3.Project(vector, plane);
+            Vector3 align = Vector3.ProjectOnPlane(vector, plane);
             if (align.sqrMagnitude > 0) {
                 return align.normalized;
             } else {

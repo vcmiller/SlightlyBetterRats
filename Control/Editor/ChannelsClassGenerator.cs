@@ -15,6 +15,7 @@ public class {0} : {1} {{
 {2}
 
     public override void ClearInput(bool force = false) {{
+        base.ClearInput(force);
 {3}
     }}
 }}

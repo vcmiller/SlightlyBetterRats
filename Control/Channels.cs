@@ -4,6 +4,6 @@
             ClearInput(true);
         }
 
-        public abstract void ClearInput(bool force = false);
+        public virtual void ClearInput(bool force = false) { }
     }
 }
