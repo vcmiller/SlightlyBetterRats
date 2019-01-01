@@ -160,7 +160,11 @@ namespace SBR {
                 spos.x -= rect.width / 2;
                 spos.y -= rect.height / 2;
 
-                transform.position = canvas.transform.TransformPoint(spos);
+                var s = canvas.transform.localScale;
+                canvas.transform.localScale = Vector3.one;
+                Vector3 p = canvas.transform.TransformPoint(spos);
+                canvas.transform.localScale = s;
+                transform.position = p;
             }
 
             fillImage.enabled = en;

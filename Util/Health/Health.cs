@@ -175,7 +175,7 @@ namespace SBR {
                 health += amount;
                 health = Mathf.Min(health, maxHealth);
                 amount = health - prevHealth;
-                SendMessage("OnHeal", amount);
+                SendMessage("OnHeal", amount, SendMessageOptions.DontRequireReceiver);
                 Healed?.Invoke(amount);
 
                 if (dead) {
