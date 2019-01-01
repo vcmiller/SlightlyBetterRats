@@ -7,7 +7,7 @@ public class CharacterChannels : SBR.Channels {
     public Vector3 movement {
         get { return _movement; }
         set {
-            movement = value.sqrMagnitude > 1f ? value.normalized * 1f : value;
+            _movement = value.sqrMagnitude > 1f ? value.normalized * 1f : value;
         }
     }
 
@@ -15,7 +15,7 @@ public class CharacterChannels : SBR.Channels {
     public Quaternion rotation {
         get { return _rotation; }
         set {
-            rotation = value;
+            _rotation = value;
         }
     }
 
@@ -23,7 +23,7 @@ public class CharacterChannels : SBR.Channels {
     public bool jump {
         get { return _jump; }
         set {
-            jump = value;
+            _jump = value;
         }
     }
 
