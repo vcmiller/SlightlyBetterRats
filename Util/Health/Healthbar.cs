@@ -147,7 +147,7 @@ namespace SBR {
                 cam = Camera.main;
             }
 
-            if (target && trackOnScreen) {
+            if (target && trackOnScreen && cam) {
                 Vector3 wpos = target.transform.position + trackWorldOffset;
                 Vector3 spos = cam.WorldToViewportPoint(wpos) + (Vector3)trackScreenOffset;
                 

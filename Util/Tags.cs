@@ -75,11 +75,35 @@ namespace SBR {
         }
 
         /// <summary>
+        /// Find a single GameObject that matches the given tag.
+        /// </summary>
+        /// <param name="tag">The tag to match. Can be multiple tags.</param>
+        /// <returns>A GameObject matching the given tag, or null.</returns>
+        public static GameObject FindGameObjectWithTag(Tag tag) {
+            for (int i = 0; i < 32; i++) {
+                int index = 1 << i;
+                if (!Enum.IsDefined(typeof(Tag), index)) {
+                    break;
+                }
+
+                Tag t = (Tag)index;
+                if ((t & tag) != 0) {
+                    var obj = GameObject.FindGameObjectWithTag(t.ToString());
+                    if (obj) {
+                        return obj;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Find all GameObjects that match the given tag or set of tags.
         /// Returns an IEnumerable to avoid additional allocations,
         /// but Linq can be used to convert it to an array if needed.
         /// </summary>
-        /// <param name="tag">The tag to use.</param>
+        /// <param name="tag">The tag to match. Can be multiple tags.</param>
         /// <returns>All of the GameObjects matching that tag.</returns>
         public static IEnumerable<GameObject> FindGameObjectsWithTag(Tag tag) {
             for (int i = 0; i < 32; i++) {
