@@ -15,6 +15,11 @@ namespace SBR {
         /// </summary>
         public bool enableInput { get; set; } = true;
 
+        /// <summary>
+        /// Whether motor currently receives input from any Controller.
+        /// </summary>
+        public bool receivingInput => enableInput && controllers.Any(c => c.enabled);
+
         private IController<T>[] controllers;
 
         /// <summary>

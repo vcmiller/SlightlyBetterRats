@@ -10,6 +10,11 @@ namespace SBR {
     /// <typeparam name="T">The type of Channels object that is used.</typeparam>
     public interface IController<out T> : DoNotUse.IController where T : Channels, new() {
         /// <summary>
+        /// Whether controller is enabled.
+        /// </summary>
+        bool enabled { get; set; }
+
+        /// <summary>
         /// Invoked each frame after Channels have been updated.
         /// </summary>
         event Action<T> InputReceived;

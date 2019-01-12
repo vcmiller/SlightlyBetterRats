@@ -252,6 +252,18 @@ namespace SBR {
         }
 
         private void LateUpdate() {
+            UpdateGrounded();
+
+            if (!receivingInput) {
+                velocity = Vector3.MoveTowards(velocity, Vector3.Project(velocity, transform.up), acceleration);
+            }
+
+            if (!grounded) {
+                velocity += Physics.gravity * gravityScale * Time.deltaTime;
+            }
+
+            rigidbody.velocity = Vector3.zero;
+
             if (rootMotionBone) {
                 Vector3 v = rootMotionBone.transform.localPosition;
 
@@ -324,20 +336,6 @@ namespace SBR {
                 jumping = false;
                 channels.jump = false;
             }
-        }
-
-        protected override void PostOutput(CharacterChannels channels) {
-            UpdateGrounded();
-
-            if (!enableInput) {
-                velocity = Vector3.MoveTowards(velocity, Vector3.Project(velocity, transform.up), acceleration);
-            }
-
-            if (!grounded) {
-                velocity += Physics.gravity * gravityScale * Time.deltaTime;
-            }
-
-            rigidbody.velocity = Vector3.zero;
         }
 
         private void UpdateGrounded() {
