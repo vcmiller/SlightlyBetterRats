@@ -192,12 +192,14 @@ namespace SBR {
 
             if (grabMouse) {
                 Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
         }
 
         protected virtual void OnEnable() {
             if (grabMouse) {
                 Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
 
             if (_viewTarget && !sharedViewTarget) {
