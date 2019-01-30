@@ -5,10 +5,13 @@ using UnityEngine;
 
 namespace SBR.Editor {
     [CustomPropertyDrawer(typeof(DoNotUse.DraggableList), true)]
-    public class DraggableListInspector : PropertyDrawer {
+    public class DraggableListDrawer : PropertyDrawer {
         private Dictionary<string, ReorderableList> lists =
             new Dictionary<string, ReorderableList>();
         private static GUIStyle bgStyle;
+
+        protected virtual bool showExpanders => true;
+        protected virtual string labelProperty => null;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
             if (property.isExpanded) {
@@ -31,7 +34,7 @@ namespace SBR.Editor {
             SerializedProperty arrayElement = prop.GetArrayElementAtIndex(index);
             float calculatedHeight = EditorGUI.GetPropertyHeight(arrayElement,
                                                                 GUIContent.none,
-                                                                arrayElement.isExpanded);
+                                                                arrayElement.isExpanded || !showExpanders);
             calculatedHeight += 3;
             return calculatedHeight;
         }
@@ -50,13 +53,27 @@ namespace SBR.Editor {
                 lists[key].drawElementCallback =
                     (Rect rect, int index, bool isActive, bool isFocused) => {
                         var childProp = listProp.GetArrayElementAtIndex(index);
-                        bool isExpanded = childProp.isExpanded;
+                        bool isExpanded = childProp.isExpanded || !showExpanders;
                         rect.height = EditorGUI.GetPropertyHeight(childProp, GUIContent.none, isExpanded);
 
                         if (childProp.hasVisibleChildren)
                             rect.xMin += 10;
                         
                         GUIContent propHeader = new GUIContent(childProp.displayName);
+                        if (!string.IsNullOrEmpty(labelProperty)) {
+                            var dispProp = childProp.FindPropertyRelative(labelProperty);
+                            if (dispProp != null) {
+                                if (dispProp.propertyType == SerializedPropertyType.String) {
+                                    if (!string.IsNullOrEmpty(dispProp.stringValue)) {
+                                        propHeader.text = dispProp.stringValue;
+                                    }
+                                } else if (dispProp.propertyType == SerializedPropertyType.ObjectReference) {
+                                    if (dispProp.objectReferenceValue) {
+                                        propHeader.text = dispProp.objectReferenceValue.name;
+                                    }
+                                }
+                            }
+                        }
                         EditorGUI.PropertyField(rect, childProp, propHeader, isExpanded);
                     };
 
@@ -74,5 +91,13 @@ namespace SBR.Editor {
 
             return lists[key];
         }
+    }
+
+    [CustomPropertyDrawer(typeof(DraggableListDisplayAttribute))]
+    public class DraggableListDisplayDrawer : DraggableListDrawer {
+        private DraggableListDisplayAttribute attr => attribute as DraggableListDisplayAttribute;
+
+        protected override string labelProperty => attr.labelProperty;
+        protected override bool showExpanders => attr.showExpanders;
     }
 }

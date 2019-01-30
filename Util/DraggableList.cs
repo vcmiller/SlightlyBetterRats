@@ -6,6 +6,32 @@ using UnityEngine;
 #pragma warning disable 649
 namespace SBR {
     /// <summary>
+    /// Used to provide additional parameters when drawing a DraggableList.
+    /// It's use is optional, as the DraggableList works fine on its own.
+    /// </summary>
+    public class DraggableListDisplayAttribute : PropertyAttribute {
+        /// <summary>
+        /// Relative path to string or Object property to use for labels.
+        /// </summary>
+        public string labelProperty;
+
+        /// <summary>
+        /// Whether to show expander arrows on properties.
+        /// </summary>
+        public bool showExpanders;
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="labelProperty">Relative path to string or Object property to use for labels.</param>
+        /// <param name="showExpanders">Whether to show exapander arrows.</param>
+        public DraggableListDisplayAttribute(string labelProperty = null, bool showExpanders = true) {
+            this.labelProperty = labelProperty;
+            this.showExpanders = showExpanders;
+        }
+    }
+
+    /// <summary>
     /// Used to create a list that is shown in the inspector as a ReorderableList.
     /// Use to create a nicer interface than the default array view.
     /// </summary>

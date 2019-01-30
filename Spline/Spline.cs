@@ -32,7 +32,7 @@ namespace SBR {
         /// </summary>
         /// <param name="pos">Position on the spline, in the range [0, 1].</param>
         /// <returns>The world space tangent on the spline.</returns>
-        public Vector3 GetWoldTangent(float pos) {
+        public Vector3 GetWorldTangent(float pos) {
             return transform.TransformVector(spline.GetTangent(pos));
         }
 
