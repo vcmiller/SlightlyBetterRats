@@ -25,21 +25,26 @@ namespace SBR {
         [Tooltip("The other object to face.")]
         [Conditional("targetMode", TargetMode.TargetObject, true)]
         public Transform targetObject;
+
+        public Transform target {
+            get {
+                if (targetMode == TargetMode.MainCamera) {
+                    return Camera.main.transform;
+                } else {
+                    return targetObject;
+                }
+            }
+        }
         
         void LateUpdate() {
-            Transform target;
-            if (targetMode == TargetMode.MainCamera) {
-                target = Camera.main.transform;
-            } else {
-                target = targetObject;
-            }
+            Transform t = target;
 
             if (mode == Mode.CopyRotation) {
-                transform.rotation = target.rotation;
+                transform.rotation = t.rotation;
             } else if (mode == Mode.LookAt) {
-                transform.rotation = Quaternion.LookRotation(target.position - transform.position);
+                transform.rotation = Quaternion.LookRotation(t.position - transform.position);
             } else {
-                Vector3 right = Vector3.Cross(Vector3.up, target.position - transform.position);
+                Vector3 right = Vector3.Cross(Vector3.up, t.position - transform.position);
                 Vector3 fwd = Vector3.Cross(right, Vector3.up).normalized;
                 transform.rotation = Quaternion.LookRotation(fwd);
             }

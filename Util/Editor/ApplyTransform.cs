@@ -9,12 +9,16 @@ namespace SBR.Editor {
         public static void ApplyPosition() {
             var obj = Selection.activeGameObject;
             if (obj && obj.transform.position != Vector3.zero) {
-                Undo.RecordObject(obj, "Appply Position");
+                Object[] objs = new Object[obj.transform.childCount + 1];
+                objs[0] = obj.transform;
                 Vector3[] childPositions = new Vector3[obj.transform.childCount];
                 for (int i = 0; i < obj.transform.childCount; i++) {
-                    childPositions[i] = obj.transform.GetChild(i).position;
+                    var child = obj.transform.GetChild(i);
+                    childPositions[i] = child.position;
+                    objs[i + 1] = child;
                 }
 
+                Undo.RecordObjects(objs, "Apply Position");
                 obj.transform.position = Vector3.zero;
 
                 for (int i = 0; i < obj.transform.childCount; i++) {
@@ -27,14 +31,18 @@ namespace SBR.Editor {
         public static void ApplyRotation() {
             var obj = Selection.activeGameObject;
             if (obj && obj.transform.rotation != Quaternion.identity) {
-                Undo.RecordObject(obj, "Appply Rotation");
+                Object[] objs = new Object[obj.transform.childCount + 1];
+                objs[0] = obj.transform;
+
                 (Quaternion rot, Vector3 pos)[] childRotations = new (Quaternion, Vector3)[obj.transform.childCount];
                 for (int i = 0; i < obj.transform.childCount; i++) {
                     var child = obj.transform.GetChild(i);
                     childRotations[i].rot = child.rotation;
                     childRotations[i].pos = child.position;
+                    objs[i + 1] = child;
                 }
 
+                Undo.RecordObjects(objs, "Appply Rotation");
                 obj.transform.rotation = Quaternion.identity;
 
                 for (int i = 0; i < obj.transform.childCount; i++) {
@@ -49,7 +57,12 @@ namespace SBR.Editor {
         public static void ApplyScale() {
             var obj = Selection.activeGameObject;
             if (obj && obj.transform.localScale != Vector3.one) {
-                Undo.RecordObject(obj, "Appply Scale");
+                Object[] objs = new Object[obj.transform.childCount + 1];
+                objs[0] = obj.transform;
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    objs[i + 1] = obj.transform.GetChild(i);
+                }
+                Undo.RecordObjects(objs, "Appply Scale");
                 Vector3 oldScale = obj.transform.localScale;
                 obj.transform.localScale = Vector3.one;
 

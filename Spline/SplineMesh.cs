@@ -23,6 +23,11 @@ namespace SBR {
         /// </summary>
         public SplineMeshProfile profile;
 
+        /// <summary>
+        /// Whether to generate the mesh in Awake(). Only needed if instantiating at runtime.
+        /// </summary>
+        public bool updateMeshOnAwake;
+
         private Mesh ownedMesh;
         private Mesh ownedCollision;
 
@@ -51,6 +56,12 @@ namespace SBR {
         private MeshRenderer mr;
         private MeshFilter mf;
         private MeshCollider mc;
+
+        private void Awake() {
+            if (updateMeshOnAwake) {
+                MarkDirty(true);
+            }
+        }
 
         private void OnEnable() {
             subscribedProfile = profile;
