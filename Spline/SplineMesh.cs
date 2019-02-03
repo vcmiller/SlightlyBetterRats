@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace SBR {
@@ -119,8 +118,8 @@ namespace SBR {
             if (profile && spline.spline.points.Length > 1) {
                 profile.CreateMeshes(spline.spline, out ownedMesh, out ownedCollision);
 
-                if (gameObject.isStatic)
 #if UNITY_EDITOR
+                if (gameObject.isStatic)
                     UnityEditor.Unwrapping.GenerateSecondaryUVSet(ownedMesh);
 #endif
 
