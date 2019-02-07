@@ -30,8 +30,8 @@ namespace SBR {
         /// The channels object which carries input information.
         /// </summary>
         public T channels { get; private set; }
-        private readonly HashSet<Action<T>> _inputReceived = new HashSet<Action<T>>();
-        private readonly HashSet<Action<T>> _postInputReceived = new HashSet<Action<T>>();
+        private readonly SafeUpdateSet<Action<T>> _inputReceived = new SafeUpdateSet<Action<T>>();
+        private readonly SafeUpdateSet<Action<T>> _postInputReceived = new SafeUpdateSet<Action<T>>();
 
         /// <summary>
         /// Invoked each frame after Channels have been updated.
@@ -59,6 +59,9 @@ namespace SBR {
             } catch (Exception ex) {
                 Debug.LogException(ex, this);
             }
+
+            _inputReceived.Update();
+            _postInputReceived.Update();
 
             foreach (var callback in _inputReceived) {
                 callback(channels);

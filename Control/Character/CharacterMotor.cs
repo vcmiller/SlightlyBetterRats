@@ -89,6 +89,12 @@ namespace SBR {
         public RotateMode rotateMode = RotateMode.None;
 
         /// <summary>
+        /// How much the character's speed is moved towards zero when input is disabled.
+        /// </summary>
+        [Tooltip("How much the character's speed is moved towards zero when input is disabled.")]
+        public float noInputControl = 1;
+
+        /// <summary>
         /// Speed at which the character rotates. Only used if rotate mode is set to Movement.
         /// </summary>
         [Tooltip("Speed at which the character rotates. Only used if rotate mode is set to Movement.")]
@@ -255,7 +261,7 @@ namespace SBR {
             UpdateGrounded();
 
             if (!receivingInput) {
-                velocity = Vector3.MoveTowards(velocity, Vector3.Project(velocity, transform.up), acceleration);
+                velocity = Vector3.MoveTowards(velocity, Vector3.Project(velocity, transform.up), acceleration * noInputControl);
             }
 
             if (!grounded) {
