@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace SBR {
     /// <summary>
@@ -39,6 +40,12 @@ namespace SBR {
         /// </summary>
         [Tooltip("Whether to loop the sound.")]
         public bool loop = false;
+
+        /// <summary>
+        /// Output AudioMixerGroup.
+        /// </summary>
+        [Tooltip("Output AudioMixerGroup.")]
+        public AudioMixerGroup outputGroup;
 
         /// <summary>
         /// Cooldown between repeating the sound clip. If cooldownId is set, this is a global cooldown for all instances with the same ID.
@@ -88,7 +95,7 @@ namespace SBR {
 
             var clip = clips[Random.Range(0, clips.Length)];
             if (CanPlay()) {
-                return Util.PlayClipAtPoint(clip, point, volume, spaital, pitch, loop, attach);
+                return Util.PlayClipAtPoint(clip, point, volume, spaital, pitch, loop, outputGroup, attach);
             } else {
                 return null;
             }

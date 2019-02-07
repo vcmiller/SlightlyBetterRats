@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Audio;
 
 namespace SBR {
     /// <summary>
@@ -15,9 +16,10 @@ namespace SBR {
         /// <param name="spatial">Spatial blend (0 = 2D, 1 = 3D).</param>
         /// <param name="pitch">The pitch to play at.</param>
         /// <param name="loop">Whether to loop the sound.</param>
+        /// <param name="output">Output mixer group.</param>
         /// <param name="attach">Transform to attach the spawned AudioSource to.</param>
         /// <returns>The spawned AudioSource.</returns>
-        public static AudioSource PlayClipAtPoint(AudioClip clip, Vector3 point, float volume = 1, float spatial = 1, float pitch = 1, bool loop = false, Transform attach = null) {
+        public static AudioSource PlayClipAtPoint(AudioClip clip, Vector3 point, float volume = 1, float spatial = 1, float pitch = 1, bool loop = false, AudioMixerGroup output = null, Transform attach = null) {
             if (clip == null) {
                 return null;
             }
@@ -33,6 +35,7 @@ namespace SBR {
             src.spatialBlend = spatial;
             src.volume = volume;
             src.pitch = pitch;
+            src.outputAudioMixerGroup = output;
             src.Play();
 
             if (!loop) {
