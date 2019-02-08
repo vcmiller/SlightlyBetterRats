@@ -332,13 +332,13 @@ namespace SBR {
             velocity = Vector3.MoveTowards(velocity, targetVel, acceleration * Time.deltaTime);
 
             jumpedThisFrame = false;
-            if (grounded && channels.jump && enableInput) {
+            if (grounded && channels.jump && enableInput && jumpSpeed > 0) {
                 jumpedThisFrame = true;
                 jumping = true;
                 velocity = Vector3.ProjectOnPlane(velocity, transform.up) + transform.up * jumpSpeed;
             }
 
-            if (Vector3.Dot(velocity, transform.up) <= 0) {
+            if (jumping && Vector3.Dot(velocity, transform.up) < 0) {
                 jumping = false;
                 channels.jump = false;
             }
