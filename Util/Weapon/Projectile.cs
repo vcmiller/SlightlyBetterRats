@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -76,6 +77,11 @@ namespace SBR {
         /// Whether the projectile has been fired.
         /// </summary>
         public bool fired { get; protected set; }
+
+        /// <summary>
+        /// Invoked when the projectile collides with an object.
+        /// </summary>
+        public event Action<GameObject, Vector3> HitObject;
         
         protected virtual bool hitsTriggers => triggerInteraction == QueryTriggerInteraction.Collide ||
                     (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
@@ -122,6 +128,8 @@ namespace SBR {
                 var rb2d = col.GetComponentInParent<Rigidbody2D>();
                 if (rb2d) rb2d.AddForce(impact, ForceMode2D.Impulse);
             }
+
+            HitObject?.Invoke(col.gameObject, position);
 
             velocity = Vector3.zero;
             transform.position = position;
