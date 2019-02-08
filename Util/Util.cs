@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.Audio;
+using System.Text.RegularExpressions;
 
 namespace SBR {
     /// <summary>
@@ -102,6 +103,28 @@ namespace SBR {
 
             point1 = capsuleCenter + capsuleUp * h;
             point2 = capsuleCenter - capsuleUp * h;
+        }
+
+        /// <summary>
+        /// Splits a camel-case string into words separated by spaces. 
+        /// Multiple consecutive capitals are considered the same word.
+        /// </summary>
+        /// <remarks>
+        /// From stackoverflow:
+        /// https://stackoverflow.com/questions/5796383/insert-spaces-between-words-on-a-camel-cased-token/5796793
+        /// </remarks>
+        /// <param name="str">The string to split.</param>
+        /// <returns>The split string.</returns>
+        public static string SplitCamelCase(this string str) {
+            return Regex.Replace(
+                Regex.Replace(
+                    str,
+                    @"(\P{Ll})(\P{Ll}\p{Ll})",
+                    "$1 $2"
+                ),
+                @"(\p{Ll})(\P{Ll})",
+                "$1 $2"
+            );
         }
 
         /// <summary>
