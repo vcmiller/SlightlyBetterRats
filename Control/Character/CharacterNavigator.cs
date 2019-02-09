@@ -13,7 +13,7 @@ namespace SBR {
         /// Transform to follow constantly.
         /// </summary>
         [Tooltip("Transform to follow constantly.")]
-        public Transform target;
+        public Transform followTarget;
 
         /// <summary>
         /// Radius in which to consider the target reached when checking if arrived.
@@ -25,6 +25,11 @@ namespace SBR {
         /// NavMeshAgent component reference.
         /// </summary>
         public NavMeshAgent agent { get; private set; }
+
+        /// <summary>
+        /// Desired movement speed. Will be used to multiply Channels.movement value.
+        /// </summary>
+        public float desiredSpeed { get; set; }
         
         /// <summary>
         /// Whether the character has reached its destination.
@@ -54,15 +59,15 @@ namespace SBR {
 
             agent.nextPosition = transform.position;
 
-            if (target) {
-                agent.destination = target.position;
+            if (followTarget) {
+                agent.destination = followTarget.position;
             } else if (arrived) {
                 Stop();
             }
 
             if (agent.hasPath) {
-                channels.movement = agent.desiredVelocity;
-                
+                channels.movement = Vector3.ClampMagnitude(agent.desiredVelocity, 1) * desiredSpeed;
+
                 if (agent.isOnOffMeshLink && agent.currentOffMeshLinkData.linkType == OffMeshLinkType.LinkTypeJumpAcross) {
                     channels.jump = true;
                 } 
@@ -75,7 +80,7 @@ namespace SBR {
         /// <param name="destination">Destination to move to.</param>
         public void MoveTo(Vector3 destination) {
             agent.destination = destination;
-            target = null;
+            followTarget = null;
         }
 
         /// <summary>
@@ -84,7 +89,7 @@ namespace SBR {
         /// <param name="destination">The Transform to follow.</param>
         public void MoveTo(Transform destination) {
             agent.destination = destination.position;
-            target = destination;
+            followTarget = destination;
         }
 
         /// <summary>
@@ -92,7 +97,7 @@ namespace SBR {
         /// </summary>
         public void Stop() {
             agent.destination = agent.transform.position;
-            target = null;
+            followTarget = null;
         }
     }
 }
