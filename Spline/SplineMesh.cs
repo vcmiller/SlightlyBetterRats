@@ -73,7 +73,7 @@ namespace SBR {
         }
 
         private void OnValidate() {
-            if (!Application.isPlaying) {
+            if (!Application.isPlaying && enabled) {
                 OnEnable();
                 MarkDirty(false);
             }
@@ -92,7 +92,7 @@ namespace SBR {
         }
 
         private void Update() {
-            if (needsUpdate) {
+            if (needsUpdate && enabled) {
                 needsUpdate = false;
                 UpdateMesh();
             }

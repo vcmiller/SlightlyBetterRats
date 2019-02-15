@@ -9,7 +9,10 @@ namespace SBR.Editor {
         private SplineMesh myTarget { get { return target as SplineMesh; } }
 
         public override void OnInspectorGUI() {
-
+            if (!myTarget.enabled) {
+                GUILayout.Label("Controls inactive while disabled.");
+                return;
+            }
             EditorGUI.BeginDisabledGroup(!myTarget.profile);
 
             var mf = myTarget.GetComponent<MeshFilter>();
@@ -35,12 +38,13 @@ namespace SBR.Editor {
                 }
 
                 if (mesh) {
+                    Undo.RecordObjects(new Object[]{ mf, mc, myTarget }, "Export Spline Meshes");
                     mf.sharedMesh = mesh;
                     if (mc) {
                         mc.sharedMesh = colMesh != null ? colMesh : mesh;
                     }
 
-                    Undo.DestroyObjectImmediate(myTarget);
+                    myTarget.enabled = false;
                 }
             }
 

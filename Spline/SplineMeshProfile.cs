@@ -260,10 +260,10 @@ namespace SBR {
             }
         }
 
-        protected virtual float AddMesh(SplineData spline, int index, float stretchFactor, float meshStart, 
+        protected virtual float AddMesh(SplineData spline, int meshIndex, float stretchFactor, float meshStart, 
             List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int>[] triangles,
             List<Vector3> collisionVertices, List<Vector3> collisionNormals, List<int> collisionTriangles) {
-            var mesh = meshes[index];
+            var mesh = meshes[meshIndex];
             var toAdd = mesh.render;
             var toAddC = mesh.collision;
 
@@ -271,8 +271,8 @@ namespace SBR {
             var align = mesh.alignMode;
 
             float sizeZ = mesh.meshLength;
-            float startGap = meshes[index].gapBefore;
-            float endGap = meshes[index].gapAfter;
+            float startGap = meshes[meshIndex].gapBefore;
+            float endGap = meshes[meshIndex].gapAfter;
 
             if ((stretch & StretchMode.Mesh) == StretchMode.Mesh) {
                 sizeZ *= stretchFactor;
@@ -295,14 +295,14 @@ namespace SBR {
                 for (int i = 0; i < toAdd.subMeshCount; i++) {
                     int destList = 0;
                     if (keepSeparateMaterials) {
-                        destList = submeshStartIndices[index];
+                        destList = submeshStartIndices[meshIndex] + i;
                     }
 
                     if (triangles[destList] == null) {
                         triangles[destList] = new List<int>();
                     }
 
-                    AddTriangleData(toAdd, i, vCount, triangles[i]);
+                    AddTriangleData(toAdd, i, vCount, triangles[destList]);
                 }
 
                 if (separateCollisionMesh && toAddC) {
