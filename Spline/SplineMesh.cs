@@ -27,8 +27,9 @@ namespace SBR {
         /// </summary>
         public bool updateMeshOnAwake;
 
-        private Mesh ownedMesh;
-        private Mesh ownedCollision;
+        private Mesh _ownedMesh, _ownedCollision;
+        public Mesh ownedMesh => _ownedMesh;
+        public Mesh ownedCollision => _ownedCollision;
 
         private bool needsUpdate = false;
 
@@ -116,7 +117,7 @@ namespace SBR {
             if (ownedCollision) DestroyImmediate(ownedCollision);
 
             if (profile && spline.spline.points.Length > 1) {
-                profile.CreateMeshes(spline.spline, out ownedMesh, out ownedCollision);
+                profile.CreateMeshes(spline.spline, out _ownedMesh, out _ownedCollision);
 
 #if UNITY_EDITOR
                 if (gameObject.isStatic)

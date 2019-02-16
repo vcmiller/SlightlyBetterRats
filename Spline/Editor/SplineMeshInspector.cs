@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,13 +19,13 @@ namespace SBR.Editor {
             var mf = myTarget.GetComponent<MeshFilter>();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Export Mesh")) {
-                ExportMesh(mf.sharedMesh, myTarget.name);
+                ExportMesh(myTarget.ownedMesh, myTarget.name);
             }
 
             var mc = myTarget.GetComponent<MeshCollider>();
-            EditorGUI.BeginDisabledGroup(!mc || !myTarget.profile || !myTarget.profile.separateCollisionMesh);
+            EditorGUI.BeginDisabledGroup(!myTarget.ownedCollision || !myTarget.profile || !myTarget.profile.separateCollisionMesh);
             if (GUILayout.Button("Export Collision")) {
-                ExportMesh(mc.sharedMesh, myTarget.name + "_Collision");
+                ExportMesh(myTarget.ownedCollision, myTarget.name + "_Collision");
             }
             EditorGUI.EndDisabledGroup();
 
@@ -33,12 +34,12 @@ namespace SBR.Editor {
             if (GUILayout.Button("Export Meshes and Convert")) {
                 Mesh mesh = ExportMesh(mf.sharedMesh, myTarget.name);
                 Mesh colMesh = null;
-                if (mesh && mc && myTarget.profile.separateCollisionMesh) {
-                    colMesh = ExportMesh(mc.sharedMesh, myTarget.name + "_Collision");
+                if (mesh && myTarget.ownedCollision && myTarget.profile.separateCollisionMesh) {
+                    colMesh = ExportMesh(myTarget.ownedCollision, myTarget.name + "_Collision");
                 }
 
                 if (mesh) {
-                    Undo.RecordObjects(new Object[]{ mf, mc, myTarget }, "Export Spline Meshes");
+                    Undo.RecordObject(myTarget, "Export Spline Meshes");
                     mf.sharedMesh = mesh;
                     if (mc) {
                         mc.sharedMesh = colMesh != null ? colMesh : mesh;
