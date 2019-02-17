@@ -27,7 +27,7 @@ namespace SBR {
         /// <summary>
         /// Whether is currently reloading.
         /// </summary>
-        public bool Reloading => !reload.expired;
+        public bool reloading => !reload.expired;
 
         /// <summary>
         /// Construct a new Magazine with given size and reload time.
