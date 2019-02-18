@@ -322,7 +322,8 @@ namespace SBR.Editor {
                 }
 
                 if (Application.isPlaying) {
-                    if (observing == null || observing.gameObject != Selection.activeGameObject) {
+                    var observingObject = observing as UnityEngine.Object;
+                    if (!observingObject || observing.gameObject != Selection.activeGameObject) {
                         if (Selection.activeGameObject) {
                             observing = Selection.activeGameObject.GetComponent<IStateMachine>();
                         }
