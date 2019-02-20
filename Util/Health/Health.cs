@@ -266,5 +266,48 @@ namespace SBR {
         public static float Heal(this Component cmp, float amount) {
             return cmp.gameObject.Heal(amount);
         }
+
+        /// <summary>
+        /// Try to get the current health of a GameObject or it's ancestors.
+        /// </summary>
+        /// <param name="obj">The object to test.</param>
+        /// <param name="health">Health value in object's (or parent's) Health component, or zero.</param>
+        /// <returns>Whether there was a Health component.</returns>
+        public static bool TryGetHealth(this GameObject obj, out float health) {
+            if (obj.TryGetComponentInParent<Health>(out var h)) {
+                health = h.health;
+                return true;
+            } else {
+                health = 0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get the current health of a GameObject or it's ancestors. Throw an exception if not found.
+        /// </summary>
+        /// <param name="obj">The object to test.</param>
+        /// <returns>Health value in object's (or parent's) Health component.</returns>
+        /// <exception cref="MissingComponentException">If there is no Health component.</exception>
+        public static float GetHealth(this GameObject obj) {
+            if (TryGetHealth(obj, out var health)) {
+                return health;
+            } else {
+                throw new MissingComponentException($"{obj} has no Health component.");
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the object has a health value > 0, or has no Health component.
+        /// </summary>
+        /// <param name="obj">The object to test.</param>
+        /// <returns>True if the object has a health component with a health value > 0, or has no health component. False otherwise.</returns>
+        public static bool IsAlive(this GameObject obj) {
+            if (TryGetHealth(obj, out var health)) {
+                return health > 0;
+            } else {
+                return true;
+            }
+        }
     }
 }

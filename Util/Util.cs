@@ -103,5 +103,53 @@ namespace SBR {
             point1 = capsuleCenter + capsuleUp * h;
             point2 = capsuleCenter - capsuleUp * h;
         }
+
+        /// <summary>
+        /// Like GetComponent, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponent<T>(this GameObject obj, out T result) {
+            T cmp = obj.GetComponent<T>();
+            result = cmp;
+            return cmp != null;
+        }
+
+        /// <summary>
+        /// Like GetComponentInParent, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponentInParent<T>(this GameObject obj, out T result) {
+            T cmp = obj.GetComponentInParent<T>();
+            result = cmp;
+            return cmp != null;
+        }
+
+        /// <summary>
+        /// Like GetComponentInChildren, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponentInChildren<T>(this GameObject obj, out T result) {
+            T cmp = obj.GetComponentInChildren<T>();
+            result = cmp;
+            return cmp != null;
+        }
+
+        /// <summary>
+        /// Like GetComponent, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponent<T>(this Component cmp, out T result) {
+            return cmp.gameObject.TryGetComponent(out result);
+        }
+
+        /// <summary>
+        /// Like GetComponentInParent, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponentInParent<T>(this Component cmp, out T result) {
+            return cmp.gameObject.TryGetComponentInParent(out result);
+        }
+
+        /// <summary>
+        /// Like GetComponentInChildren, but more convenient if using in if statements and also using the component value.
+        /// </summary>
+        public static bool TryGetComponentInChildren<T>(this Component cmp, out T result) {
+            return cmp.gameObject.TryGetComponentInChildren(out result);
+        }
     }
 }
