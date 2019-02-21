@@ -36,7 +36,7 @@ namespace SBR {
         /// <summary>
         /// Whether the timer has expired.
         /// </summary>
-        public bool expired => curTime >= lastSet + expiration;
+        public bool expired => !set || curTime >= lastSet + expiration;
 
         /// <summary>
         /// Whether the timer expired during the current frame.
