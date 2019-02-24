@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace SBR {
@@ -80,6 +81,10 @@ namespace SBR {
     public static class ControllerExtensions {
         public static Behaviour GetController(this GameObject obj) {
             return obj.GetComponentInParent<DoNotUse.IController>() as Behaviour;
+        }
+
+        public static IEnumerable<Behaviour> GetControllers(this GameObject obj) {
+            return obj.GetComponentsInParent<DoNotUse.IController>().OfType<Behaviour>();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -78,4 +79,14 @@ namespace SBR {
         /// </summary>
         protected virtual void PostOutput(T channels) { }
     }
+
+    public static class MotorExtensions {
+        public static IEnumerable<Behaviour> GetMotors(this GameObject obj) {
+            return obj.GetComponentsInChildren<DoNotUse.IMotor>().OfType<Behaviour>();
+        }
+    }
+}
+
+namespace SBR.DoNotUse {
+    public interface IMotor { }
 }
