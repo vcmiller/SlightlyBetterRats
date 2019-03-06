@@ -10,7 +10,7 @@ namespace SBR.Menu {
 
         public override void UpdateUIElement() {
             base.UpdateUIElement();
-            if (!toggle || string.IsNullOrEmpty(settingKey)) return;
+            if (!toggle || string.IsNullOrEmpty(settingKey) || setting == null) return;
             toggle.isOn = (bool)setting.objValue;
         }
         

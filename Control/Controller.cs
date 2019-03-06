@@ -9,7 +9,7 @@ namespace SBR {
     /// Decisions are passed to output objects (Motors) through a Channels object.
     /// </summary>
     /// <typeparam name="T">The type of Channels object that is used.</typeparam>
-    public interface IController<out T> : DoNotUse.IController where T : Channels, new() {
+    public interface IController<out T> : Internal.IController where T : Channels, new() {
         /// <summary>
         /// Whether controller is enabled.
         /// </summary>
@@ -80,15 +80,15 @@ namespace SBR {
 
     public static class ControllerExtensions {
         public static Behaviour GetController(this GameObject obj) {
-            return obj.GetComponentInParent<DoNotUse.IController>() as Behaviour;
+            return obj.GetComponentInParent<Internal.IController>() as Behaviour;
         }
 
         public static IEnumerable<Behaviour> GetControllers(this GameObject obj) {
-            return obj.GetComponentsInParent<DoNotUse.IController>().OfType<Behaviour>();
+            return obj.GetComponentsInParent<Internal.IController>().OfType<Behaviour>();
         }
     }
 }
 
-namespace SBR.DoNotUse {
+namespace SBR.Internal {
     public interface IController { }
 }

@@ -4,7 +4,7 @@ using UnityEditorInternal;
 using UnityEngine;
 
 namespace SBR.Editor {
-    [CustomPropertyDrawer(typeof(DoNotUse.DraggableList), true)]
+    [CustomPropertyDrawer(typeof(Internal.DraggableList), true)]
     public class DraggableListDrawer : PropertyDrawer {
         private Dictionary<string, ReorderableList> lists =
             new Dictionary<string, ReorderableList>();

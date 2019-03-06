@@ -12,17 +12,19 @@ namespace SBR.Menu {
 
         public readonly string key;
         public readonly Type settingType;
-
-        public string displayName {
+        
+        public string name {
             get {
                 int i = key.LastIndexOf('/');
                 if (i > 0 && i < key.Length - 2) {
-                    return key.Substring(i + 1).SplitCamelCase();
+                    return key.Substring(i + 1);
                 } else {
                     return null;
                 }
             }
         }
+
+        public string displayName => name?.SplitCamelCase();
 
         public event Action<object> ObjValueChanged;
         protected void OnObjValueChanged(object value) => ObjValueChanged?.Invoke(value);

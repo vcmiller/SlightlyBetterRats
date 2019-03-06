@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+#if IncludeDefaultMenus
+
 namespace SBR.Menu {
     public static class SBRAudioSettings {
         private const string masterVolumeKey = "Audio/MasterVolume";
@@ -20,7 +22,9 @@ namespace SBR.Menu {
         #region Settings Definitions
 
         public static readonly Setting<float> masterVolume =
-            new FloatSetting(masterVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
+            new FloatSetting(masterVolumeKey, 1.0f,
+                v => AudioListener.volume = v,
+                values: new[] { 0.0f, 1.0f });
 
         public static readonly Setting<float> effectsVolume =
             new FloatSetting(effectsVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
@@ -31,7 +35,8 @@ namespace SBR.Menu {
         public static readonly Setting<float> voiceVolume =
             new FloatSetting(voiceVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
 
-        #endregion
+#endregion
     }
-
 }
+
+#endif

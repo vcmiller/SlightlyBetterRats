@@ -9,7 +9,6 @@ using UnityEngine;
 namespace SBR.Editor {
     [InitializeOnLoad]
     public static class TagsGenerator {
-        private static readonly string folder = "Assets/SBR_Data/";
         private static readonly string template = @"using System;
 
 namespace SBR {{
@@ -84,8 +83,8 @@ namespace SBR {{
             didGenerate = true;
             string generated = string.Format(template, GetEnumValues());
 
-            Directory.CreateDirectory(folder);
-            string defPath = folder + "Tag.cs";
+            Directory.CreateDirectory(SBRProjectSettings.dataFolder);
+            string defPath = SBRProjectSettings.dataFolder + "Tag.cs";
 
             if (defPath.Length > 0) {
                 string newPath = defPath.Substring(0, defPath.LastIndexOf(".")) + ".cs";
@@ -96,18 +95,7 @@ namespace SBR {{
                 AssetDatabase.Refresh();
             }
 
-            foreach (BuildTargetGroup value in Enum.GetValues(typeof(BuildTargetGroup))) {
-                string defines = PlayerSettings.GetScriptingDefineSymbolsForGroup(value);
-                if (!defines.Contains("TagsGenerated")) {
-                    if (defines.Length == 0) {
-                        defines = "TagsGenerated";
-                    } else {
-                        defines += ";TagsGenerated";
-                    }
-
-                    PlayerSettings.SetScriptingDefineSymbolsForGroup(value, defines);
-                }
-            }
+            EditorUtil.SetSymbolDefined("TagsGenerated", true);
         }
     }
 }

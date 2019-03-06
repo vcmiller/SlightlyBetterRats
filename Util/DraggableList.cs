@@ -37,7 +37,7 @@ namespace SBR {
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [Serializable]
-    public class DraggableList<T> : DoNotUse.DraggableList, IEnumerable<T> {
+    public class DraggableList<T> : Internal.DraggableList, IEnumerable<T> {
         /// <summary>
         /// Directly access the backing array.
         /// </summary>
@@ -73,7 +73,7 @@ namespace SBR {
     }
 }
 
-namespace SBR.DoNotUse {
+namespace SBR.Internal {
     [Serializable]
     public class DraggableList { }
 }

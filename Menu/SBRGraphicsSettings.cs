@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using UnityEngine;
 
+#if IncludeDefaultMenus
+
 namespace SBR.Menu {
     public static class SBRGraphicsSettings {
         private const string anisotropicKey = "Graphics/Anisotropic";
@@ -22,7 +24,7 @@ namespace SBR.Menu {
             SettingsManager.RegisterSettings(typeof(SBRGraphicsSettings));
         }
 
-        #region Settings Definitions
+#region Settings Definitions
 
         public static readonly Setting<AnisotropicFiltering> anisotropic =
             new EnumSetting<AnisotropicFiltering>(anisotropicKey,
@@ -97,6 +99,8 @@ namespace SBR.Menu {
                     else return QualitySettings.names[t];
                 }, Enumerable.Range(-1, QualitySettings.names.Length + 1).ToArray());
 
-        #endregion
+#endregion
     }
 }
+
+#endif

@@ -30,7 +30,7 @@ namespace SBR {
         protected T lastChannels { get; private set; }
 
         protected virtual void Awake() {
-            controllers = GetComponentsInParent<SBR.DoNotUse.IController>().OfType<IController<T>>().ToArray();
+            controllers = GetComponentsInParent<SBR.Internal.IController>().OfType<IController<T>>().ToArray();
         }
 
         protected virtual void OnEnable() {
@@ -82,11 +82,11 @@ namespace SBR {
 
     public static class MotorExtensions {
         public static IEnumerable<Behaviour> GetMotors(this GameObject obj) {
-            return obj.GetComponentsInChildren<DoNotUse.IMotor>().OfType<Behaviour>();
+            return obj.GetComponentsInChildren<Internal.IMotor>().OfType<Behaviour>();
         }
     }
 }
 
-namespace SBR.DoNotUse {
+namespace SBR.Internal {
     public interface IMotor { }
 }

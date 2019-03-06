@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 
+#if IncludeDefaultMenus
+
 namespace SBR.Menu {
     public static class SBRDisplaySettings {
         private const string resolutionKey = "Display/ScreenResolution";
@@ -18,7 +20,7 @@ namespace SBR.Menu {
             SettingsManager.RegisterSettings(typeof(SBRDisplaySettings));
         }
 
-        #region Settings Types
+#region Settings Types
 
         private class ResolutionSetting : Setting<Resolution> {
             private string widthKey, heightKey, refreshKey;
@@ -49,9 +51,9 @@ namespace SBR.Menu {
             }
         }
 
-        #endregion
+#endregion
 
-        #region Settings Definitions
+#region Settings Definitions
 
         public static readonly Setting<Resolution> resolution = 
             new ResolutionSetting(resolutionKey);
@@ -78,6 +80,8 @@ namespace SBR.Menu {
                 },
                 new[] { 0, 1, 2 });
 
-        #endregion
+#endregion
     }
 }
+
+#endif

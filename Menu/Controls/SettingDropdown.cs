@@ -13,7 +13,7 @@ namespace SBR.Menu {
 
         public override void UpdateUIElement() {
             base.UpdateUIElement();
-            if (!dropdown || string.IsNullOrEmpty(settingKey)) return;
+            if (!dropdown || string.IsNullOrEmpty(settingKey) || setting == null) return;
             settingValues = setting.objPossibleValues.ToArray();
             dropdown.ClearOptions();
             dropdown.AddOptions(settingValues.Select(v => setting.ObjValueToString(v)).ToList());
