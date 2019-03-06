@@ -5,8 +5,7 @@ namespace SBR.Menu {
         public enum Mode {
             SetActive, AnimationBool
         }
-
-        public bool shownByDefault;
+        
         public Mode mode;
 
         [Conditional("mode", Mode.SetActive)]
@@ -19,11 +18,6 @@ namespace SBR.Menu {
         private void Reset() {
             targetObject = gameObject;
             targetAnimator = GetComponentInParent<Animator>();
-        }
-
-        private void Awake() {
-            _show = !shownByDefault;
-            show = shownByDefault;
         }
 
         private bool _show;

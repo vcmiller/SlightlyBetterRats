@@ -12,25 +12,12 @@ namespace SBR {
     /// or placed as a component to automatically pause when a button is pressed.
     /// For creating a pause menu, see PauseMenu.cs.
     /// </remarks>
-    public class Pause : MonoBehaviour {
+    public static class Pause {
         private static bool _paused;
         private static float timeScale;
 
         public static event Action GamePaused;
         public static event Action GameResumed;
-
-        public string pauseButton = "Cancel";
-        public string resumeButton = "Cancel";
-
-        private void Update() {
-            if (!string.IsNullOrEmpty(pauseButton) && 
-                Input.GetButtonDown(pauseButton) && !paused) {
-                paused = true;
-            } else if (!string.IsNullOrEmpty(resumeButton) &&
-                Input.GetButtonDown(resumeButton) && paused) {
-                paused = false;
-            }
-        }
 
         /// <summary>
         /// Controls paused state of the game. 
