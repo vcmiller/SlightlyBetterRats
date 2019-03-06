@@ -48,6 +48,8 @@ namespace SBR {
         }
 
         private void ControllerInputReceived(T channels) {
+            if (Pause.paused) return;
+
             lastChannels = channels;
             if (enableInput) {
                 try {
@@ -59,6 +61,8 @@ namespace SBR {
         }
 
         private void ControllerPostInputReceived(T channels) {
+            if (Pause.paused) return;
+
             try {
                 PostOutput(channels);
             } catch (Exception ex) {

@@ -55,6 +55,8 @@ namespace SBR {
         }
 
         private void Update() {
+            if (Pause.paused) return;
+
             try {
                 DoInput();
             } catch (Exception ex) {

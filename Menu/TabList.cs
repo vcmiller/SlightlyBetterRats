@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace SBR.Menu {
     public class TabList : MonoBehaviour {
         public Button buttonPrefab;
-        public GameObject[] tabs;
+        public ShowHideUI[] tabs;
         public int currentTab;
 
         public string nextButton;
@@ -19,7 +19,7 @@ namespace SBR.Menu {
         private void UpdateActiveTab(int tab) {
             currentTab = tab;
             for (int i = 0; i < tabs.Length; i++) {
-                tabs[i].SetActive(i == currentTab);
+                tabs[i].show = i == currentTab;
                 tabImages[i].enabled = i == currentTab;
                 tabLabels[i].color = i == currentTab ? onLabelColor : offLabelColor;
             }
