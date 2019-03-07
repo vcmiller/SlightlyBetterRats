@@ -28,11 +28,11 @@ namespace SBR.Menu {
 
         public static readonly Setting<AnisotropicFiltering> anisotropic =
             new EnumSetting<AnisotropicFiltering>(anisotropicKey,
-                AnisotropicFiltering.Enable,
+                AnisotropicFiltering.Enable, false,
                 t => QualitySettings.anisotropicFiltering = t, null);
 
         public static readonly Setting<int> antialiasing =
-            new IntSetting(antialiasingKey, 2,
+            new IntSetting(antialiasingKey, 2, false,
                 t => QualitySettings.antiAliasing = t,
                 t => {
                     if (t == 0) return "None";
@@ -40,11 +40,11 @@ namespace SBR.Menu {
                 }, new[] { 0, 2, 4, 8 });
 
         public static readonly Setting<BlendWeights> blendWeights =
-            new EnumSetting<BlendWeights>(blendWeightsKey, BlendWeights.FourBones,
+            new EnumSetting<BlendWeights>(blendWeightsKey, BlendWeights.FourBones, false,
                 t => QualitySettings.blendWeights = t);
 
         public static readonly Setting<int> textureQuality =
-            new IntSetting(textureQualityKey, 0,
+            new IntSetting(textureQualityKey, 0, false,
                 t => QualitySettings.masterTextureLimit = t,
                 t => {
                     switch(t) {
@@ -57,30 +57,30 @@ namespace SBR.Menu {
                 }, new[] { 0, 1, 2, 3 });
 
         public static readonly Setting<bool> realtimeReflections =
-            new BoolSetting(realtimeReflectionsKey, true,
+            new BoolSetting(realtimeReflectionsKey, true, false,
                 t => QualitySettings.realtimeReflectionProbes = t);
 
         public static readonly Setting<ShadowQuality> shadowType =
             new EnumSetting<ShadowQuality>(shadowTypeKey,
-                ShadowQuality.All,
+                ShadowQuality.All, false,
                 t => QualitySettings.shadows = t);
 
         public static readonly Setting<ShadowResolution> shadowQuality =
             new EnumSetting<ShadowResolution>(shadowQualityKey,
-                ShadowResolution.High,
+                ShadowResolution.High, false,
                 t => QualitySettings.shadowResolution = t);
 
         public static readonly Setting<bool> softParticles =
-            new BoolSetting(softParticlesKey, true,
+            new BoolSetting(softParticlesKey, true, false,
                 t => QualitySettings.softParticles = t);
 
         public static readonly Setting<bool> softVegetation =
-            new BoolSetting(softVegetationKey, true,
+            new BoolSetting(softVegetationKey, true, false,
                 t => QualitySettings.softVegetation = t);
 
         public static readonly Setting<int> overallQualityLevel =
             new IntSetting(overallQualityLevelKey,
-                QualitySettings.names.Length - 1, t => {
+                QualitySettings.names.Length / 2, true, t => {
                     if (t >= 0) {
                         QualitySettings.SetQualityLevel(t);
                         anisotropic.value = QualitySettings.anisotropicFiltering;

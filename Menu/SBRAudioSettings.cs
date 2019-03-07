@@ -22,7 +22,7 @@ namespace SBR.Menu {
         #region Settings Definitions
 
         public static readonly Setting<float> masterVolume =
-            new FloatSetting(masterVolumeKey, 1.0f,
+            new FloatSetting(masterVolumeKey, 1.0f, true,
                 v => AudioListener.volume = v,
                 values: new[] { 0.0f, 1.0f });
 

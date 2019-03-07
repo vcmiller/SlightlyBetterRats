@@ -26,7 +26,7 @@ namespace SBR.Menu {
             private string widthKey, heightKey, refreshKey;
 
             public ResolutionSetting(string key) : 
-                base(key, Screen.currentResolution, Setter, null, Screen.resolutions) {
+                base(key, new Resolution(), false, Setter, null, Screen.resolutions) {
                 widthKey = key + widthSuffix;
                 heightKey = key + heightSuffix;
                 refreshKey = key + refreshSuffix;
@@ -61,11 +61,12 @@ namespace SBR.Menu {
         public static readonly Setting<FullScreenMode> fullscreenMode =
             new EnumSetting<FullScreenMode>(fullscreenKey, 
                 FullScreenMode.ExclusiveFullScreen,
+                true,
                 m => Screen.fullScreenMode = m);
 
         public static readonly Setting<int> vsyncCount =
             new IntSetting(vsyncKey,
-                1,
+                1, true,
                 v => {
                     QualitySettings.vSyncCount = Mathf.Clamp(v, 0, 1);
                     QualitySettings.maxQueuedFrames = v;

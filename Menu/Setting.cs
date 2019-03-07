@@ -40,6 +40,7 @@ namespace SBR.Menu {
     public abstract class Setting<T> : Setting {
         private Func<T, string> toString;
         private T[] values;
+        private bool hasDefault;
         protected readonly T defaultValue;
         protected T currentValue;
         public event Action<T> ValueChanged;
@@ -47,12 +48,14 @@ namespace SBR.Menu {
         public Setting(
             string key, 
             T defaultValue = default, 
+            bool hasDefault = true,
             Action<T> setter = null, 
             Func<T, string> toString = null, 
             T[] values = null) : 
             base(key, typeof(T)) {
             
             this.defaultValue = defaultValue;
+            this.hasDefault = hasDefault;
             this.ValueChanged = setter;
             this.ValueChanged += v => OnObjValueChanged(v);
             this.toString = toString;
@@ -76,16 +79,19 @@ namespace SBR.Menu {
         public virtual T[] possibleValues => values;
         public override string ObjValueToString(object value) => ValueToString((T)value);
         public virtual string ValueToString(T v) => toString?.Invoke(v) ?? v.ToString();
-        public override void Default() => value = defaultValue;
+        public override void Default() {
+            if (hasDefault) value = defaultValue;
+        }
     }
 
     public class IntSetting : Setting<int> {
         public IntSetting(string key, 
-            int defaultValue = 0, 
+            int defaultValue = 0,
+            bool hasDefault = true,
             Action<int> setter = null, 
             Func<int, string> toString = null, 
             int[] values = null) : 
-            base(key, defaultValue, setter, toString, values) { }
+            base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() => value = PlayerPrefs.GetInt(key, defaultValue);
         public override void Save() =>PlayerPrefs.SetInt(key, value);
@@ -93,10 +99,11 @@ namespace SBR.Menu {
 
     public class EnumSetting<T> : Setting<T> where T : Enum {
         public EnumSetting(string key, 
-            T defaultValue = default, 
+            T defaultValue = default,
+            bool hasDefault = true,
             Action<T> setter = null, 
             Func<T, string> toString = null) : 
-            base(key, defaultValue, setter, toString ?? CamelCaseToSplit, 
+            base(key, defaultValue, hasDefault, setter, toString ?? CamelCaseToSplit, 
                 Enum.GetValues(typeof(T)).Cast<T>().ToArray()) {}
 
         public override void Load() => value = (T)Enum.ToObject(typeof(T), 
@@ -108,11 +115,12 @@ namespace SBR.Menu {
 
     public class FloatSetting : Setting<float> {
         public FloatSetting(string key, 
-            float defaultValue = 0, 
+            float defaultValue = 0,
+            bool hasDefault = true,
             Action<float> setter = null, 
             Func<float, string> toString = null, 
             float[] values = null) : 
-            base(key, defaultValue, setter, toString, values) { }
+            base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() => value = PlayerPrefs.GetFloat(key, defaultValue);
         public override void Save() => PlayerPrefs.SetFloat(key, value);
@@ -121,9 +129,10 @@ namespace SBR.Menu {
     public class BoolSetting : Setting<bool> {
         public BoolSetting(string key,
             bool defaultValue = false,
+            bool hasDefault = true,
             Action<bool> setter = null,
             Func<bool, string> toString = null) :
-            base(key, defaultValue, setter, toString ?? EnabledDisabled, null) { }
+            base(key, defaultValue, hasDefault, setter, toString ?? EnabledDisabled, null) { }
 
         public override void Load() => value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
         public override void Save() => PlayerPrefs.SetInt(key, value ? 1 : 0);
@@ -134,10 +143,11 @@ namespace SBR.Menu {
     public class StringSetting : Setting<string> {
         public StringSetting(string key,
             string defaultValue = "",
+            bool hasDefault = true,
             Action<string> setter = null,
             Func<string, string> toString = null,
             string[] values = null) :
-            base(key, defaultValue, setter, toString, values) { }
+            base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() => value = PlayerPrefs.GetString(key, defaultValue);
         public override void Save() => PlayerPrefs.SetString(key, value);
