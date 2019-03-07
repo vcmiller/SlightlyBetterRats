@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-#if IncludeDefaultMenus
+#if SBRAudioSettings
 
 namespace SBR.Menu {
     public static class SBRAudioSettings {

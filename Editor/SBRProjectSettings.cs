@@ -32,13 +32,20 @@ namespace SBR.Editor {
             }
         }
 
-        private bool _includeDefaultMenus;
-        public bool includeDefaultMenus;
+        private bool _includeAudioSettings;
+        private bool _includeGraphicsSettings;
+
+        public bool includeAudioSettings;
+        public bool includeGraphicsSettings;
 
         private void OnValidate() {
-            if (includeDefaultMenus != _includeDefaultMenus) {
-                _includeDefaultMenus = includeDefaultMenus;
-                EditorUtil.SetSymbolDefined("IncludeDefaultMenus", includeDefaultMenus);
+            if (includeAudioSettings != _includeAudioSettings) {
+                _includeAudioSettings = includeAudioSettings;
+                EditorUtil.SetSymbolDefined("SBRAudioSettings", includeAudioSettings);
+            }
+            if (includeGraphicsSettings != _includeGraphicsSettings) {
+                _includeGraphicsSettings = includeGraphicsSettings;
+                EditorUtil.SetSymbolDefined("SBRGraphicsSettings", includeGraphicsSettings);
             }
         }
     }

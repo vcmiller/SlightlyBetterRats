@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 
-#if IncludeDefaultMenus
+#if SBRGraphicsSettings
 
 namespace SBR.Menu {
     public static class SBRGraphicsSettings {
