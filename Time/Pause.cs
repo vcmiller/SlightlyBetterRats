@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SBR {
     /// <summary>
@@ -18,6 +19,11 @@ namespace SBR {
 
         public static event Action GamePaused;
         public static event Action GameResumed;
+
+        [RuntimeInitializeOnLoadMethod]
+        public static void RegisterSceneLoadCallback() {
+            SceneManager.sceneLoaded += SceneLoaded;
+        }
 
         /// <summary>
         /// Controls paused state of the game. 
@@ -40,6 +46,10 @@ namespace SBR {
                     }
                 }
             }
+        }
+
+        private static void SceneLoaded(Scene scene, LoadSceneMode mode) {
+            paused = false;
         }
     }
 
