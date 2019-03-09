@@ -15,14 +15,12 @@ namespace SBR.Editor {
                 return;
             }
             EditorGUI.BeginDisabledGroup(!myTarget.profile);
-
-            var mf = myTarget.GetComponent<MeshFilter>();
+            
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Export Mesh")) {
                 ExportMesh(myTarget.ownedMesh, myTarget.name);
             }
-
-            var mc = myTarget.GetComponent<MeshCollider>();
+            
             EditorGUI.BeginDisabledGroup(!myTarget.ownedCollision || !myTarget.profile || !myTarget.profile.separateCollisionMesh);
             if (GUILayout.Button("Export Collision")) {
                 ExportMesh(myTarget.ownedCollision, myTarget.name + "_Collision");
@@ -32,7 +30,7 @@ namespace SBR.Editor {
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Export Meshes and Convert")) {
-                Mesh mesh = ExportMesh(mf.sharedMesh, myTarget.name);
+                Mesh mesh = ExportMesh(myTarget.ownedMesh, myTarget.name);
                 Mesh colMesh = null;
                 if (mesh && myTarget.ownedCollision && myTarget.profile.separateCollisionMesh) {
                     colMesh = ExportMesh(myTarget.ownedCollision, myTarget.name + "_Collision");
@@ -40,8 +38,10 @@ namespace SBR.Editor {
 
                 if (mesh) {
                     Undo.RecordObject(myTarget, "Export Spline Meshes");
-                    mf.sharedMesh = mesh;
-                    if (mc) {
+                    foreach (var mf in myTarget.filters) {
+                        mf.sharedMesh = mesh;
+                    }
+                    foreach (var mc in myTarget.colliders) {
                         mc.sharedMesh = colMesh != null ? colMesh : mesh;
                     }
 

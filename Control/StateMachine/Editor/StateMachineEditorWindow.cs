@@ -597,9 +597,10 @@ namespace SBR.Editor {
 
                     EditorGUILayout.LabelField("Conditions", EditorStyles.boldLabel);
 
+                    float cooldown = editingTransition.t2.cooldown;
                     EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField("Exit Time: ");
-                    float exitTime = EditorGUILayout.FloatField(editingTransition.t2.exitTime);
+                    EditorGUILayout.LabelField("Cooldown:");
+                    cooldown = EditorGUILayout.FloatField(cooldown);
                     EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.BeginHorizontal();
@@ -607,12 +608,32 @@ namespace SBR.Editor {
                     var mode = (StateMachineDefinition.TransitionMode)EditorGUILayout.EnumPopup(editingTransition.t2.mode);
                     EditorGUILayout.EndHorizontal();
 
-                    if (notify != editingTransition.t2.hasNotify || exitTime != editingTransition.t2.exitTime || mode != editingTransition.t2.mode) {
+                    float exitTime = editingTransition.t2.exitTime;
+                    string message = editingTransition.t2.message;
+                    if (editingTransition.t2.mode == StateMachineDefinition.TransitionMode.Time) {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("Exit Time: ");
+                        exitTime = EditorGUILayout.FloatField(exitTime);
+                        EditorGUILayout.EndHorizontal();
+                    } else if (editingTransition.t2.mode == StateMachineDefinition.TransitionMode.Message) {
+                        EditorGUILayout.BeginHorizontal();
+                        EditorGUILayout.LabelField("Message: ");
+                        message = EditorGUILayout.TextField(editingTransition.t2.message);
+                        EditorGUILayout.EndHorizontal();
+                    }
+
+                    if (notify != editingTransition.t2.hasNotify ||
+                        exitTime != editingTransition.t2.exitTime ||
+                        message != editingTransition.t2.message ||
+                        cooldown != editingTransition.t2.cooldown ||
+                        mode != editingTransition.t2.mode) {
                         Undo.RecordObject(def, "Edit Transition");
                         editingTransition.t2.hasNotify = notify;
                         editingTransition.t2.exitTime = exitTime;
+                        editingTransition.t2.cooldown = cooldown;
                         editingTransition.t2.mode = mode;
-
+                        editingTransition.t2.message = message;
+                        def.OnValidate();
                         dirty = true;
                         EditorUtility.SetDirty(def);
                     }

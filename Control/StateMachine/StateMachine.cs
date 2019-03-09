@@ -13,6 +13,16 @@ namespace SBR.StateMachines {
     public delegate void Notify();
     public delegate bool Condition();
 
+    public class Trigger {
+        bool value;
+        public void Set() => value = true;
+        public bool Get() {
+            bool b = value;
+            value = false;
+            return b;
+        }
+    }
+
     public class State {
         public Notify enter;
         public Notify during;
@@ -61,30 +71,30 @@ namespace SBR.StateMachines {
 
         public Notify notify;
         public Condition cond;
+        public float cooldown;
 
         public float exitTime;
         public StateMachineDefinition.TransitionMode mode;
 
+        public float lastTimeTakenUnscaled = float.NegativeInfinity;
         public float lastTimeTaken = float.NegativeInfinity;
 
         public bool IsPassable() {
-            bool t = Time.time - from.enterTime >= exitTime;
-
-            if (mode == StateMachineDefinition.TransitionMode.ConditionOnly) {
-                return cond();
-            } else if (mode == StateMachineDefinition.TransitionMode.TimeOnly) {
-                return t;
-            } else if (mode == StateMachineDefinition.TransitionMode.TimeAndCondition) {
-                return t && cond();
+            if (Time.time - lastTimeTaken < cooldown) return false;
+            
+            if (mode == StateMachineDefinition.TransitionMode.Time) {
+                return Time.time - from.enterTime >= exitTime;
             } else {
-                return t || cond();
-            }
+                return cond();
+            } 
         }
     }
 
     public class SubStateMachine {
         public State currentState;
         public State defaultState;
+
+        public float leafEnterTime => activeLeaf.enterTime;
 
         public State activeLeaf {
             get {
@@ -189,6 +199,8 @@ namespace SBR.StateMachines {
         [NonSerialized]
         protected State[] allStates;
 
+        public float stateEnterTime => rootMachine.leafEnterTime;
+        public float timeSinceEntered => Time.time - rootMachine.leafEnterTime;
         public string stateName {
             get { 
                 return rootMachine.activeLeaf.ToString();
@@ -199,7 +211,7 @@ namespace SBR.StateMachines {
                 if (state != null) {
                     TransitionTo(state);
                 } else {
-                    throw new System.ArgumentException("Invalid state name passed to stateName setter: " + value);
+                    throw new ArgumentException("Invalid state name passed to stateName setter: " + value);
                 }
             }
         }
@@ -245,7 +257,7 @@ namespace SBR.StateMachines {
 
             foreach (var t in s1.transitions) {
                 if (t.to.ToString() == state2) {
-                    return t.lastTimeTaken;
+                    return t.lastTimeTakenUnscaled;
                 }
             }
 
@@ -258,7 +270,8 @@ namespace SBR.StateMachines {
             var t = rootMachine.CheckTransitions();
             if (t != null) {
                 t.notify?.Invoke();
-                t.lastTimeTaken = Time.unscaledTime;
+                t.lastTimeTakenUnscaled = Time.unscaledTime;
+                t.lastTimeTaken = Time.time;
                 TransitionTo(t.to);
             }
         }
@@ -274,5 +287,8 @@ namespace SBR.StateMachines {
 
             rootMachine.TransitionTo(t);
         }
+
+        protected Trigger trigger_OnDamage = new Trigger();
+        protected virtual void OnDamage(Damage dmg) => trigger_OnDamage.Set();
     }
 }

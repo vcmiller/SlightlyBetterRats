@@ -123,23 +123,36 @@ namespace SBR {
             public bool hasNotify = false;
 
             /// <summary>
+            /// Minimum time after taking the transition before it can be taken again.
+            /// </summary>
+            [Tooltip("Minimum time after taking the transition before it can be taken again.")]
+            public float cooldown = 0;
+
+            /// <summary>
             /// Whether the transition is controlled by time or a condition function.
             /// </summary>
             [Tooltip("Whether the transition is controlled by time or a condition function.")]
-            public TransitionMode mode = TransitionMode.ConditionOnly;
+            public TransitionMode mode = TransitionMode.Condition;
 
             /// <summary>
             /// Time after which the transition is exited.
             /// </summary>
-            [Conditional("mode", TransitionMode.ConditionOnly, false)]
+            [Conditional("mode", TransitionMode.Condition, false)]
             [Tooltip("Time after which the transition is exited.")]
             public float exitTime = 0.0f;
+
+            /// <summary>
+            /// Message function name that will trigger the transition.
+            /// </summary>
+            [Conditional("mode", TransitionMode.Message)]
+            [Tooltip("Message function name that will trigger the transition.")]
+            public string message = "Message";
 
             public int width => 2;
         }
 
         public enum TransitionMode {
-            ConditionOnly, TimeOnly, TimeAndCondition, TimeOrCondition
+            Condition, Time, Message, Damage
         }
 
         /// <summary>
@@ -191,6 +204,13 @@ namespace SBR {
                 foreach (var transition in state.transitions) {
                     if (transition.to != "" && GetState(transition.to) == null) {
                         transition.to = "";
+                    }
+
+                    if (transition.mode == TransitionMode.Message) {
+                        transition.message = Regex.Replace(transition.message, "[^_a-zA-Z0-9]", "");
+                        if (transition.message.Length == 0) {
+                            transition.message = "Message";
+                        }
                     }
                 }
             }

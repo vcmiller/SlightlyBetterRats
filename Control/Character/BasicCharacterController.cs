@@ -21,32 +21,42 @@ namespace SBR {
         public float pitchMax = 80;
 
         private Vector3 angles;
-        
-        public void Axis_Horizontal(float value) {
+
+        protected override void Awake() {
+            base.Awake();
+            AddAxisListener("Horizontal", Axis_Horizontal);
+            AddAxisListener("Vertical", Axis_Vertical);
+            AddAxisListener("Mouse X", Axis_MouseX);
+            AddAxisListener("Mouse Y", Axis_MouseY);
+            AddButtonDownListener("Jump", ButtonDown_Jump);
+            AddButtonUpListener("Jump", ButtonUp_Jump);
+        }
+
+        private void Axis_Horizontal(float value) {
             Vector3 right = viewTarget ? viewTarget.flatRight : Vector3.right;
             channels.movement += right * value;
         }
 
-        public void Axis_Vertical(float value) {
+        private void Axis_Vertical(float value) {
             Vector3 fwd = viewTarget ? viewTarget.flatForward : Vector3.forward;
             channels.movement += fwd * value;
         }
 
-        public void ButtonDown_Jump() {
+        private void ButtonDown_Jump() {
             channels.jump = true;
         }
 
-        public void ButtonUp_Jump() {
+        private void ButtonUp_Jump() {
             channels.jump = false;
         }
 
-        public void Axis_MouseX(float value) {
+        private void Axis_MouseX(float value) {
             angles.y += value;
 
             channels.rotation = Quaternion.Euler(angles);
         }
 
-        public void Axis_MouseY(float value) {
+        private void Axis_MouseY(float value) {
             angles.x -= value;
 
             if (angles.x < pitchMin) {

@@ -9,7 +9,7 @@ namespace SBR {
     /// Component that constructs a mesh by duplicating and deforming a sequence of base meshes along a spline.
     /// Controlled by a SplineMeshProfile.
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     [RequireComponent(typeof(MeshRenderer), typeof(MeshFilter))]
     public class SplineMesh : MonoBehaviour {
         /// <summary>
@@ -26,6 +26,9 @@ namespace SBR {
         /// Whether to generate the mesh in Awake(). Only needed if instantiating at runtime.
         /// </summary>
         public bool updateMeshOnAwake;
+        
+        public MeshFilter[] filters;
+        public MeshCollider[] colliders;
 
         private Mesh _ownedMesh, _ownedCollision;
         public Mesh ownedMesh => _ownedMesh;
@@ -53,10 +56,6 @@ namespace SBR {
             }
         }
 
-        private MeshRenderer mr;
-        private MeshFilter mf;
-        private MeshCollider mc;
-
         private void Awake() {
             if (updateMeshOnAwake) {
                 MarkDirty(true);
@@ -82,6 +81,12 @@ namespace SBR {
 
         private void Reset() {
             spline = GetComponent<Spline>();
+            
+            var mf = GetComponent<MeshFilter>();
+            var mc = GetComponent<MeshCollider>();
+            
+            if (mf) filters = new[] { mf };
+            if (mc) colliders = new[] { mc };
         }
         
         private void MarkDirty(bool update) {
@@ -109,10 +114,6 @@ namespace SBR {
                 return;
             }
 
-            mr = GetComponent<MeshRenderer>();
-            mf = GetComponent<MeshFilter>();
-            mc = GetComponent<MeshCollider>();
-
             if (ownedMesh) DestroyImmediate(ownedMesh);
             if (ownedCollision) DestroyImmediate(ownedCollision);
 
@@ -124,14 +125,19 @@ namespace SBR {
                     UnityEditor.Unwrapping.GenerateSecondaryUVSet(ownedMesh);
 #endif
 
-                mf.sharedMesh = ownedMesh;
-                if (mc) mc.sharedMesh = ownedCollision;
+                foreach (var mf in filters) {
+                    mf.sharedMesh = ownedMesh;
+                    var mr = mf.GetComponent<MeshRenderer>();
+                    var sm = mr.sharedMaterials;
+                    int smc = profile.GetSubmeshCount();
+                    if (sm.Length != profile.GetSubmeshCount()) {
+                        Array.Resize(ref sm, smc);
+                        mr.sharedMaterials = sm;
+                    }
+                }
 
-                var sm = mr.sharedMaterials;
-                int smc = profile.GetSubmeshCount();
-                if (sm.Length != profile.GetSubmeshCount()) {
-                    Array.Resize(ref sm, smc);
-                    mr.sharedMaterials = sm;
+                foreach (var mc in colliders) {
+                    mc.sharedMesh = ownedCollision;
                 }
             }
         }

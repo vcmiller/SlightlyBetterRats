@@ -1,5 +1,6 @@
 ﻿using SBR.StateMachines;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -51,6 +52,7 @@ public abstract class {5} {{
     }}
 
 {4}
+{6}
 }}
 ";
 
@@ -64,10 +66,10 @@ public abstract class {5} {{
             if (baseType.ContainsGenericParameters) {
                 abstractClassName += "`1";
             }
-
-            string classDeclaration = GetClassDeclaration(abstractClassName, newClassName);
-
-            string generated = string.Format(implClassTemplate, classDeclaration, GetFunctionDeclarations(def, true));
+            
+            string generated = string.Format(implClassTemplate,
+                GetClassDeclaration(abstractClassName, newClassName), 
+                GetFunctionDeclarations(def, true));
 
             StreamWriter outStream = new StreamWriter(path);
             outStream.Write(generated);
@@ -76,8 +78,14 @@ public abstract class {5} {{
         }
 
         public static void GenerateAbstractClass(StateMachineDefinition def) {
-            string classDeclaration = GetClassDeclaration(def.baseClass, def.name);
-            string generated = string.Format(abstractClassTemplate, def.name, GetStateEnums(def), GetStateInitializers(def), GetTransitionInitializers(def), GetFunctionDeclarations(def), classDeclaration);
+            string generated = string.Format(abstractClassTemplate, 
+                def.name, 
+                GetStateEnums(def), 
+                GetStateInitializers(def), 
+                GetTransitionInitializers(def), 
+                GetFunctionDeclarations(def), 
+                GetClassDeclaration(def.baseClass, def.name),
+                GetTriggerDeclarations(def));
 
             string defPath = AssetDatabase.GetAssetPath(def);
 
@@ -248,25 +256,45 @@ public abstract class {5} {{
             str += "            from = state" + from.name + "," + nl;
             str += "            to = state" + to.to + "," + nl;
             str += "            exitTime = " + to.exitTime + "f," + nl;
+            str += "            cooldown = " + to.cooldown + "f," + nl;
             str += "            mode = StateMachineDefinition.TransitionMode." + to.mode.ToString() + "," + nl;
 
             if (to.hasNotify) {
                 str += "            notify = TransitionNotify_" + from.name + "_" + to.to + "," + nl;
             }
 
-            str += "            cond = TransitionCond_" + from.name + "_" + to.to + "" + nl;
+            if (to.mode == StateMachineDefinition.TransitionMode.Condition) {
+                str += "            cond = TransitionCond_" + from.name + "_" + to.to + "," + nl;
+            } else if (to.mode == StateMachineDefinition.TransitionMode.Message) {
+                str += "            cond = trigger_" + to.message + ".Get," + nl;
+            } else if (to.mode == StateMachineDefinition.TransitionMode.Damage) {
+                str += "            cond = trigger_OnDamage.Get," + nl;
+            }
+
             str += "        };" + nl;
-
             str += "        state" + from.name + ".transitions.Add(" + variable + ");" + nl;
-
             str += nl;
             return str;
         }
 
-        public static string GetFunctionDeclarations(StateMachineDefinition def, bool over = false) {
-            string vo = over ? "override" : "abstract";
-            string end = over ? "() { }" + nl : "();" + nl;
-            string end2 = over ? "() { return false; }" + nl : "();" + nl;
+        public static string GetTriggerDeclarations(StateMachineDefinition def) {
+            string str = "";
+            HashSet<string> created = new HashSet<string>();
+            foreach (var state in def.states) {
+                foreach (var tr in state.transitions) {
+                    if (tr.mode == StateMachineDefinition.TransitionMode.Message && created.Add(tr.message)) {
+                        str += "    protected readonly Trigger trigger_" + tr.message + " = new Trigger();" + nl;
+                        str += "    public void " + tr.message + "() => trigger_" + tr.message + ".Set();" + nl;
+                    }
+                }
+            }
+            return str;
+        }
+
+        public static string GetFunctionDeclarations(StateMachineDefinition def, bool impl = false) {
+            string vo = impl ? "override" : "abstract";
+            string end = impl ? "() { }" + nl : "();" + nl;
+            string end2 = impl ? "() { return false; }" + nl : "();" + nl;
 
             string str = "";
             foreach (var state in def.states) {
@@ -288,7 +316,9 @@ public abstract class {5} {{
             foreach (var state in def.states) {
                 if (state.transitions != null) {
                     foreach (var trans in state.transitions) {
-                        str += "    protected " + vo + " bool TransitionCond_" + state.name + "_" + trans.to + end2;
+                        if (trans.mode == StateMachineDefinition.TransitionMode.Condition) {
+                            str += "    protected " + vo + " bool TransitionCond_" + state.name + "_" + trans.to + end2;
+                        }
 
                         if (trans.hasNotify) {
                             str += "    protected " + vo + " void TransitionNotify_" + state.name + "_" + trans.to + end;

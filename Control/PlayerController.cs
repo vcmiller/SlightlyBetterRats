@@ -8,8 +8,9 @@ namespace SBR {
     /// Used to get input from a player using the Unity input system.
     /// </summary>
     /// <example>
-    /// To write your PlayerController, create methods in the following format.
-    /// These functions are called automatically.
+    /// To write your PlayerController, create listener methods for each desired button/axis
+    /// and register them using Add...Listener.
+    /// Alternatively, call AutoRegisterListeners and create methods in the following format:
     /// <code>
     /// public void Axis_Horizontal(float value) { }
     /// public void Button_Fire1() { }
@@ -40,13 +41,7 @@ namespace SBR {
         /// </summary>
         [Tooltip("Whether to hide and confine the mouse cursor automatically.")]
         public bool grabMouse = true;
-
-        /// <summary>
-        /// Whether invalid axis/button function names should be logged.
-        /// </summary>
-        [Tooltip("Whether invalid axis/button function names should be logged.")]
-        public bool logBadAxes = true;
-
+        
         /// <summary>
         /// Whether to control the ViewTarget's enabled state (if true, don't control).
         /// </summary>
@@ -91,53 +86,95 @@ namespace SBR {
             } else {
                 viewTarget = GetComponentInChildren<ViewTarget>();
             }
+        }
 
+        protected void AddAxisListener(string axis, Action<float> listener, bool overwrite = false) {
+            try {
+                Input.GetAxis(axis + inputSuffix); // Throw an exception if it doesn't exist.
+                if (!overwrite && axes.ContainsKey(axis)) {
+                    axes[axis] += listener;
+                } else {
+                    axes[axis] = listener;
+                }
+            } catch {
+                Debug.LogError("Error: Axis " + axis + inputSuffix + " does not exist.");
+            }
+        }
+
+        protected void AddButtonListener(string button, Action listener, bool overwrite = false) {
+            try {
+                Input.GetButton(button + inputSuffix); // Throw an exception if it doesn't exist.
+                if (!overwrite && buttonHeld.ContainsKey(button)) {
+                    buttonHeld[button] += listener;
+                } else {
+                    buttonHeld[button] = listener;
+                }
+            } catch {
+                Debug.LogError("Error: Button " + button + inputSuffix + " does not exist.");
+            }
+        }
+
+        protected void AddButtonUpListener(string button, Action listener, bool overwrite = false) {
+            try {
+                Input.GetButton(button + inputSuffix); // Throw an exception if it doesn't exist.
+                if (!overwrite && buttonUp.ContainsKey(button)) {
+                    buttonUp[button] += listener;
+                } else {
+                    buttonUp[button] = listener;
+                }
+            } catch {
+                Debug.LogError("Error: Button " + button + inputSuffix + " does not exist.");
+            }
+        }
+
+        protected void AddButtonDownListener(string button, Action listener, bool overwrite = false) {
+            try {
+                Input.GetButton(button + inputSuffix); // Throw an exception if it doesn't exist.
+                if (!overwrite && buttonDown.ContainsKey(button)) {
+                    buttonDown[button] += listener;
+                } else {
+                    buttonDown[button] = listener;
+                }
+            } catch {
+                Debug.LogError("Error: Button " + button + inputSuffix + " does not exist.");
+            }
+        }
+
+        protected void AutoRegisterListeners() {
             foreach (MethodInfo m in GetType().GetMethods()) {
                 if (m.Name.StartsWith("Axis_")) {
                     var param = m.GetParameters();
 
                     if (param.Length == 1 && param[0].ParameterType == typeof(float)) {
+                        var listener = (Action<float>)Delegate.CreateDelegate(typeof(Action<float>), this, m);
                         string axis = m.Name.Substring(5);
-                        if (axes.ContainsKey(axis)) {
-                            Debug.LogWarning("Waring: Duplicate event handler found for axis " + axis + ".");
-                        } else {
-                            axes.Add(axis, (Action<float>)Delegate.CreateDelegate(typeof(Action<float>), this, m));
-                        }
+                        AddAxisListener(axis, listener);
                     } else {
                         Debug.LogWarning("Warning: Axis event handler " + m.Name + " should take one argument of type float.");
                     }
                 } else if (m.Name.StartsWith("Button_")) {
                     if (m.GetParameters().Length == 0) {
+                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
                         string btn = m.Name.Substring(7);
-                        if (buttonHeld.ContainsKey(btn)) {
-                            Debug.LogWarning("Waring: Duplicate event handler found for button " + btn + ".");
-                        } else {
-                            buttonHeld.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
-                        }
+                        AddButtonListener(btn, listener);
                     } else {
                         Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
                     }
                 } else if (m.Name.StartsWith("ButtonUp_")) {
                     if (m.GetParameters().Length == 0) {
+                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
                         string btn = m.Name.Substring(9);
-                        if (buttonUp.ContainsKey(btn)) {
-                            Debug.LogWarning("Waring: Duplicate event handler found for button up " + btn + ".");
-                        } else {
-                            buttonUp.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
-                        }
+                        AddButtonUpListener(btn, listener);
                     } else {
-                        Debug.LogWarning("Warning: ButtonUp event handler " + m.Name + " should take no arguments.");
+                        Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
                     }
                 } else if (m.Name.StartsWith("ButtonDown_")) {
                     if (m.GetParameters().Length == 0) {
+                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
                         string btn = m.Name.Substring(11);
-                        if (buttonDown.ContainsKey(btn)) {
-                            Debug.LogWarning("Waring: Duplicate event handler found for button down " + btn + ".");
-                        } else {
-                            buttonDown.Add(btn, (Action)Delegate.CreateDelegate(typeof(Action), this, m));
-                        }
+                        AddButtonDownListener(btn, listener);
                     } else {
-                        Debug.LogWarning("Warning: ButtonDown event handler " + m.Name + " should take no arguments.");
+                        Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
                     }
                 }
             }
@@ -146,40 +183,24 @@ namespace SBR {
         protected override void DoInput() {
             if (enabled) {
                 foreach (var m in axes) {
-                    try {
-                        m.Value(Input.GetAxis(m.Key + inputSuffix));
-                    } catch (UnityException ex) {
-                        if (logBadAxes) Debug.LogException(ex, this);
-                    }
+                    m.Value?.Invoke(Input.GetAxis(m.Key + inputSuffix));
                 }
 
                 foreach (var m in buttonDown) {
-                    try {
-                        if (Input.GetButtonDown(m.Key + inputSuffix)) {
-                            m.Value();
-                        }
-                    } catch (UnityException ex) {
-                        if (logBadAxes) Debug.LogException(ex, this);
+                    if (Input.GetButtonDown(m.Key + inputSuffix)) {
+                        m.Value?.Invoke();
                     }
                 }
 
                 foreach (var m in buttonHeld) {
-                    try {
-                        if (Input.GetButton(m.Key + inputSuffix)) {
-                            m.Value();
-                        }
-                    } catch (UnityException ex) {
-                        if (logBadAxes) Debug.LogException(ex, this);
+                    if (Input.GetButton(m.Key + inputSuffix)) {
+                        m.Value?.Invoke();
                     }
                 }
 
                 foreach (var m in buttonUp) {
-                    try {
-                        if (Input.GetButtonUp(m.Key + inputSuffix)) {
-                            m.Value();
-                        }
-                    } catch (UnityException ex) {
-                        if (logBadAxes) Debug.LogException(ex, this);
+                    if (Input.GetButtonUp(m.Key + inputSuffix)) {
+                        m.Value?.Invoke();
                     }
                 }
             }

@@ -14,12 +14,17 @@ namespace SBR.Editor {
                 EditorGUI.PropertyField(position, property, label);
             } else {
                 StateMachineDefinition sm = property.serializedObject.targetObject as StateMachineDefinition;
-                GUIContent[] options = sm.states.Select(s => new GUIContent(s.name)).Prepend(new GUIContent("(none)")).ToArray();
-                int index = Array.FindIndex(options, c => c.text == property.stringValue);
-                index = EditorGUI.Popup(position, label, index, options);
+                GUIContent[] options = sm.states?.Select(s => new GUIContent(s.name)).Prepend(new GUIContent("(none)")).ToArray();
 
-                if (index > 0) {
-                    property.stringValue = options[index].text;
+                if (options != null) {
+                    int index = Array.FindIndex(options, c => c.text == property.stringValue);
+                    index = EditorGUI.Popup(position, label, index, options);
+
+                    if (index > 0) {
+                        property.stringValue = options[index].text;
+                    } else {
+                        property.stringValue = "";
+                    }
                 } else {
                     property.stringValue = "";
                 }
