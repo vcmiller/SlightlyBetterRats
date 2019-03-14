@@ -84,15 +84,15 @@ namespace SBR {
             if (capsule.direction == 0) {
                 capsuleUp = capsule.transform.right;
                 scaleY = capsule.transform.lossyScale.x;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.localScale.y), Mathf.Abs(capsule.transform.localScale.z));
+                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.y), Mathf.Abs(capsule.transform.lossyScale.z));
             } else if (capsule.direction == 1) {
                 capsuleUp = capsule.transform.up;
                 scaleY = capsule.transform.lossyScale.y;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.localScale.x), Mathf.Abs(capsule.transform.localScale.z));
+                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.x), Mathf.Abs(capsule.transform.lossyScale.z));
             } else {
                 capsuleUp = capsule.transform.forward;
                 scaleY = capsule.transform.lossyScale.z;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.localScale.x), Mathf.Abs(capsule.transform.localScale.y));
+                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.x), Mathf.Abs(capsule.transform.lossyScale.y));
             }
 
             radius = scaleXZ * capsule.radius;
