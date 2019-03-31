@@ -22,6 +22,19 @@ namespace SBR {
         public Image backImage;
 
         /// <summary>
+        /// Text used to show amount.
+        /// </summary>
+        [Tooltip("Text used to show amount.")]
+        public Text amountText;
+
+        /// <summary>
+        /// How to display the amount text.
+        /// </summary>
+        [Tooltip("How to display the amount text.")]
+        [Conditional("amountText", null, false)]
+        public AmountTextType amountTextType;
+
+        /// <summary>
         /// Optional additional graphics which will be shown and hidden along with the rest of the Healthbar.
         /// </summary>
         [Tooltip("Optional additional graphics which will be shown and hidden along with the rest of the Healthbar.")]
@@ -91,6 +104,10 @@ namespace SBR {
             Hidden, Visible, OnDamage
         }
 
+        public enum AmountTextType {
+            Percent, Fraction, Amount
+        }
+
         private RectTransform fillRect;
         private Canvas canvas;
         private ExpirationTimer displayTimer;
@@ -140,6 +157,16 @@ namespace SBR {
                 }
             }
 
+            if (amountText && target) {
+                if (amountTextType == AmountTextType.Amount) {
+                    amountText.text = Mathf.CeilToInt(target.health).ToString();
+                } else if (amountTextType == AmountTextType.Fraction) {
+                    amountText.text = Mathf.CeilToInt(target.health) + " / " + Mathf.CeilToInt(target.maxHealth);
+                } else {
+                    amountText.text = Mathf.CeilToInt(target.health * 100 / target.maxHealth) + " %";
+                }
+            }
+
             Camera cam;
             if (trackingCamera) {
                 cam = trackingCamera;
@@ -169,6 +196,7 @@ namespace SBR {
 
             fillImage.enabled = en;
             backImage.enabled = en;
+            if (amountText) amountText.enabled = en;
 
             foreach (var graphic in additionalGraphics) {
                 graphic.enabled = en;
