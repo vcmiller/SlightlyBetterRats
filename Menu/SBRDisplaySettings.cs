@@ -26,7 +26,7 @@ namespace SBR.Menu {
             private string widthKey, heightKey, refreshKey;
 
             public ResolutionSetting(string key) : 
-                base(key, new Resolution(), false, Setter, null, Screen.resolutions) {
+                base(key, Screen.currentResolution, false, Setter, null, Screen.resolutions) {
                 widthKey = key + widthSuffix;
                 heightKey = key + heightSuffix;
                 refreshKey = key + refreshSuffix;

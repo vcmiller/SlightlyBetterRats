@@ -32,10 +32,20 @@ namespace SBR {
         /// </summary>
         public float chargeRatio {
             get {
-                if (curTime - lastUse > cooldown) {
+                if (canUse) {
                     return 1.0f;
                 } else {
                     return (curTime - lastUse) / cooldown;
+                }
+            }
+        }
+
+        public float timeUntilUsable {
+            get {
+                if (canUse) {
+                    return 0.0f;
+                } else {
+                    return cooldown - (curTime - lastUse);
                 }
             }
         }

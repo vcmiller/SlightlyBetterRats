@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 namespace SBR.Menu {
     public class ShowHideUI : MonoBehaviour {
@@ -14,10 +15,18 @@ namespace SBR.Menu {
         public Animator targetAnimator;
         [Conditional("mode", Mode.AnimationBool)]
         public string boolParameter = "Paused";
+        public Selectable initialSelection;
 
         private void Reset() {
             targetObject = gameObject;
             targetAnimator = GetComponentInParent<Animator>();
+            initialSelection = GetComponentInChildren<Selectable>();
+        }
+
+        private void OnEnable() {
+            if (initialSelection) {
+                initialSelection.Select();
+            }
         }
 
         private bool _show;
@@ -30,6 +39,10 @@ namespace SBR.Menu {
                         targetObject.SetActive(_show);
                     } else {
                         targetAnimator.SetBool(boolParameter, _show);
+                    }
+
+                    if (show && initialSelection) {
+                        initialSelection.Select();
                     }
                 }
             }
