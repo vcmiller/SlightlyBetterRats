@@ -97,12 +97,12 @@ namespace SBR.Menu {
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            base.Load();
             value = PlayerPrefs.GetInt(key, defaultValue);
+            base.Load();
         }
         public override void Save() {
-            base.Save();
             PlayerPrefs.SetInt(key, value);
+            base.Save();
         }
     }
 
@@ -116,13 +116,13 @@ namespace SBR.Menu {
                 Enum.GetValues(typeof(T)).Cast<T>().ToArray()) {}
 
         public override void Load() {
-            base.Load();
             value = (T)Enum.ToObject(typeof(T), PlayerPrefs.GetInt(key, Convert.ToInt32(defaultValue)));
+            base.Load();
         }
 
         public override void Save() {
-            base.Save();
             PlayerPrefs.SetInt(key, Convert.ToInt32(value));
+            base.Save();
         }
 
         private static string CamelCaseToSplit(T val) => val.ToString().SplitCamelCase();
@@ -138,13 +138,13 @@ namespace SBR.Menu {
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            base.Load();
             value = PlayerPrefs.GetFloat(key, defaultValue);
+            base.Load();
         }
 
         public override void Save() {
-            base.Save();
             PlayerPrefs.SetFloat(key, value);
+            base.Save();
         }
     }
 
@@ -157,13 +157,13 @@ namespace SBR.Menu {
             base(key, defaultValue, hasDefault, setter, toString ?? EnabledDisabled, null) { }
 
         public override void Load() {
-            base.Load();
             value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
+            base.Load();
         }
 
         public override void Save() {
-            base.Save();
             PlayerPrefs.SetInt(key, value ? 1 : 0);
+            base.Save();
         }
 
         private static string EnabledDisabled(bool b) => b ? "Enabled" : "Disabled";
@@ -179,13 +179,13 @@ namespace SBR.Menu {
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            base.Load();
             value = PlayerPrefs.GetString(key, defaultValue);
+            base.Load();
         }
 
         public override void Save() {
-            base.Save();
             PlayerPrefs.SetString(key, value);
+            base.Save();
         }
     }
 }
