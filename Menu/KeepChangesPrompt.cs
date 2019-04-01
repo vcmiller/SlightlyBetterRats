@@ -10,6 +10,7 @@ namespace SBR.Menu {
         private string textTemplate;
         public Text text;
         public SettingsSubMenu settings;
+        public Selectable select;
 
         private ExpirationTimer timer;
 
@@ -20,6 +21,7 @@ namespace SBR.Menu {
         private void OnEnable() {
             timer = new ExpirationTimer(time);
             timer.Set();
+            select.Select();
         }
 
         private void Update() {

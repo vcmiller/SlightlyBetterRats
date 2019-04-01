@@ -24,14 +24,15 @@ namespace SBR.Menu {
             }
         }
 
+        public bool modified { get; protected set; }
         public string displayName => name?.SplitCamelCase();
 
         public event Action<object> ObjValueChanged;
         protected void OnObjValueChanged(object value) => ObjValueChanged?.Invoke(value);
 
         public abstract void Default();
-        public abstract void Save();
-        public abstract void Load();
+        public virtual void Save() => modified = false;
+        public virtual void Load() => modified = false;
         public abstract object objValue { get; set; }
         public abstract IEnumerable<object> objPossibleValues { get; }
         public abstract string ObjValueToString(object value);
@@ -68,8 +69,10 @@ namespace SBR.Menu {
         public T value {
             get => currentValue;
             set {
+                Debug.Log(key + ": " + value);
                 if (!Equals(value, currentValue)) {
                     currentValue = value;
+                    modified = true;
                     ValueChanged?.Invoke(value);
                 }
             }
@@ -93,8 +96,14 @@ namespace SBR.Menu {
             int[] values = null) : 
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
-        public override void Load() => value = PlayerPrefs.GetInt(key, defaultValue);
-        public override void Save() =>PlayerPrefs.SetInt(key, value);
+        public override void Load() {
+            base.Load();
+            value = PlayerPrefs.GetInt(key, defaultValue);
+        }
+        public override void Save() {
+            base.Save();
+            PlayerPrefs.SetInt(key, value);
+        }
     }
 
     public class EnumSetting<T> : Setting<T> where T : Enum {
@@ -106,9 +115,15 @@ namespace SBR.Menu {
             base(key, defaultValue, hasDefault, setter, toString ?? CamelCaseToSplit, 
                 Enum.GetValues(typeof(T)).Cast<T>().ToArray()) {}
 
-        public override void Load() => value = (T)Enum.ToObject(typeof(T), 
-            PlayerPrefs.GetInt(key, Convert.ToInt32(defaultValue)));
-        public override void Save() => PlayerPrefs.SetInt(key, Convert.ToInt32(value));
+        public override void Load() {
+            base.Load();
+            value = (T)Enum.ToObject(typeof(T), PlayerPrefs.GetInt(key, Convert.ToInt32(defaultValue)));
+        }
+
+        public override void Save() {
+            base.Save();
+            PlayerPrefs.SetInt(key, Convert.ToInt32(value));
+        }
 
         private static string CamelCaseToSplit(T val) => val.ToString().SplitCamelCase();
     }
@@ -122,8 +137,15 @@ namespace SBR.Menu {
             float[] values = null) : 
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
-        public override void Load() => value = PlayerPrefs.GetFloat(key, defaultValue);
-        public override void Save() => PlayerPrefs.SetFloat(key, value);
+        public override void Load() {
+            base.Load();
+            value = PlayerPrefs.GetFloat(key, defaultValue);
+        }
+
+        public override void Save() {
+            base.Save();
+            PlayerPrefs.SetFloat(key, value);
+        }
     }
 
     public class BoolSetting : Setting<bool> {
@@ -134,8 +156,15 @@ namespace SBR.Menu {
             Func<bool, string> toString = null) :
             base(key, defaultValue, hasDefault, setter, toString ?? EnabledDisabled, null) { }
 
-        public override void Load() => value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
-        public override void Save() => PlayerPrefs.SetInt(key, value ? 1 : 0);
+        public override void Load() {
+            base.Load();
+            value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
+        }
+
+        public override void Save() {
+            base.Save();
+            PlayerPrefs.SetInt(key, value ? 1 : 0);
+        }
 
         private static string EnabledDisabled(bool b) => b ? "Enabled" : "Disabled";
     }
@@ -149,8 +178,15 @@ namespace SBR.Menu {
             string[] values = null) :
             base(key, defaultValue, hasDefault, setter, toString, values) { }
 
-        public override void Load() => value = PlayerPrefs.GetString(key, defaultValue);
-        public override void Save() => PlayerPrefs.SetString(key, value);
+        public override void Load() {
+            base.Load();
+            value = PlayerPrefs.GetString(key, defaultValue);
+        }
+
+        public override void Save() {
+            base.Save();
+            PlayerPrefs.SetString(key, value);
+        }
     }
 }
 

@@ -6,6 +6,8 @@ namespace SBR.Menu {
     public class SettingsSubMenu : MonoBehaviour {
         private Setting[] settings;
 
+        public bool modified => settings.Any(s => s.modified);
+
         private void Awake() {
             settings = GetComponentsInChildren<SettingControl>().Select(t => t.setting).ToArray();
         }

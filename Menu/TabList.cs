@@ -29,6 +29,9 @@ namespace SBR.Menu {
                 buttons[i] = transform.GetChild(i).GetComponent<TabButton>();
                 buttons[i].button.onClick.AddListener(() => UpdateActiveTab(cpy));
             }
+        }
+
+        private void Start() {
             UpdateActiveTab(currentTab);
         }
 

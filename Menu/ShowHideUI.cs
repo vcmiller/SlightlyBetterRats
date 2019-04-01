@@ -27,6 +27,12 @@ namespace SBR.Menu {
             if (initialSelection) {
                 initialSelection.Select();
             }
+
+            if (mode == Mode.SetActive) {
+                _show = targetObject.activeSelf;
+            } else {
+                _show = targetAnimator.GetBool(boolParameter);
+            }
         }
 
         private bool _show;

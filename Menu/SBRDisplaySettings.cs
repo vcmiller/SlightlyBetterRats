@@ -37,6 +37,7 @@ namespace SBR.Menu {
             }
 
             public override void Load() {
+                base.Load();
                 value = new Resolution() {
                     width = PlayerPrefs.GetInt(widthKey, defaultValue.width),
                     height = PlayerPrefs.GetInt(heightKey, defaultValue.height),
@@ -45,6 +46,7 @@ namespace SBR.Menu {
             }
 
             public override void Save() {
+                base.Save();
                 PlayerPrefs.SetInt(widthKey, value.width);
                 PlayerPrefs.SetInt(heightKey, value.height);
                 PlayerPrefs.SetInt(refreshKey, value.refreshRate);
