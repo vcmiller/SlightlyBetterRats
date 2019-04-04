@@ -115,11 +115,14 @@ namespace SBR {
         private void HealthDamaged(Damage dmg) {
             displayTimer.Set();
         }
-        
+
+        private void Awake() {
+            displayTimer = new ExpirationTimer(displayDuration);
+        }
+
         private void Start() {
             fillRect = fillImage.GetComponent<RectTransform>();
             canvas = GetComponentInParent<Canvas>();
-            displayTimer = new ExpirationTimer(displayDuration);
 
             var t = _target;
             _target = null;

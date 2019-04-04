@@ -39,6 +39,8 @@ namespace SBR {
         void LateUpdate() {
             Transform t = target;
 
+            if (!t) return;
+
             if (mode == Mode.CopyRotation) {
                 transform.rotation = t.rotation;
             } else if (mode == Mode.LookAt) {
