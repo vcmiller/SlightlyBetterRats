@@ -112,27 +112,14 @@ namespace SBR {
             pos = Normalize(pos);
             RefreshSamples();
 
-            int first = 0;
-            int count = samples.Length;
-
-            while (true) {
-                if (count < 2 || first + count >= samples.Length) {
-                    return Mathf.Clamp01(pos);
-                }
-
-                int mid = first + (count - 1) / 2;
-                float midVal = samples[mid];
-                float nextVal = samples[mid + 1];
-                if (midVal <= pos && nextVal >= pos) {
-                    float f = (pos - midVal) / (nextVal - midVal);
-                    return Mathf.Lerp(mid, mid + 1, f) / (samples.Length - 1.0f);
-                } else if (pos < midVal) {
-                    count = (mid + 1) - first;
-                } else if (pos > nextVal) {
-                    count = (first + count) - (mid + 1);
-                    first = mid + 1;
+            for (int i = 0; i < samples.Length - 1; i++) {
+                if (samples[i] <= pos && samples[i + 1] >= pos) {
+                    float f = (pos - samples[i]) / (samples[i + 1] - samples[i]);
+                    return Mathf.Lerp(i, i + 1, f) / (samples.Length - 1.0f);
                 }
             }
+
+            return Mathf.Clamp01(pos);
         }
 
         private float ScaleToLength(float pos) {
