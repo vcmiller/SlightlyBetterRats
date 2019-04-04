@@ -113,7 +113,7 @@ namespace SBR {
         private ExpirationTimer displayTimer;
 
         private void HealthDamaged(Damage dmg) {
-            displayTimer.Set();
+            displayTimer?.Set();
         }
 
         private void Awake() {
