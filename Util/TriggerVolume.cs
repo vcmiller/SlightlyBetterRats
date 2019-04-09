@@ -27,7 +27,6 @@ namespace SBR {
         }
 
         private void OnTriggerEnter(Collider other) {
-            print(other.tag);
             if (other.CompareTag(tagFilter)) {
                 events.OnTriggerEnter?.Invoke();
                 TriggerEntered?.Invoke(other.gameObject);
