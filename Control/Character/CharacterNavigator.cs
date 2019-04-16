@@ -34,7 +34,7 @@ namespace SBR {
         /// <summary>
         /// Whether the character has reached its destination.
         /// </summary>
-        public bool arrived {
+        public virtual bool arrived {
             get {
                 if (agent.pathPending) {
                     return false;
@@ -78,7 +78,7 @@ namespace SBR {
         /// Move to the specified destination then stop.
         /// </summary>
         /// <param name="destination">Destination to move to.</param>
-        public void MoveTo(Vector3 destination) {
+        public virtual void MoveTo(Vector3 destination) {
             agent.destination = destination;
             followTarget = null;
         }
@@ -87,7 +87,7 @@ namespace SBR {
         /// Continuously move towards the target Transform, never stopping even if it is reached.
         /// </summary>
         /// <param name="destination">The Transform to follow.</param>
-        public void MoveTo(Transform destination) {
+        public virtual void MoveTo(Transform destination) {
             agent.destination = destination.position;
             followTarget = destination;
         }
@@ -95,7 +95,7 @@ namespace SBR {
         /// <summary>
         /// Stop moving and clear target transform if set.
         /// </summary>
-        public void Stop() {
+        public virtual void Stop() {
             agent.destination = agent.transform.position;
             followTarget = null;
         }

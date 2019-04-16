@@ -60,7 +60,8 @@ namespace SBR {
         /// </summary>
         public Collider ground { get; private set; }
 
-        private RaycastHit groundHit;
+        public RaycastHit groundHit => _groundHit;
+        private RaycastHit _groundHit;
 
         private Vector3 groundNormal;
         private Vector3 groundLastPos;
@@ -337,8 +338,10 @@ namespace SBR {
                 jumping = true;
                 velocity = Vector3.ProjectOnPlane(velocity, transform.up) + transform.up * jumpSpeed;
             }
+        }
 
-            if (jumping && Vector3.Dot(velocity, transform.up) < 0) {
+        protected override void PostOutput(CharacterChannels channels) {
+            if (jumping && Vector3.Dot(velocity, transform.up) <= 0) {
                 jumping = false;
                 channels.jump = false;
             }
@@ -347,12 +350,12 @@ namespace SBR {
         private void UpdateGrounded() {
             Vector3 pnt1, pnt2;
             float radius, height;
-            
+
             capsule.GetCapsuleInfo(out pnt1, out pnt2, out radius, out height);
 
             var lastGround = ground;
             
-            bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up, out groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !jumping;
+            bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up, out _groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !jumping;
 
             grounded = g && Vector3.Angle(groundHit.normal, transform.up) <= maxSlope;
             sliding = g && !grounded;
