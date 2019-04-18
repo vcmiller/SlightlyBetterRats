@@ -51,7 +51,10 @@ namespace SBR {
                 Debug.LogError("Character navigator requires NavMeshAgent component.");
             }
 
-            agent.updatePosition = agent.updateRotation = agent.updateUpAxis = false;
+            agent.updatePosition = false;
+            agent.updateRotation = false;
+            agent.updateUpAxis = false;
+            agent.autoTraverseOffMeshLink = false;
         }
 
         protected override void DoInput() {

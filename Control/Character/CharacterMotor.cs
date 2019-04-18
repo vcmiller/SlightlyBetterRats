@@ -239,6 +239,12 @@ namespace SBR {
             Time.fixedDeltaTime = 1.0f / 60.0f;
         }
 
+        protected override void OnEnable() {
+            base.OnEnable();
+
+            UpdateGrounded();
+        }
+
         private void OnAnimatorMove() {
             if (animator && rootMotionBone) {
                 rigidbody.isKinematic = true;
