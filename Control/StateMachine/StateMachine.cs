@@ -111,7 +111,7 @@ namespace SBR.StateMachines {
                 currentState = defaultState;
             }
 
-            currentState.Enter();
+            currentState?.Enter();
         }
 
         public bool Enter(Stack<State> states) {
@@ -145,14 +145,16 @@ namespace SBR.StateMachines {
                 Enter();
             }
 
-            currentState.Update();
+            currentState?.Update();
         }
 
         public void Exit() {
-            currentState.Exit();
+            currentState?.Exit();
         }
 
         public Transition CheckTransitions() {
+            if ( currentState == null) return null;
+
             foreach (var t in currentState.transitions) {
                 if (t.IsPassable()) {
                     return t;

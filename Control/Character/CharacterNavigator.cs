@@ -64,8 +64,6 @@ namespace SBR {
 
             if (followTarget) {
                 agent.destination = followTarget.position;
-            } else if (arrived) {
-                Stop();
             }
 
             if (agent.hasPath) {
