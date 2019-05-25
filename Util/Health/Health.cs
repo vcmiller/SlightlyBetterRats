@@ -8,7 +8,7 @@ namespace SBR {
     /// Used to give a GameObject a health value.
     /// </summary>
     [DisallowMultipleComponent]
-    public class Health : MonoBehaviour {
+    public class Health : Damageable {
         /// <summary>
         /// Invoked when a new Health is created.
         /// </summary>
@@ -126,18 +126,9 @@ namespace SBR {
         /// <summary>
         /// Apply damage to the Health.
         /// </summary>
-        /// <param name="amount">The amount of damage.</param>
-        /// <returns>The actual damage amount dealt.</returns>
-        public float Damage(float amount) {
-            return Damage(new Damage(amount));
-        }
-
-        /// <summary>
-        /// Apply damage to the Health.
-        /// </summary>
         /// <param name="dmg">The damage to apply.</param>
         /// <returns>The actual damage amount dealt.</returns>
-        public virtual float Damage(Damage dmg) {
+        public override float Damage(Damage dmg) {
             if (enabled && hitInvulnTimer.Use() && dmg.amount > 0) {
                 DamageModifier?.Invoke(ref dmg);
 
@@ -195,51 +186,6 @@ namespace SBR {
     /// Contains extension methods for applying damage without checking for a Health component.
     /// </summary>
     public static class HealthExt {
-        /// <summary>
-        /// Damage the GameObject if it has a Health component.
-        /// </summary>
-        /// <param name="obj">The GameObject to damage.</param>
-        /// <param name="dmg">The damage object.</param>
-        /// <returns>The actual damage amount dealt.</returns>
-        public static float Damage(this GameObject obj, Damage dmg) {
-            Health h = obj.GetComponentInParent<Health>();
-            if (h) {
-                return h.Damage(dmg);
-            } else {
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Damage the GameObject if it has a Health component.
-        /// </summary>
-        /// <param name="obj">The GameObject to damage.</param>
-        /// <param name="amount">The amount of damage.</param>
-        /// <returns>The actual damage amount dealt.</returns>
-        public static float Damage(this GameObject obj, float amount) {
-            return obj.Damage(new Damage(amount));
-        }
-
-        /// <summary>
-        /// Damage the GameObject if it has a Health component.
-        /// </summary>
-        /// <param name="cmp">The Component of the GameObject to damage.</param>
-        /// <param name="dmg">The damage object.</param>
-        /// <returns>The actual damage amount dealt.</returns>
-        public static float Damage(this Component cmp, Damage dmg) {
-            return cmp.gameObject.Damage(dmg);
-        }
-
-        /// <summary>
-        /// Damage the GameObject if it has a Health component.
-        /// </summary>
-        /// <param name="obj">The Component of the GameObject to damage.</param>
-        /// <param name="amount">The amount of damage.</param>
-        /// <returns>The actual damage amount dealt.</returns>
-        public static float Damage(this Component cmp, float amount) {
-            return cmp.gameObject.Damage(amount);
-        }
-
         /// <summary>
         /// Heal the GameObject if it has a Health component,
         /// and revive it if health is zero and allowRevive is true.
