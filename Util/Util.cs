@@ -106,6 +106,51 @@ namespace SBR {
         }
 
         /// <summary>
+        /// Set the parent of the given transform, and reset it's local position, rotation, and scale.
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <param name="parent"></param>
+        public static void SetParentAndReset(this Transform transform, Transform parent) {
+            transform.parent = parent;
+            transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
+            transform.localScale = Vector3.one;
+        }
+
+        /// <summary>
+        /// Normalize an angle to a value between 0 and 360.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public static float NormalizeAngle(float angle) {
+            return ((angle % 360) + 360) % 360;
+        }
+
+        /// <summary>
+        /// Normalize an angle to a value between -180 and 180.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <returns></returns>
+        public static float NormalizeInnerAngle(float angle) {
+            float result = NormalizeAngle(angle);
+            if (result > 180) {
+                result -= 360;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Normalize an angle to a value between -180 and 180, then clamp it in the given range.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        public static float ClampInnerAngle(float angle, float min, float max) {
+            return Mathf.Clamp(NormalizeInnerAngle(angle), min, max);
+        }
+
+        /// <summary>
         /// Splits a camel-case string into words separated by spaces. 
         /// Multiple consecutive capitals are considered the same word.
         /// </summary>

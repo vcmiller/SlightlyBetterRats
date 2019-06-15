@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SBR.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -30,20 +31,44 @@ namespace SBR {
         protected T lastChannels { get; private set; }
 
         protected virtual void Awake() {
-            controllers = GetComponentsInParent<SBR.Internal.IController>().OfType<IController<T>>().ToArray();
+            GetControllersArray();
         }
 
         protected virtual void OnEnable() {
+            ConnectControllers();
+        }
+
+        protected virtual void OnDisable() {
+            DisconnectControllers();
+        }
+
+        private void GetControllersArray() {
+            controllers = GetComponentsInParent<IController>().OfType<IController<T>>().ToArray();
+        }
+
+        private void ConnectControllers() {
             foreach (var ctrl in controllers) {
                 ctrl.InputReceived += ControllerInputReceived;
                 ctrl.PostInputReceived += ControllerPostInputReceived;
             }
         }
 
-        protected virtual void OnDisable() {
+        private void DisconnectControllers() {
             foreach (var ctrl in controllers) {
                 ctrl.InputReceived -= ControllerInputReceived;
                 ctrl.PostInputReceived -= ControllerPostInputReceived;
+            }
+        }
+
+        public void RefreshControllers() {
+            if (enabled) {
+                DisconnectControllers();
+            }
+
+            GetControllersArray();
+
+            if (enabled) {
+                ConnectControllers();
             }
         }
 

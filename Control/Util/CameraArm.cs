@@ -22,6 +22,12 @@ namespace SBR {
         public bool useControlRotationY = true;
 
         /// <summary>
+        /// Whether to follow the roll of the controller's rotation channel.
+        /// </summary>
+        [Tooltip("Whether to follow the roll of the controller's rotation channel.")]
+        public bool useControlRotationZ = false;
+
+        /// <summary>
         /// Layers that the camera cannot be inside.
         /// </summary>
         [Tooltip("Layers that the camera cannot be inside.")]
@@ -65,7 +71,11 @@ namespace SBR {
                 v.y = lastY;
             }
 
-            v.z = 0;
+            if (useControlRotationZ) {
+                v.z = r.z;
+            } else {
+                v.z = 0;
+            }
 
             transform.eulerAngles = v;
             lastX = v.x;
