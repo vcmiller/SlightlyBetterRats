@@ -126,6 +126,13 @@ namespace SBR {
             return ((angle % 360) + 360) % 360;
         }
 
+        public static Vector3 NormalizeAngles(Vector3 angles) {
+            return new Vector3(
+                NormalizeAngle(angles.x),
+                NormalizeAngle(angles.y),
+                NormalizeAngle(angles.z));
+        }
+
         /// <summary>
         /// Normalize an angle to a value between -180 and 180.
         /// </summary>
@@ -139,6 +146,13 @@ namespace SBR {
             return result;
         }
 
+        public static Vector3 NormalizeInnerAngles(Vector3 angles) {
+            return new Vector3(
+                NormalizeInnerAngle(angles.x),
+                NormalizeInnerAngle(angles.y),
+                NormalizeInnerAngle(angles.z));
+        }
+
         /// <summary>
         /// Normalize an angle to a value between -180 and 180, then clamp it in the given range.
         /// </summary>
@@ -148,6 +162,13 @@ namespace SBR {
         /// <returns></returns>
         public static float ClampInnerAngle(float angle, float min, float max) {
             return Mathf.Clamp(NormalizeInnerAngle(angle), min, max);
+        }
+
+        public static Vector3 ClampInnerAngles(Vector3 angles, Vector3 min, Vector3 max) {
+            return new Vector3(
+                ClampInnerAngle(angles.x, min.x, max.x),
+                ClampInnerAngle(angles.y, min.y, max.y),
+                ClampInnerAngle(angles.z, min.z, max.z));
         }
 
         /// <summary>
