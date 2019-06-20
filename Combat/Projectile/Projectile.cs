@@ -120,7 +120,7 @@ namespace SBR {
             }
 
             Vector3 impact = velocity * impactForce;
-            col.Damage(new PointDamage(damage, position, impact));
+            col.Damage(new PointDamage(damage, position, velocity, velocity.magnitude * impactForce));
 
             if (impactForce > 0) {
                 var rb = col.GetComponentInParent<Rigidbody>();

@@ -7,10 +7,12 @@ namespace SBR {
         /// </summary>
         /// <param name="amount">Amount of damage.</param>
         /// <param name="point">Location of the damage.</param>
-        /// <param name="impulse">Impulse done by the damage.</param>
-        public PointDamage(float amount, Vector3 point, Vector3 impulse) : base(amount) {
+        /// <param name="direction">Direction of the damage.</param>
+        /// <param name="force">Force applied by the bullet.</param>
+        public PointDamage(float amount, Vector3 point, Vector3 direction, float force) : base(amount) {
             this.point = point;
-            this.impulse = impulse;
+            this.direction = direction.normalized;
+            this.force = force;
         }
 
         /// <summary>
@@ -19,9 +21,14 @@ namespace SBR {
         public Vector3 point;
 
         /// <summary>
-        /// Direction of the damage (such as the impact velocity of a bullet).
+        /// Direction of the damage (such as the normalized velocity of a bullet).
         /// </summary>
-        public Vector3 impulse;
+        public Vector3 direction;
+
+        /// <summary>
+        /// Force that is applied by the bullet in the given direction.
+        /// </summary>
+        public float force;
     }
 
 }
