@@ -9,6 +9,7 @@ namespace SBR {
         public readonly Type baseClass;
         public readonly bool allowAbstract;
         public readonly bool allowGeneric;
+        public readonly bool search;
 
         /// <summary>
         /// Attribute that is applied to string fields to draw them as a dropdown where a Type is selected.
@@ -16,10 +17,12 @@ namespace SBR {
         /// <param name="baseClass">Base type from which types are selected.</param>
         /// <param name="allowAbstract">Can abstract classes be selected?</param>
         /// <param name="allowGeneric">Can generic classes be selected?</param>
-        public TypeSelectAttribute(Type baseClass, bool allowAbstract = false, bool allowGeneric = false) {
+        /// <param name="search">Should a search box be included/</param>
+        public TypeSelectAttribute(Type baseClass, bool allowAbstract = false, bool allowGeneric = false, bool search = false) {
             this.baseClass = baseClass;
             this.allowAbstract = allowAbstract;
             this.allowGeneric = allowGeneric;
+            this.search = search;
         }
     }
 }

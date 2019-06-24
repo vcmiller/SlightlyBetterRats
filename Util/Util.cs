@@ -2,12 +2,30 @@
 using System.Collections;
 using UnityEngine.Audio;
 using System.Text.RegularExpressions;
+using System;
+using System.Reflection;
+using Object = UnityEngine.Object;
 
 namespace SBR {
     /// <summary>
     /// Contains several utility functions.
     /// </summary>
     public static class Util {
+
+        private static Assembly[] _allAssemblies;
+
+        /// <summary>
+        /// Returns an array of all loaded assemblies.
+        /// </summary>
+        public static Assembly[] allAssemblies {
+            get {
+                if (_allAssemblies == null) {
+                    _allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+                }
+                return _allAssemblies;
+            }
+        }
+
         /// <summary>
         /// A more versatile version of AudioSource.PlayClipAtPoint.
         /// </summary>
@@ -180,9 +198,10 @@ namespace SBR {
         /// https://stackoverflow.com/questions/5796383/insert-spaces-between-words-on-a-camel-cased-token/5796793
         /// </remarks>
         /// <param name="str">The string to split.</param>
+        /// <param name="capitalizeFirst">Whether to capitalize the first letter.</param>
         /// <returns>The split string.</returns>
-        public static string SplitCamelCase(this string str) {
-            return Regex.Replace(
+        public static string SplitCamelCase(this string str, bool capitalizeFirst = false) {
+            string result = Regex.Replace(
                 Regex.Replace(
                     str,
                     @"(\P{Ll})(\P{Ll}\p{Ll})",
@@ -191,6 +210,11 @@ namespace SBR {
                 @"(\p{Ll})(\P{Ll})",
                 "$1 $2"
             );
+
+            if (result.Length > 0 && capitalizeFirst) {
+                result = result[0].ToString().ToUpper() + result.Substring(1);
+            }
+            return result;
         }
 
         /// <summary>
@@ -239,6 +263,19 @@ namespace SBR {
         /// </summary>
         public static bool TryGetComponentInChildren<T>(this Component cmp, out T result) {
             return cmp.gameObject.TryGetComponentInChildren(out result);
+        }
+
+        public static Type GetType(string fullName) {
+            if (string.IsNullOrEmpty(fullName)) return null;
+
+            foreach (var item in allAssemblies) {
+                var type = item.GetType(fullName);
+                if (type != null) {
+                    return type;
+                }
+            }
+
+            return null;
         }
     }
 }
