@@ -8,7 +8,7 @@ namespace SBR.Serialization {
     public class ComponentOverride : ScriptableObject {
         [TypeSelect(typeof(Component), true, true, true)]
         public string typeName;
-        public SerializedValue[] overrides;
+        public SerializedValue[] overrides = new SerializedValue[0];
 
         private Type _type;
         public Type type {
@@ -77,6 +77,7 @@ namespace SBR.Serialization {
         }
 
         public void CheckValid() {
+            if (overrides == null) return;
             foreach (var value in overrides) {
                 if (!value.valid) {
                     value.Initialize(type);
@@ -91,6 +92,21 @@ namespace SBR.Serialization {
             if (overrides != null) {
                 foreach (var value in overrides) {
                     value.Initialize(type);
+                }
+            }
+        }
+
+        public static string DefaultNameForType(Type type) {
+            return type.Name + "Override";
+        }
+
+        public string displayName {
+            get {
+                string suffix = DefaultNameForType(type);
+                if (name.EndsWith(suffix)) {
+                    return name.Substring(0, name.Length - suffix.Length);
+                } else {
+                    return name;
                 }
             }
         }

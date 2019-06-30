@@ -84,6 +84,41 @@ namespace SBR {
             Debug.DrawLine(new Vector3(bounds.min.x, bounds.max.y, bounds.min.z), new Vector3(bounds.min.x, bounds.max.y, bounds.max.z), color);
         }
 
+        public static void GetCapsuleInfo(float radius, float height, Vector3 center, int direction, Transform transform,
+            out Vector3 point1, out Vector3 point2, out float worldRadius, out float worldHeight) {
+            Vector3 capsuleCenter = transform.TransformPoint(center);
+            Vector3 capsuleUp;
+            float scaleY;
+            float scaleXZ;
+
+            if (direction == 0) {
+                capsuleUp = transform.right;
+                scaleY = transform.lossyScale.x;
+                scaleXZ = Mathf.Max(Mathf.Abs(transform.lossyScale.y), Mathf.Abs(transform.lossyScale.z));
+            } else if (direction == 1) {
+                capsuleUp = transform.up;
+                scaleY = transform.lossyScale.y;
+                scaleXZ = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.z));
+            } else {
+                capsuleUp = transform.forward;
+                scaleY = transform.lossyScale.z;
+                scaleXZ = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+            }
+
+            worldRadius = scaleXZ * radius;
+
+            worldHeight = Mathf.Max(scaleY * height, worldRadius * 2);
+
+            float h = worldHeight / 2 - worldRadius;
+
+            point1 = capsuleCenter + capsuleUp * h;
+            point2 = capsuleCenter - capsuleUp * h;
+        }
+
+        public static void GetCapsuleInfo(this CharacterController capsule, out Vector3 point1, out Vector3 point2, out float radius, out float height) {
+            GetCapsuleInfo(capsule.radius, capsule.height, capsule.center, 1, capsule.transform, out point1, out point2, out radius, out height);
+        }
+
         /// <summary>
         /// Get the points of a capsule, as well as radius and height, in world space.
         /// Primarily used for calls to Physics.CapsuleCast.
@@ -94,33 +129,7 @@ namespace SBR {
         /// <param name="radius">The radius of the capsule.</param>
         /// <param name="height">The height of the capsule.</param>
         public static void GetCapsuleInfo(this CapsuleCollider capsule, out Vector3 point1, out Vector3 point2, out float radius, out float height) {
-            Vector3 capsuleCenter = capsule.transform.TransformPoint(capsule.center);
-            Vector3 capsuleUp;
-            float scaleY;
-            float scaleXZ;
-
-            if (capsule.direction == 0) {
-                capsuleUp = capsule.transform.right;
-                scaleY = capsule.transform.lossyScale.x;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.y), Mathf.Abs(capsule.transform.lossyScale.z));
-            } else if (capsule.direction == 1) {
-                capsuleUp = capsule.transform.up;
-                scaleY = capsule.transform.lossyScale.y;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.x), Mathf.Abs(capsule.transform.lossyScale.z));
-            } else {
-                capsuleUp = capsule.transform.forward;
-                scaleY = capsule.transform.lossyScale.z;
-                scaleXZ = Mathf.Max(Mathf.Abs(capsule.transform.lossyScale.x), Mathf.Abs(capsule.transform.lossyScale.y));
-            }
-
-            radius = scaleXZ * capsule.radius;
-
-            height = Mathf.Max(scaleY * capsule.height, radius * 2);
-
-            float h = height / 2 - radius;
-
-            point1 = capsuleCenter + capsuleUp * h;
-            point2 = capsuleCenter - capsuleUp * h;
+            GetCapsuleInfo(capsule.radius, capsule.height, capsule.center, capsule.direction, capsule.transform, out point1, out point2, out radius, out height);
         }
 
         /// <summary>
@@ -187,6 +196,37 @@ namespace SBR {
                 ClampInnerAngle(angles.x, min.x, max.x),
                 ClampInnerAngle(angles.y, min.y, max.y),
                 ClampInnerAngle(angles.z, min.z, max.z));
+        }
+
+        /// <summary>
+        /// Split a rect into two halves horizontally, with given gap between the halves.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="gap"></param>
+        /// <param name="out1"></param>
+        /// <param name="out2"></param>
+        /// <param name="div"></param>
+        public static void SplitHorizontal(Rect rect, float gap, out Rect out1, out Rect out2, float div = 0.5f) {
+            gap /= 2;
+            out1 = new Rect(rect.x, rect.y, rect.width * div - gap, rect.height);
+            out2 = new Rect(out1.xMax + gap * 2, rect.y, rect.width * (1 - div) - gap, rect.height);
+        }
+
+        /// <summary>
+        /// Split a rect into three halves horizontally, with given gap between the halves.
+        /// </summary>
+        /// <param name="rect"></param>
+        /// <param name="gap"></param>
+        /// <param name="out1"></param>
+        /// <param name="out2"></param>
+        /// <param name="out3"></param>
+        /// <param name="div1"></param>
+        /// <param name="div2"></param>
+        public static void SplitHorizontal(Rect rect, float gap, out Rect out1, out Rect out2, out Rect out3, float div1 = 1.0f / 3.0f, float div2 = 2.0f / 3.0f) {
+            gap /= 2;
+            out1 = new Rect(rect.x, rect.y, rect.width * div1 - gap, rect.height);
+            out2 = new Rect(out1.xMax + gap * 2, rect.y, rect.width * (div2 - div1) - gap, rect.height);
+            out3 = new Rect(out2.xMax + gap * 2, rect.y, rect.width * (1 - (div1 + div2)) - gap, rect.height);
         }
 
         /// <summary>

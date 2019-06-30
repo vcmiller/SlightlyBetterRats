@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SBR.Serialization;
+using UnityEngine;
 
 namespace SBR {
     /// <summary>
@@ -20,43 +21,55 @@ namespace SBR {
         /// </summary>
         public float pitchMax = 80;
 
+        /// <summary>
+        /// If true, input will be flattened on the world Y axis.
+        /// </summary>
+        public bool alignInput = true;
+
+        [Header("Input Names")]
+        [NoOverrides, SerializeField] protected string horizontalAxisName = "Horizontal";
+        [NoOverrides, SerializeField] protected string verticalAxisName = "Vertical";
+        [NoOverrides, SerializeField] protected string mouseXAxisName = "Mouse X";
+        [NoOverrides, SerializeField] protected string mouseYAxisName = "Mouse Y";
+        [NoOverrides, SerializeField] protected string jumpButtonName = "Jump";
+
         private Vector3 angles;
 
         protected override void Awake() {
             base.Awake();
-            AddAxisListener("Horizontal", Axis_Horizontal);
-            AddAxisListener("Vertical", Axis_Vertical);
-            AddAxisListener("Mouse X", Axis_MouseX);
-            AddAxisListener("Mouse Y", Axis_MouseY);
-            AddButtonDownListener("Jump", ButtonDown_Jump);
-            AddButtonUpListener("Jump", ButtonUp_Jump);
+            AddAxisListener(horizontalAxisName, Axis_Horizontal);
+            AddAxisListener(verticalAxisName, Axis_Vertical);
+            AddAxisListener(mouseXAxisName, Axis_MouseX);
+            AddAxisListener(mouseYAxisName, Axis_MouseY);
+            AddButtonDownListener(jumpButtonName, ButtonDown_Jump);
+            AddButtonUpListener(jumpButtonName, ButtonUp_Jump);
         }
 
-        private void Axis_Horizontal(float value) {
-            Vector3 right = viewTarget ? viewTarget.flatRight : Vector3.right;
+        protected virtual void Axis_Horizontal(float value) {
+            Vector3 right = viewTarget ? (alignInput ? viewTarget.flatRight : viewTarget.transform.right) : Vector3.right;
             channels.movement += right * value;
         }
 
-        private void Axis_Vertical(float value) {
-            Vector3 fwd = viewTarget ? viewTarget.flatForward : Vector3.forward;
+        protected virtual void Axis_Vertical(float value) {
+            Vector3 fwd = viewTarget ? (alignInput ? viewTarget.flatForward : viewTarget.transform.forward) : Vector3.forward;
             channels.movement += fwd * value;
         }
 
-        private void ButtonDown_Jump() {
+        protected virtual void ButtonDown_Jump() {
             channels.jump = true;
         }
 
-        private void ButtonUp_Jump() {
+        protected virtual void ButtonUp_Jump() {
             channels.jump = false;
         }
 
-        private void Axis_MouseX(float value) {
+        protected virtual void Axis_MouseX(float value) {
             angles.y += value;
 
             channels.rotation = Quaternion.Euler(angles);
         }
 
-        private void Axis_MouseY(float value) {
+        protected virtual void Axis_MouseY(float value) {
             angles.x -= value;
 
             if (angles.x < pitchMin) {

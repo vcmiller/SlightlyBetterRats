@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace SBR {
@@ -23,7 +22,7 @@ namespace SBR {
         private Dictionary<string, Action> buttonDown;
         private Dictionary<string, Action> buttonUp;
         private Dictionary<string, Action> buttonHeld;
-        private Dictionary<string, Action<float>> axes;
+        private Dictionary<string, (bool raw, Action<float> action)> axes;
 
         /// <summary>
         /// Suffix to apply to input axis/button names. 
@@ -75,8 +74,10 @@ namespace SBR {
             }
         }
 
-        protected virtual void Awake() {
-            axes = new Dictionary<string, Action<float>>();
+        protected override void Awake() {
+            base.Awake();
+
+            axes = new Dictionary<string, (bool raw, Action<float> action)>();
             buttonDown = new Dictionary<string, Action>();
             buttonUp = new Dictionary<string, Action>();
             buttonHeld = new Dictionary<string, Action>();
@@ -88,13 +89,15 @@ namespace SBR {
             }
         }
 
-        protected void AddAxisListener(string axis, Action<float> listener, bool overwrite = false) {
+        protected void AddAxisListener(string axis, Action<float> listener, bool raw = true, bool overwrite = false) {
             try {
                 Input.GetAxis(axis + inputSuffix); // Throw an exception if it doesn't exist.
                 if (!overwrite && axes.ContainsKey(axis)) {
-                    axes[axis] += listener;
+                    var tuple = axes[axis];
+                    tuple.action += listener;
+                    axes[axis] = tuple;
                 } else {
-                    axes[axis] = listener;
+                    axes[axis] = (raw, listener);
                 }
             } catch {
                 Debug.LogError("Error: Axis " + axis + inputSuffix + " does not exist.");
@@ -140,50 +143,12 @@ namespace SBR {
             }
         }
 
-        protected void AutoRegisterListeners() {
-            foreach (MethodInfo m in GetType().GetMethods()) {
-                if (m.Name.StartsWith("Axis_")) {
-                    var param = m.GetParameters();
-
-                    if (param.Length == 1 && param[0].ParameterType == typeof(float)) {
-                        var listener = (Action<float>)Delegate.CreateDelegate(typeof(Action<float>), this, m);
-                        string axis = m.Name.Substring(5);
-                        AddAxisListener(axis, listener);
-                    } else {
-                        Debug.LogWarning("Warning: Axis event handler " + m.Name + " should take one argument of type float.");
-                    }
-                } else if (m.Name.StartsWith("Button_")) {
-                    if (m.GetParameters().Length == 0) {
-                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
-                        string btn = m.Name.Substring(7);
-                        AddButtonListener(btn, listener);
-                    } else {
-                        Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
-                    }
-                } else if (m.Name.StartsWith("ButtonUp_")) {
-                    if (m.GetParameters().Length == 0) {
-                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
-                        string btn = m.Name.Substring(9);
-                        AddButtonUpListener(btn, listener);
-                    } else {
-                        Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
-                    }
-                } else if (m.Name.StartsWith("ButtonDown_")) {
-                    if (m.GetParameters().Length == 0) {
-                        var listener = (Action)Delegate.CreateDelegate(typeof(Action), this, m);
-                        string btn = m.Name.Substring(11);
-                        AddButtonDownListener(btn, listener);
-                    } else {
-                        Debug.LogWarning("Warning: Button event handler " + m.Name + " should take no arguments.");
-                    }
-                }
-            }
-        }
-
         protected override void DoInput() {
             if (enabled) {
                 foreach (var m in axes) {
-                    m.Value?.Invoke(Input.GetAxis(m.Key + inputSuffix));
+                    string key = m.Key + inputSuffix;
+                    float f = m.Value.raw ? Input.GetAxisRaw(key) : Input.GetAxis(key);
+                    m.Value.action?.Invoke(f);
                 }
 
                 foreach (var m in buttonDown) {

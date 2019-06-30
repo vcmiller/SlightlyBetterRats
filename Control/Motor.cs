@@ -1,4 +1,5 @@
 ﻿using SBR.Internal;
+using SBR.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,25 @@ namespace SBR {
     /// (Controllers whose channels type is assignable to the Motor's channels type).
     /// </summary>
     /// <typeparam name="T">The channels type.</typeparam>
-    public abstract class Motor<T> : MonoBehaviour where T : Channels, new() {
+    public abstract class Motor<T> : StateBehaviour where T : Channels, new() {
+        /// <summary>
+        /// Called when enableInput is changed.
+        /// </summary>
+        public event Action<bool> EnableInputChanged;
+
+        private bool _enableInput = true;
         /// <summary>
         /// Allows enabling/disabling DoOutput callback without disabling the entire Component.
         /// </summary>
-        public bool enableInput { get; set; } = true;
+        public bool enableInput {
+            get => _enableInput;
+            set {
+                if (_enableInput != value) {
+                    _enableInput = value;
+                    EnableInputChanged?.Invoke(value);
+                }
+            }
+        }
 
         /// <summary>
         /// Whether motor currently receives input from any Controller.
@@ -30,7 +45,8 @@ namespace SBR {
         /// </summary>
         protected T lastChannels { get; private set; }
 
-        protected virtual void Awake() {
+        protected override void Awake() {
+            base.Awake();
             GetControllersArray();
         }
 

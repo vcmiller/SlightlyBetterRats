@@ -77,6 +77,7 @@ namespace SBR.Serialization {
         public bool isProperty => fieldChain[fieldChain.Count - 1] is PropertyGetSet;
 
         public const int MaxDepth = 7;
+        public const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
 
         private static readonly Type[] emptyTypeArray = new Type[0];
         private static readonly object[] emptyObjectArray = new object[0];
@@ -228,7 +229,6 @@ namespace SBR.Serialization {
             type = GetSerializableType(valueType);
         }
 
-
         public void Initialize(Type baseType) {
             valid = false;
             var parts = path.Split('/');
@@ -238,8 +238,8 @@ namespace SBR.Serialization {
 
             Type currentType = baseType;
             foreach (var part in parts) {
-                var field = currentType.GetField(part);
-                var property = currentType.GetProperty(part);
+                var field = currentType.GetField(part, bindingFlags);
+                var property = currentType.GetProperty(part, bindingFlags);
                 if (field != null && IsValidField(field)) {
                     fieldChain.Add(new FieldGetSet(field));
                     currentType = field.FieldType;
@@ -270,19 +270,23 @@ namespace SBR.Serialization {
         }
 
         public void SetFieldValue(object baseObject) {
-            SetFieldValue(baseObject, 0);
+            SetFieldValue(baseObject, 0, value);
         }
 
-        private void SetFieldValue(object currentObject, int index) {
+        public void SetFieldValue(object baseObject, object finalValue) {
+            SetFieldValue(baseObject, 0, finalValue);
+        }
+
+        private void SetFieldValue(object currentObject, int index, object finalValue) {
             if (index < fieldChain.Count - 1) {
                 object tempValue = fieldChain[index].GetValue(currentObject);
                 if (tempValue == null) {
                     tempValue = fieldChain[index].type.GetConstructor(emptyTypeArray).Invoke(emptyObjectArray);
                 }
-                SetFieldValue(tempValue, index + 1);
+                SetFieldValue(tempValue, index + 1, finalValue);
                 fieldChain[index].SetValue(currentObject, tempValue);
             } else {
-                fieldChain[index].SetValue(currentObject, value);
+                fieldChain[index].SetValue(currentObject, finalValue);
             }
         }
 
@@ -301,18 +305,18 @@ namespace SBR.Serialization {
         }
 
         private static bool IsValidField(FieldInfo field) {
-            if (field.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour))) return false;
             if (field.IsInitOnly) return false;
-            if (!field.IsPublic && Attribute.GetCustomAttribute(field, typeof(SerializeField)) == null) return false;
-            if (Attribute.GetCustomAttribute(field, typeof(NonSerializedAttribute)) != null) return false;
+            if (!field.IsPublic && field.GetCustomAttribute(typeof(SerializeField)) == null) return false;
+            if (field.GetCustomAttribute(typeof(NonSerializedAttribute)) != null) return false;
+            if (field.GetCustomAttribute(typeof(NoOverridesAttribute)) != null) return false;
             return true;
         }
 
         private static bool IsValidProperty(PropertyInfo property) {
-            if (property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour))) return false;
             if (property.GetGetMethod() == null || property.GetSetMethod() == null) return false;
             if (!property.GetGetMethod().IsPublic || !property.GetSetMethod().IsPublic) return false;
             if (property.GetCustomAttribute(typeof(NonSerializedAttribute)) != null) return false;
+            if (property.GetCustomAttribute(typeof(NoOverridesAttribute)) != null) return false;
             return true;
         }
 
@@ -344,10 +348,10 @@ namespace SBR.Serialization {
                 paths.Add(path);
             } else if (depth < MaxDepth && (depth == 0 || IsSerializableClass(type))) {
                 if (!string.IsNullOrEmpty(path)) path += '/';
-                foreach (var field in type.GetFields()) {
+                foreach (var field in type.GetFields(bindingFlags)) {
                     if (IsValidField(field)) GetValidPathsForType(field.FieldType, paths, depth + 1, path + field.Name);
                 }
-                foreach (var property in type.GetProperties()) {
+                foreach (var property in type.GetProperties(bindingFlags)) {
                     if (IsValidProperty(property)) GetValidPathsForType(property.PropertyType, paths, depth + 1, path + property.Name);
                 }
             }

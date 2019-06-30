@@ -228,7 +228,7 @@ namespace SBR.StateMachines {
             return null;
         }
 
-        public bool IsStateActive(string name) {
+        public new bool IsStateActive(string name) {
             State s = rootMachine.currentState;
             while (s != null) {
                 if (s.ToString() == name) {

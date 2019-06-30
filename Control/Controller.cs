@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SBR.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace SBR {
         event Action<T> PostInputReceived;
     }
 
-    public abstract class Controller<T> : MonoBehaviour, IController<T> where T : Channels, new() {
+    public abstract class Controller<T> : StateBehaviour, IController<T> where T : Channels, new() {
         /// <summary>
         /// The channels object which carries input information.
         /// </summary>
