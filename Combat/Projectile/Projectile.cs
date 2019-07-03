@@ -108,17 +108,20 @@ namespace SBR {
             fired = true;
         }
 
-        protected virtual void OnHitCollider(Collider col, Vector3 position) {
-            if (hitsTriggers || !col.isTrigger) {
+        protected virtual bool OnHitCollider(Collider col, Vector3 position) {
+            if (ShouldHitObject(col.transform, position) && (hitsTriggers || !col.isTrigger)) {
                 OnHitObject(col.transform, position);
+                return true;
+            } else {
+                return false;
             }
         }
 
-        protected virtual void OnHitObject(Transform col, Vector3 position) {
-            if (!fired && !hitsIfNotFired) {
-                return;
-            }
+        protected virtual bool ShouldHitObject(Transform col, Vector3 position) {
+            return fired || hitsIfNotFired;
+        }
 
+        protected virtual void OnHitObject(Transform col, Vector3 position) {
             Vector3 impact = velocity * impactForce;
             col.Damage(new PointDamage(damage, position, velocity, velocity.magnitude * impactForce));
 
@@ -132,7 +135,6 @@ namespace SBR {
             HitObject?.Invoke(col.gameObject, position);
 
             velocity = Vector3.zero;
-            transform.position = position;
 
             if (destroyOnHit) {
                 Destroy(gameObject, linger);

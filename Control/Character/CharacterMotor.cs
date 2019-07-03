@@ -54,6 +54,11 @@ namespace SBR {
         [NoOverrides]
         public Vector3 movementVelocity { get; set; }
 
+        /// <summary>
+        /// Rotation rates of the character as local euler angles.
+        /// </summary>
+        public Vector3 rotationRates { get; private set; }
+
         public Vector3 totalVelocity => gravityVelocity + movementVelocity;
 
         /// <summary>
@@ -104,6 +109,7 @@ namespace SBR {
         private float rootMotionBoneScale = 1.0f;
 
         private Quaternion targetRotation = Quaternion.identity;
+        private bool isRotating;
 
         /// <summary>
         /// How the character rotates in relation to its movement.
@@ -146,6 +152,20 @@ namespace SBR {
         [Tooltip("Whether to rotate on the local Z axis.")]
         [Conditional("rotateMode", RotateMode.None, false)]
         public bool rotateZ = false;
+
+        /// <summary>
+        /// If angle between rotation and target is greater than this, will start rotating.
+        /// </summary>
+        [Tooltip("If angle between rotation and target is greater than this, will start rotating.")]
+        [Conditional("rotateMode", RotateMode.None, false)]
+        public float maxTargetAngle = 0;
+
+        /// <summary>
+        /// If angle between rotation and target is less than this, will stop rotating.
+        /// </summary>
+        [Tooltip("If angle between rotation and target is less than this, will stop rotating.")]
+        [Conditional("rotateMode", RotateMode.None, false)]
+        public float minTargetAngle = 0;
         
         /// <summary>
         /// The max movement speed of the character.
@@ -482,9 +502,12 @@ namespace SBR {
                 }
             }
 
-            bool wasMoving = movementVelocity.sqrMagnitude > 0;
+            float minMoveSpeed = movementSpeed * 0.01f;
+            minMoveSpeed = minMoveSpeed * minMoveSpeed;
+
+            bool wasMoving = movementVelocity.sqrMagnitude > minMoveSpeed;
             movementVelocity = Vector3.MoveTowards(movementVelocity, projectedTargetVel, actualMovementAcceleration * Time.deltaTime);
-            bool isMoving = movementVelocity.sqrMagnitude > 0;
+            bool isMoving = movementVelocity.sqrMagnitude > minMoveSpeed;
 
             if (wasMoving != isMoving) {
                 Moving?.Invoke(isMoving);
@@ -536,10 +559,23 @@ namespace SBR {
         }
 
         private void RotateTowardsTarget() {
-            if (useSmoothRotation) {
-                rigidbody.MoveRotation(Quaternion.Slerp(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+            if (isRotating) {
+                Quaternion q = rigidbody.rotation;
+                if (useSmoothRotation) {
+                    rigidbody.MoveRotation(Quaternion.Slerp(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                } else {
+                    rigidbody.MoveRotation(Quaternion.RotateTowards(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                }
+                rotationRates = Util.NormalizeInnerAngles((Quaternion.Inverse(q) * rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
+
+                if (Quaternion.Angle(rigidbody.rotation, targetRotation) < minTargetAngle) {
+                    isRotating = false;
+                }
             } else {
-                rigidbody.MoveRotation(Quaternion.RotateTowards(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                if (Quaternion.Angle(rigidbody.rotation, targetRotation) > maxTargetAngle) {
+                    isRotating = true;
+                }
+                rotationRates = Vector3.zero;
             }
         }
 

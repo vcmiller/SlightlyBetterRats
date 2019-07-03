@@ -8,7 +8,7 @@ namespace SBR {
     /// Used to give a GameObject a health value.
     /// </summary>
     [DisallowMultipleComponent]
-    public class Health : Damageable {
+    public class Health : MonoBehaviour, IParentDamageable {
         /// <summary>
         /// Invoked when a new Health is created.
         /// </summary>
@@ -128,7 +128,7 @@ namespace SBR {
         /// </summary>
         /// <param name="dmg">The damage to apply.</param>
         /// <returns>The actual damage amount dealt.</returns>
-        public override float Damage(Damage dmg) {
+        public virtual float Damage(Damage dmg) {
             if (enabled && hitInvulnTimer.Use() && dmg.amount > 0) {
                 DamageModifier?.Invoke(ref dmg);
 

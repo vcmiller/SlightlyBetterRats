@@ -25,25 +25,46 @@ namespace SBR {
         [Tooltip("Radius of the projectile. If > 0, movement will use a SphereCast (otherwise LineCast).")]
         public float radius;
 
+        /// <summary>
+        /// Maximum number of objects that can be hit in a single step.
+        /// </summary>
+        [Tooltip("Maximum number of objects that can be hit in a single step.")]
+        public int maxHits = 8;
+
+        private RaycastHit[] hitArray;
+
+        private void Awake() {
+            hitArray = new RaycastHit[maxHits];
+        }
+
         protected virtual void Update() {
+            Vector3 dir = velocity.normalized;
             if (velocity.sqrMagnitude > 0) {
-                Vector3 oldPosition = transform.position;
-                transform.position += velocity * Time.deltaTime;
-                
-                if (radius <= 0) {
-                    if (Physics.Linecast(oldPosition - velocity.normalized * offset, 
-                        transform.position,  out var hit,  hitMask,  triggerInteraction)) {
+                Vector3 position = transform.position - dir * offset;
+                float distance = velocity.magnitude + offset;
 
-                        OnHitCollider(hit.collider, hit.point);
+                while (distance > 0) {
+                    bool didHit;
+                    RaycastHit hit;
+                    if (radius <= 0) {
+                        didHit = Physics.Raycast(position, dir, out hit, distance, hitMask, triggerInteraction);
+                    } else {
+                        didHit = Physics.SphereCast(position, radius, dir, out hit, distance, hitMask, triggerInteraction);
                     }
-                } else {
-                    var dir = transform.position - oldPosition;
-                    if (Physics.SphereCast(oldPosition - velocity.normalized * offset, radius, 
-                        dir, out var hit, dir.magnitude + offset, hitMask, triggerInteraction)) {
 
-                        OnHitCollider(hit.collider, hit.point);
+                    if (didHit) {
+                        position += dir * (hit.distance + 0.01f);
+                        distance -= hit.distance;
+                        if (OnHitCollider(hit.collider, hit.point)) {
+                            break;
+                        }
+                    } else {
+                        position += dir * distance;
+                        distance = 0;
                     }
                 }
+
+                transform.position = position;
             }
         }
     }
