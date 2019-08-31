@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 
 namespace SBR {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(Health))]
     public class HealthInspector : UnityEditor.Editor {
         private static float amt = 20;
@@ -13,10 +14,11 @@ namespace SBR {
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Damage (" + amt + ")")) {
-                var health = target as Health;
-                health.Damage(amt);
+                foreach (var t in targets) {
+                    var health = t as Health;
+                    health.Damage(amt);
+                }
             }
-            
             amt = EditorGUILayout.FloatField(amt);
             EditorGUILayout.EndHorizontal();
             EditorGUI.EndDisabledGroup();
