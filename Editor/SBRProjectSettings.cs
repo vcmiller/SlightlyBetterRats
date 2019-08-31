@@ -1,9 +1,17 @@
 ﻿using System.IO;
 using UnityEngine;
 using UnityEditor;
+using UnityEditorInternal;
 
 namespace SBR.Editor {
     public class SBRProjectSettings : ScriptableObject {
+        private const string dataAsmRefContent = @"
+{
+    ""reference"": ""SlightlyBetterRats""
+}
+";
+        private const string dataAsmRefFile = "SBR_Data.asmref";
+
         [InitializeOnLoadMethod]
         private static void Register() {
             // Force instance to be created immediately.
@@ -25,7 +33,7 @@ namespace SBR.Editor {
                 _inst = AssetDatabase.LoadAssetAtPath<SBRProjectSettings>(path);
                 if (_inst) return _inst;
                 _inst = CreateInstance<SBRProjectSettings>();
-                Directory.CreateDirectory(dataFolder);
+                EnsureDataFolderExists();
                 AssetDatabase.CreateAsset(_inst, path);
                 AssetDatabase.SaveAssets();
                 return _inst;
@@ -37,6 +45,16 @@ namespace SBR.Editor {
 
         public bool includeAudioSettings;
         public bool includeGraphicsSettings;
+
+        public static void EnsureDataFolderExists() {
+            if (!Directory.Exists(dataFolder)) {
+                Directory.CreateDirectory(dataFolder);
+            }
+            string fullAsmRefPath = Path.Combine(dataFolder, dataAsmRefFile);
+            if (!File.Exists(fullAsmRefPath)) {
+                File.WriteAllText(fullAsmRefPath, dataAsmRefContent);
+            }
+        }
 
         private void OnValidate() {
             if (includeAudioSettings != _includeAudioSettings) {

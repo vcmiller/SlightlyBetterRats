@@ -9,7 +9,8 @@ using UnityEngine;
 namespace SBR.Editor {
     [InitializeOnLoad]
     public static class TagsGenerator {
-        private static readonly string template = @"using System;
+        public const string checkTagsPref = "CheckTags";
+        private const string template = @"using System;
 
 namespace SBR {{
 #if TagsGenerated
@@ -37,23 +38,18 @@ namespace SBR {{
         }
 
         private static void CheckTags() {
-            if (didGenerate || !EditorPrefs.GetBool("CheckTags", true)) {
+            if (didGenerate || !EditorPrefs.GetBool(checkTagsPref, true)) {
                 return;
             }
             var tags = InternalEditorUtility.tags;
 
-            bool needsRegen;
-            if (tags.Length != tagsValues.Length) {
-                needsRegen = true;
-            } else {
-                needsRegen = !Enumerable.SequenceEqual(tags, tagsValues);
-            }
+            bool needsRegen = !Enumerable.SequenceEqual(tags.Where(ValidEnumValue), tagsValues);
 
             if (needsRegen) {
                 if (EditorUtility.DisplayDialog("Generate Tags", "Do you want to generate a Tag.cs file?", "OK", "No")) {
                     DoGenerate();
                 } else {
-                    EditorPrefs.SetBool("CheckTags", false);
+                    EditorPrefs.SetBool(checkTagsPref, false);
                 }
             }
         }
@@ -63,6 +59,11 @@ namespace SBR {{
             var str = new StringBuilder();
             int max = Mathf.Min(tags.Length, 32);
             for (int i = 0; i < max; i++) {
+                // Need to skip any tags with spaces, as they'll cause a compiler error.
+                // We could just remove the spaces, but the conversion to an actual Unity tag wouldn't work.
+                // So better to just drop them from the enum.
+                if (!ValidEnumValue(tags[i])) continue;
+
                 str.Append(tags[i]).Append(" = ").Append(1 << i);
                 if (i < max - 1) {
                     str.Append(", ");
@@ -71,6 +72,8 @@ namespace SBR {{
             return str.ToString();
         }
 
+        private static bool ValidEnumValue(string tag) => !tag.Contains(" ");
+
         [MenuItem("Assets/Update Tag Enum")]
         public static void Generate() {
             if (EditorUtility.DisplayDialog("Update Tag Enum", "This will create or overwrite the file SBR_Data/Tag.cs. This may produce some errors in the console. Don't worry about it.", "OK", "Cancel")) {
@@ -78,13 +81,20 @@ namespace SBR {{
             }
         }
 
+        [MenuItem("Assets/Remove Tag Enum")]
+        public static void Remove() {
+            if (EditorUtility.DisplayDialog("Remove Tag Enum", "This will delete the generated Tags.cs file, and revert to using only the builtin tags.", "OK", "Cancel")) {
+                DoRemove();
+            }
+        }
+
         private static void DoGenerate() {
-            EditorPrefs.SetBool("CheckTags", true);
+            EditorPrefs.SetBool(checkTagsPref, true);
             didGenerate = true;
             string generated = string.Format(template, GetEnumValues());
 
-            Directory.CreateDirectory(SBRProjectSettings.dataFolder);
-            string defPath = SBRProjectSettings.dataFolder + "Tag.cs";
+            SBRProjectSettings.EnsureDataFolderExists();
+            string defPath = Path.Combine(SBRProjectSettings.dataFolder, "Tag.cs");
 
             if (defPath.Length > 0) {
                 string newPath = defPath.Substring(0, defPath.LastIndexOf(".")) + ".cs";
@@ -96,6 +106,16 @@ namespace SBR {{
             }
 
             EditorUtil.SetSymbolDefined("TagsGenerated", true);
+        }
+
+        private static void DoRemove() {
+            EditorPrefs.SetBool(checkTagsPref, false);
+            string defPath = Path.Combine(SBRProjectSettings.dataFolder, "Tag.cs");
+            if (File.Exists(defPath)) {
+                AssetDatabase.DeleteAsset(defPath);
+                AssetDatabase.Refresh();
+            }
+            EditorUtil.SetSymbolDefined("TagsGenerated", false);
         }
     }
 }
