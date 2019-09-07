@@ -1,0 +1,16 @@
+{
+    "name": "SlightlyBetterRatsEditor",
+    "references": [
+        "GUID:0d6a2d6f843e0c54a90c8abd193e6629"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
