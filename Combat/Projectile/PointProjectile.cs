@@ -41,7 +41,7 @@ namespace SBR {
             Vector3 dir = velocity.normalized;
             if (velocity.sqrMagnitude > 0) {
                 Vector3 position = transform.position - dir * offset;
-                float distance = velocity.magnitude + offset;
+                float distance = velocity.magnitude * Time.deltaTime + offset;
 
                 while (distance > 0) {
                     bool didHit;
