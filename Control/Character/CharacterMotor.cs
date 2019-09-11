@@ -566,7 +566,7 @@ namespace SBR {
                 } else {
                     rigidbody.MoveRotation(Quaternion.RotateTowards(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 }
-                rotationRates = Util.NormalizeInnerAngles((Quaternion.Inverse(q) * rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
+                rotationRates = MathUtil.NormalizeInnerAngles((Quaternion.Inverse(q) * rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
                 if (Quaternion.Angle(rigidbody.rotation, targetRotation) < minTargetAngle) {
                     isRotating = false;

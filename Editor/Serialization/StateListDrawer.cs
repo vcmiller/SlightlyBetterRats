@@ -102,9 +102,9 @@ namespace SBR.Editor {
             var element = GetElementProperty(prop, index);
             rect.height = EditorGUI.GetPropertyHeight(element.FindPropertyRelative("name"), GUIContent.none);
 
-            Util.SplitHorizontal(rect, gap, out var r1, out var r2);
-            Util.SplitHorizontal(r1, gap, out var r3, out var r4);
-            Util.SplitHorizontal(r2, gap, out var r5, out var r6, 0.4f);
+            MathUtil.SplitHorizontal(rect, gap, out var r1, out var r2);
+            MathUtil.SplitHorizontal(r1, gap, out var r3, out var r4);
+            MathUtil.SplitHorizontal(r2, gap, out var r5, out var r6, 0.4f);
 
             EditorGUI.PropertyField(r3, element.FindPropertyRelative("name"), GUIContent.none);
             EditorGUI.PropertyField(r4, element.FindPropertyRelative("values"), GUIContent.none);

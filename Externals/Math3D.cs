@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
-    // This is from Unify community wiki. I did not write these functions. I've included them for convenience and because I use them at some places.
-    public class Math3D {
+    // This is the Math3D class from Unify community wiki.
+    // The original can be found at: http://wiki.unity3d.com/index.php/3d_Math_functions
+    // I did not write these functions. I've included them for convenience and because I use them at some places.
+    // Here, it is an extension of Util/MathUtil.cs.
+    public static partial class MathUtil {
 
         private static Transform tempChild = null;
         private static Transform tempParent = null;
