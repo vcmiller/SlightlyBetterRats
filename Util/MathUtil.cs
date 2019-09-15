@@ -6,6 +6,22 @@ namespace SBR {
     // This class is extended by Externals/Math3D.cs
     public static partial class MathUtil {
 
+        #region Float Operations
+
+        /// <summary>
+        /// Round a value to the nearest multiple of factor.
+        /// </summary>
+        /// <param name="angle"></param>
+        /// <param name="multiple"></param>
+        /// <returns></returns>
+        public static float RoundToNearest(float value, float factor) {
+            return Mathf.Round(value / factor) * factor;
+        }
+
+        #endregion
+
+        #region Angle Operations
+
         /// <summary>
         /// Normalize an angle to a value between 0 and 360.
         /// </summary>
@@ -60,6 +76,64 @@ namespace SBR {
                 ClampInnerAngle(angles.z, min.z, max.z));
         }
 
+        #endregion
+
+        #region Vector Operations
+
+        /// <summary>
+        /// Multiply the components of left by right. This is not a mathematically valid operation, but it can still be useful.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static Vector3 Multiply(Vector3 left, Vector3 right) {
+            return new Vector3(left.x * right.x, left.y * right.y, left.z * right.z);
+        }
+
+        /// <summary>
+        /// Divide the components of left by right. This is not a mathematically valid operation, but it can still be useful.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
+        public static Vector3 Divide(Vector3 left, Vector3 right) {
+            return new Vector3(left.x / right.x, left.y / right.y, left.z / right.z);
+        }
+
+        /// <summary>
+        /// Take the reciprocal of each component of a vector. This is not a mathematically valid operation, but it can still be useful.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public static Vector3 Reciprocal(Vector3 vector) => Divide(1.0f, vector);
+
+        /// <summary>
+        /// Divide a float by each component of a vector. This is not a mathematically valid operation, but it can still be useful.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <returns></returns>
+        public static Vector3 Divide(float left, Vector3 right) {
+            return new Vector3(left / right.x, left / right.y, left / right.z);
+        }
+
+        /// <summary>
+        /// Round each component of vector to the nearest multiple of factor.
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="factor"></param>
+        /// <returns></returns>
+        public static Vector3 RoundToNearest(Vector3 vector, float factor) {
+            return new Vector3(
+                RoundToNearest(vector.x, factor),
+                RoundToNearest(vector.y, factor),
+                RoundToNearest(vector.z, factor)
+                );
+        }
+
+        #endregion
+
+        #region Rect Operations
+
         /// <summary>
         /// Split a rect into two halves horizontally, with given gap between the halves.
         /// </summary>
@@ -90,5 +164,7 @@ namespace SBR {
             out2 = new Rect(out1.xMax + gap * 2, rect.y, rect.width * (div2 - div1) - gap, rect.height);
             out3 = new Rect(out2.xMax + gap * 2, rect.y, rect.width * (1 - (div1 + div2)) - gap, rect.height);
         }
+
+        #endregion
     }
 }
