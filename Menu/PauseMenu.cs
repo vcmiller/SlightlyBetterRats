@@ -16,25 +16,25 @@ namespace SBR.Menu {
         }
 
         private void Awake() {
-            target.show = false;
+            if (target) target.show = false;
         }
 
         private void Update() {
             if (!string.IsNullOrEmpty(pauseButton) &&
                 Input.GetButtonDown(pauseButton) && 
-                !Pause.paused && !target.show) {
+                !Pause.paused && (!target || !target.show)) {
                 Pause.paused = true;
                 Paused();
             } else if (!string.IsNullOrEmpty(resumeButton) &&
                 Input.GetButtonDown(resumeButton) && 
-                Pause.paused && target.show) {
+                Pause.paused && (!target || target.show)) {
                 Pause.paused = false;
                 Unpaused();
             }
         }
 
         private void Paused() {
-            target.show = true;
+            if (target) target.show = true;
             if (ungrabMouse) {
                 cursorLockState = Cursor.lockState;
                 cursorVisible = Cursor.visible;
@@ -45,7 +45,7 @@ namespace SBR.Menu {
         }
 
         private void Unpaused() {
-            target.show = false;
+            if (target) target.show = false;
             if (ungrabMouse) {
                 Cursor.lockState = cursorLockState;
                 Cursor.visible = cursorVisible;
