@@ -65,6 +65,7 @@ namespace SBR {
             GameObject newMesh = CreateMesh();
 
             MeshChanging?.Invoke(oldPrefab, _meshInstance, newPrefab, newMesh);
+            gameObject.SendMessageUpwards("OnSwappableMeshChanging", newMesh, SendMessageOptions.DontRequireReceiver);
 
             if (_meshInstance) {
                 Destroy(_meshInstance);
@@ -79,6 +80,7 @@ namespace SBR {
             }
 
             MeshChanged?.Invoke(newPrefab, _meshInstance);
+            gameObject.SendMessageUpwards("OnSwappableMeshChanged", newMesh, SendMessageOptions.DontRequireReceiver);
         }
 
         private GameObject CreateMesh() {
@@ -263,16 +265,7 @@ namespace SBR {
         private void OnDrawGizmos() {
             if (_prefabMeshes == null) return;
 
-            var col = new Color(0.0f, 0.7f, 1f, 0.05f);
-            Gizmos.matrix = gameObject.transform.localToWorldMatrix;
-            Gizmos.color = col;
-            Gizmos.DrawCube(_meshBounds.center, _meshBounds.size);
-        }
-
-        private void OnDrawGizmosSelected() {
-            if (_prefabMeshes == null) return;
-
-            var col = new Color(0.7f, 0.3f, 0f, 0.1f);
+            var col = Color.clear;
             Gizmos.matrix = gameObject.transform.localToWorldMatrix;
             Gizmos.color = col;
             Gizmos.DrawCube(_meshBounds.center, _meshBounds.size);

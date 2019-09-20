@@ -155,6 +155,12 @@ namespace SBR {
                 _localScale = MathUtil.Multiply(_localScale, _lastTransform.ScaleRatio);
             }
 
+#if UNITY_EDITOR
+            if (!Application.isPlaying) {
+                UnityEditor.EditorUtility.SetDirty(this);
+            }
+#endif
+
             _lastTransform.Update();
 
 
