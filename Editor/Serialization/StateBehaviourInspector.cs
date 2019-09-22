@@ -7,6 +7,7 @@ using UnityEngine;
 namespace SBR.Editor {
 
     [CustomEditor(typeof(StateBehaviour), true)]
+    [CanEditMultipleObjects]
     public class StateBehaviourInspector : UnityEditor.Editor {
         public override void OnInspectorGUI() {
             serializedObject.Update();
