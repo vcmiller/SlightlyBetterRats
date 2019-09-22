@@ -58,16 +58,18 @@ namespace SBR {{
             var tags = InternalEditorUtility.tags;
             var str = new StringBuilder();
             int max = Mathf.Min(tags.Length, 32);
+            int current = 0;
             for (int i = 0; i < max; i++) {
                 // Need to skip any tags with spaces, as they'll cause a compiler error.
                 // We could just remove the spaces, but the conversion to an actual Unity tag wouldn't work.
                 // So better to just drop them from the enum.
                 if (!ValidEnumValue(tags[i])) continue;
 
-                str.Append(tags[i]).Append(" = ").Append(1 << i);
+                str.Append(tags[i]).Append(" = ").Append(1 << current);
                 if (i < max - 1) {
                     str.Append(", ");
                 }
+                current++;
             }
             return str.ToString();
         }

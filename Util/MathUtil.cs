@@ -18,6 +18,17 @@ namespace SBR {
             return Mathf.Round(value / factor) * factor;
         }
 
+        /// <summary>
+        /// Same as Mathf.Sign, except that if the input is zero, it returns zero.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static float SignZero(float value) {
+            if (value > 0) return 1;
+            if (value < 0) return -1;
+            else return 0;
+        }
+
         #endregion
 
         #region Angle Operations

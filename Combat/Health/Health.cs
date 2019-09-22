@@ -129,7 +129,7 @@ namespace SBR {
         /// <param name="dmg">The damage to apply.</param>
         /// <returns>The actual damage amount dealt.</returns>
         public virtual float Damage(Damage dmg) {
-            if (enabled && hitInvulnTimer.Use() && dmg.amount > 0) {
+            if (enabled && dmg.amount > 0 && hitInvulnTimer.Use()) {
                 DamageModifier?.Invoke(ref dmg);
 
                 float prevHealth = health;

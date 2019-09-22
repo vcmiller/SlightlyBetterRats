@@ -12,7 +12,7 @@ namespace SBR {
     /// (Controllers whose channels type is assignable to the Motor's channels type).
     /// </summary>
     /// <typeparam name="T">The channels type.</typeparam>
-    public abstract class Motor<T> : StateBehaviour where T : Channels, new() {
+    public abstract class Motor<T> : StateBehaviour, IMotor where T : Channels, new() {
         /// <summary>
         /// Called when enableInput is changed.
         /// </summary>

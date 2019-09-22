@@ -53,7 +53,7 @@ namespace SBR {
         /// <summary>
         /// Whether the timer can currently be used.
         /// </summary>
-        public bool canUse => curTime - lastUse > cooldown;
+        public bool canUse => curTime - lastUse >= cooldown;
 
         /// <summary>
         /// Create a new CooldownTimer with given cooldown.

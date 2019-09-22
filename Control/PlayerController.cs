@@ -23,6 +23,7 @@ namespace SBR {
         private Dictionary<string, Action> buttonUp;
         private Dictionary<string, Action> buttonHeld;
         private Dictionary<string, (bool raw, Action<float> action)> axes;
+        protected bool mouseGrabbed { get; private set; }
 
         /// <summary>
         /// Suffix to apply to input axis/button names. 
@@ -177,20 +178,30 @@ namespace SBR {
             }
 
             if (grabMouse) {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
+                ReleaseMouse();
             }
         }
 
         protected virtual void OnEnable() {
             if (grabMouse) {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                GrabMouse();
             }
 
             if (_viewTarget && !sharedViewTarget) {
                 _viewTarget.enabled = true;
             }
+        }
+
+        public void GrabMouse() {
+            mouseGrabbed = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        public void ReleaseMouse() {
+            mouseGrabbed = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 }

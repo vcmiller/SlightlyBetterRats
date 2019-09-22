@@ -93,8 +93,8 @@ namespace SBR {
                 return null;
             }
 
-            var clip = clips[Random.Range(0, clips.Length)];
             if (CanPlay()) {
+                var clip = clips[Random.Range(0, clips.Length)];
                 return Util.PlayClipAtPoint(clip, point, volume, spaital, pitch, loop, outputGroup, attach);
             } else {
                 return null;
@@ -109,6 +109,34 @@ namespace SBR {
             var src = PlayAtPoint(Vector3.zero);
             src.spatialBlend = 0.0f;
             return src;
+        }
+
+        /// <summary>
+        /// Play the sound with an existing AudioSource.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="oneShot"></param>
+        public void PlayWithSource(AudioSource source, bool oneShot) {
+            if (clips == null || clips.Length == 0) {
+                Debug.LogError("Trying to play AudioInfo with no clips!");
+                return;
+            }
+
+            if (CanPlay()) {
+                var clip = clips[Random.Range(0, clips.Length)];
+                source.spatialBlend = spaital;
+                source.pitch = pitch;
+                source.loop = loop;
+                source.outputAudioMixerGroup = outputGroup;
+
+                if (oneShot) {
+                    source.PlayOneShot(clip, volume);
+                } else {
+                    source.volume = volume;
+                    source.clip = clip;
+                    source.Play();
+                }
+            }
         }
 
         /// <summary>

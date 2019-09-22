@@ -187,6 +187,18 @@ namespace SBR {
         public float airAccelerationMultiplier = 0.5f;
 
         /// <summary>
+        /// How movement input affects the Motor's velocity.
+        /// </summary>
+        [Tooltip("How movement input affects the movement velocity.")]
+        public InputAccelerationMode inputAccelerationMode = InputAccelerationMode.MoveVelocity;
+
+        /// <summary>
+        /// Damping factor for movement velocity.
+        /// </summary>
+        [Tooltip("Damping factor for movement velocity.")]
+        public float movementVelocityDamping = 0;
+
+        /// <summary>
         /// How to project the movement input vector.
         /// </summary>
         [Tooltip("How to project the movement input vector.")]
@@ -314,6 +326,10 @@ namespace SBR {
 
         public enum ProjectMovementMode {
             None, LocalY, GroundNormal, Gravity
+        }
+
+        public enum InputAccelerationMode {
+            Instant, Force, MoveVelocity
         }
 
         protected override void Awake() {
@@ -483,30 +499,11 @@ namespace SBR {
         protected override void DoOutput(CharacterChannels channels) {
             DoRotationOutput(channels);
 
-            Vector3 targetVel = channels.movement;
-            Vector3 projectedTargetVel = ProjectMovementVelocity(targetVel);
-
-            if (projectedTargetVel.sqrMagnitude > 0.001f) {
-                projectedTargetVel = projectedTargetVel.normalized * targetVel.magnitude;
-            }
-
-            projectedTargetVel *= movementSpeed;
-            
-            if (sliding) {
-                Vector3 n = Vector3.ProjectOnPlane(groundNormal, transform.up);
-                n = -n.normalized;
-
-                if (Vector3.Dot(projectedTargetVel, n) > 0) {
-                    Vector3 bad = Vector3.Project(projectedTargetVel, n);
-                    projectedTargetVel -= bad;
-                }
-            }
-
             float minMoveSpeed = movementSpeed * 0.01f;
             minMoveSpeed = minMoveSpeed * minMoveSpeed;
 
             bool wasMoving = movementVelocity.sqrMagnitude > minMoveSpeed;
-            movementVelocity = Vector3.MoveTowards(movementVelocity, projectedTargetVel, actualMovementAcceleration * Time.deltaTime);
+            UpdateMovementVelocity(channels.movement);
             bool isMoving = movementVelocity.sqrMagnitude > minMoveSpeed;
 
             if (wasMoving != isMoving) {
@@ -522,6 +519,39 @@ namespace SBR {
                 } else {
                     gravityVelocity = transform.TransformDirection(jumpVelocity);
                 }
+            }
+        }
+
+        private void UpdateMovementVelocity(Vector3 input) {
+            if (inputAccelerationMode == InputAccelerationMode.Instant) {
+                movementVelocity = input * movementSpeed;
+            } else if (inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
+                movementVelocity = Vector3.MoveTowards(movementVelocity, input * movementSpeed, actualMovementAcceleration * Time.deltaTime);
+            } else if (inputAccelerationMode == InputAccelerationMode.Force) {
+                movementVelocity += input * actualMovementAcceleration * Time.deltaTime;
+                movementVelocity = Vector3.ClampMagnitude(movementVelocity, movementSpeed);
+            }
+
+            Vector3 projectedVel = ProjectMovementVelocity(movementVelocity);
+
+            if (projectedVel.sqrMagnitude > 0.001f) {
+                projectedVel = projectedVel.normalized * movementVelocity.magnitude;
+            }
+
+            if (sliding) {
+                Vector3 n = Vector3.ProjectOnPlane(groundNormal, transform.up);
+                n = -n.normalized;
+
+                if (Vector3.Dot(projectedVel, n) > 0) {
+                    Vector3 bad = Vector3.Project(projectedVel, n);
+                    projectedVel -= bad;
+                }
+            }
+
+            movementVelocity = projectedVel;
+
+            if (movementVelocityDamping > 0) {
+                movementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * Time.deltaTime);
             }
         }
 
