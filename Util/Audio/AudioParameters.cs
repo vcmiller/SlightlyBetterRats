@@ -68,7 +68,7 @@ namespace SBR {
                 return true;
             } else if (string.IsNullOrEmpty(cooldownId)) {
                 if (playTimer == null) {
-                    playTimer = new CooldownTimer(playCooldown);
+                    playTimer = new CooldownTimer(playCooldown, 0);
                 }
                 return playTimer.Use();
             } else {
@@ -107,7 +107,7 @@ namespace SBR {
         /// <returns>The spawned AudioSource.</returns>
         public AudioSource Play() {
             var src = PlayAtPoint(Vector3.zero);
-            src.spatialBlend = 0.0f;
+            if (src) src.spatialBlend = 0.0f;
             return src;
         }
 

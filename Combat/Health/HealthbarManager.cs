@@ -28,9 +28,7 @@ namespace SBR {
 
         private void Start() {
             foreach (var health in FindObjectsOfType<Health>()) {
-                if (!healthbars.ContainsKey(health)) {
-                    HealthCreated(health);
-                }
+                HealthCreated(health);
             }
         }
 
@@ -62,7 +60,7 @@ namespace SBR {
         }
 
         private bool ShouldCreate(Health health) {
-            return healthbarPrefab && health.CompareTag(shownTags);
+            return healthbarPrefab && health.CompareTag(shownTags) && !healthbars.ContainsKey(health);
         }
 
         private void HealthCreated(Health health) {

@@ -4,8 +4,6 @@ using UnityEngine;
 using SBR.Serialization;
 using System.Linq;
 using System;
-using UnityEditor.Experimental.SceneManagement;
-using UnityEditor;
 
 namespace SBR {
     [ExecuteAlways]
@@ -273,7 +271,8 @@ namespace SBR {
 
         private void DrawMeshPreview(Camera camera) {
             if (_prefabMeshes == null || camera.name == "Preview Scene Camera") return;
-            if (PrefabStageUtility.GetCurrentPrefabStage() != null && PrefabStageUtility.GetPrefabStage(gameObject) == null) return;
+            if (UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null &&
+                UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetPrefabStage(gameObject) == null) return;
 
             Matrix4x4 selfToWorld = transform.localToWorldMatrix;
             foreach ((Material[] mats, Mesh mesh, Matrix4x4 matrix, Bounds bounds) in _prefabMeshes) {

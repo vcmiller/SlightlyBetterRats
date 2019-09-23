@@ -89,6 +89,12 @@ namespace SBR {
         /// </summary>
         [Tooltip("Whether to allow revival by healing after health has reached zero.")]
         public bool allowRevival = true;
+
+        /// <summary>
+        /// Sound to play when damaged.
+        /// </summary>
+        [Tooltip("Sound to play when damaged")]
+        public AudioParameters damageSound;
         
         /// <summary>
         /// Timer used for regeneration delay.
@@ -140,6 +146,9 @@ namespace SBR {
                 healthRegenTimer.Set();
                 SendMessage("OnDamage", dmg, SendMessageOptions.DontRequireReceiver);
                 Damaged?.Invoke(dmg);
+                if (damageSound) {
+                    damageSound.Play();
+                }
 
                 if (health == 0 && !dead) {
                     dead = true;
