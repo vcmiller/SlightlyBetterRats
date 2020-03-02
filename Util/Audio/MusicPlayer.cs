@@ -109,8 +109,11 @@ namespace SBR {
             audioSources = GetComponentsInChildren<AudioSource>();
             currentIndex = shuffle ? UnityEngine.Random.Range(0, audioSources.Length) : 0;
             inst = this;
-            if (playOnAwake) Play();
             if (persistThroughLoad) DontDestroyOnLoad(gameObject);
+        }
+
+        private void Start() {
+            if (playOnAwake) Play();
         }
 
         private void Update() {
