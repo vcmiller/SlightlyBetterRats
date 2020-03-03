@@ -6,6 +6,7 @@ namespace SBR {
     /// <summary>
     /// Used to create an object that always faces another object, such as the camera.
     /// </summary>
+    [ExecuteAlways]
     public class Billboard : MonoBehaviour {
         /// <summary>
         /// How the rotation of this object is controlled.
@@ -20,25 +21,57 @@ namespace SBR {
         public TargetMode targetMode;
 
         /// <summary>
+        /// Whether to scale the Billboard based on distance from the target.
+        /// </summary>
+        [Tooltip("Whether to scale the Billboard based on distance from the target.")]
+        public bool scaleWithDistance;
+
+        /// <summary>
+        /// Curve to follow when scaling with distance.
+        /// </summary>
+        [Tooltip("Curve to follow when scaling with distance.")]
+        [Conditional(nameof(scaleWithDistance))]
+        public AnimationCurve scaleOverDistanceCurve = AnimationCurve.Constant(0, 1, 1);
+
+        /// <summary>
+        /// Whether the Billboard should function in the editor when the game isn't running.
+        /// </summary>
+        [Tooltip("Whether the Billboard should function in the editor when the game isn't running.")]
+        public bool editorPreview = true;
+
+        /// <summary>
         /// The other object to face, if using TargetMode.TargetObject.
         /// </summary>
         [Tooltip("The other object to face.")]
-        [Conditional("targetMode", TargetMode.TargetObject, true)]
+        [Conditional(nameof(targetMode), TargetMode.TargetObject, true)]
         public Transform targetObject;
 
-        public Transform target {
-            get {
-                if (targetMode == TargetMode.MainCamera) {
-                    return Camera.main.transform;
-                } else {
-                    return targetObject;
-                }
+        private void OnEnable() {
+            Camera.onPreCull -= Camera_OnPreCull;
+            Camera.onPreCull += Camera_OnPreCull;
+        }
+
+        void Camera_OnPreCull(Camera camera) {
+            if (!editorPreview && !Application.isPlaying) return;
+
+            if (targetMode == TargetMode.Camera) {
+                LookAt(camera.transform);
             }
         }
-        
-        void LateUpdate() {
-            Transform t = target;
 
+        private void OnDisable() {
+            Camera.onPreCull -= Camera_OnPreCull;
+        }
+
+        void LateUpdate() {
+            if (!editorPreview && !Application.isPlaying) return;
+
+            if (targetMode == TargetMode.TargetObject && targetObject) {
+                LookAt(targetObject);
+            }
+        }
+
+        private void LookAt(Transform t) {
             if (!t) return;
 
             if (mode == Mode.CopyRotation) {
@@ -50,6 +83,11 @@ namespace SBR {
                 Vector3 fwd = Vector3.Cross(right, Vector3.up).normalized;
                 transform.rotation = Quaternion.LookRotation(fwd);
             }
+
+            if (scaleWithDistance) {
+                float f = scaleOverDistanceCurve.Evaluate(Vector3.Distance(transform.position, t.position));
+                transform.localScale = Vector3.one * f;
+            }
         }
 
         public enum Mode {
@@ -57,7 +95,7 @@ namespace SBR {
         }
 
         public enum TargetMode {
-            MainCamera, TargetObject
+            Camera, TargetObject
         }
     }
 }
