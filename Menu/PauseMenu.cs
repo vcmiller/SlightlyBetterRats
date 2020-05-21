@@ -44,15 +44,25 @@ namespace SBR.Menu {
         private void Update() {
             if (!string.IsNullOrEmpty(pauseButton) &&
                 Input.GetButtonDown(pauseButton) && 
-                !Pause.paused && (!target || !target.show)) {
-                Pause.paused = true;
-                Paused();
+                !SBR.Pause.paused && (!target || !target.show)) {
+
+                Pause();
             } else if (!string.IsNullOrEmpty(resumeButton) &&
                 Input.GetButtonDown(resumeButton) && 
-                Pause.paused && (!target || target.show)) {
-                Pause.paused = false;
-                Unpaused();
+                SBR.Pause.paused && (!target || target.show)) {
+
+                Unpause();
             }
+        }
+
+        public void Pause() {
+            SBR.Pause.paused = true;
+            Paused();
+        }
+
+        public void Unpause() {
+            SBR.Pause.paused = false;
+            Unpaused();
         }
 
         private void Paused() {
