@@ -87,6 +87,43 @@ namespace SBR {
         }
 
         /// <summary>
+        /// Initialize the transform with the given parent, position, and rotation, as well as parent.
+        /// </summary>
+        /// <param name="transform">The transform to initialize.</param>
+        /// <param name="position">The position.</param>
+        /// <param name="rotation">The rotation.</param>
+        /// <param name="scale">The scale.</param>
+        /// <param name="inWorldSpace">Whether the given position, rotation, and scale should be considered global.</param>
+        public static void Initialize(this Transform transform, 
+            Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
+            Transform parent = null, bool inWorldSpace = false) {
+
+            if (inWorldSpace) {
+                transform.SetParent(null, false);
+                transform.Initialize(position, rotation, scale);
+                transform.SetParent(parent, true);
+            } else {
+                transform.SetParent(parent, false);
+                transform.Initialize(position, rotation, scale);
+            }
+        }
+
+        /// <summary>
+        /// Initialize the transform with the given parent, position, and rotation.
+        /// </summary>
+        /// <param name="transform">The transform to initialize.</param>
+        /// <param name="position">The local position.</param>
+        /// <param name="rotation">The local rotation.</param>
+        /// <param name="scale">The local scale.</param>
+        public static void Initialize(this Transform transform,
+            Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null) {
+
+            if (position != null) transform.localPosition = position.Value;
+            if (rotation != null) transform.localRotation = rotation.Value;
+            if (scale != null) transform.localScale = scale.Value;
+        }
+
+        /// <summary>
         /// Like GetComponentInParent, but more convenient if using in if statements and also using the component value.
         /// </summary>
         public static bool TryGetComponentInParent<T>(this GameObject obj, out T result) {

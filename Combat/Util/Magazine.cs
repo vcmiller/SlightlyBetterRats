@@ -29,7 +29,7 @@ namespace SBR {
     /// such as bullets in a magazine that must be reloaded.
     /// </summary>
     public class Magazine {
-        private ExpirationTimer reload;
+        public ExpirationTimer reloadTimer { get; private set; }
 
         /// <summary>
         /// How many uses remain before a reload is necessary.
@@ -44,12 +44,12 @@ namespace SBR {
         /// <summary>
         /// Whether it can currently be used.
         /// </summary>
-        public bool canFire => remainingShots > 0 && reload.expired;
+        public bool canFire => remainingShots > 0 && reloadTimer.expired;
 
         /// <summary>
         /// Whether is currently reloading.
         /// </summary>
-        public bool reloading => !reload.expired;
+        public bool reloading => !reloadTimer.expired;
 
         /// <summary>
         /// Construct a new Magazine with given size and reload time.
@@ -57,7 +57,7 @@ namespace SBR {
         /// <param name="size">Number of uses before reload.</param>
         /// <param name="reloadTime">Time it takes to reload.</param>
         public Magazine(int size, float reloadTime) {
-            reload = new ExpirationTimer(reloadTime);
+            reloadTimer = new ExpirationTimer(reloadTime);
             remainingShots = size;
             clipSize = size;
         }
@@ -68,7 +68,7 @@ namespace SBR {
         public void Reload() {
             if (remainingShots < clipSize) {
                 remainingShots = clipSize;
-                reload.Set();
+                reloadTimer.Set();
             }
         }
 

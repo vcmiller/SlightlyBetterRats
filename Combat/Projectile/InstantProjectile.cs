@@ -46,7 +46,7 @@ namespace SBR {
             if (Physics.Raycast(transform.position, direction, out hit, range, hitMask, triggerInteraction)) {
                 OnHitCollider(hit.collider, hit.point);
             } else {
-                Destroy(gameObject, linger);
+                Spawnable.Despawn(gameObject, linger);
             }
         }
     }

@@ -46,6 +46,8 @@ namespace SBR {
         private Dictionary<string, Action> buttonHeld;
         private Dictionary<string, (bool raw, Action<float> action)> axes;
         protected bool mouseGrabbed { get; private set; }
+        public bool inputEnabled { get; set; } = true;
+        private HashSet<string> keysHeld = new HashSet<string>();
 
         /// <summary>
         /// Suffix to apply to input axis/button names. 
@@ -169,25 +171,34 @@ namespace SBR {
         protected override void DoInput() {
             if (enabled) {
                 foreach (var m in axes) {
-                    string key = m.Key + inputSuffix;
-                    float f = m.Value.raw ? Input.GetAxisRaw(key) : Input.GetAxis(key);
-                    m.Value.action?.Invoke(f);
+                    if (inputEnabled) {
+                        string key = m.Key + inputSuffix;
+                        float f = m.Value.raw ? Input.GetAxisRaw(key) : Input.GetAxis(key);
+                        m.Value.action?.Invoke(f);
+                    } else {
+                        m.Value.action?.Invoke(0);
+                    }
                 }
 
                 foreach (var m in buttonDown) {
-                    if (Input.GetButtonDown(m.Key + inputSuffix)) {
+                    if (inputEnabled && Input.GetButtonDown(m.Key + inputSuffix)) {
                         m.Value?.Invoke();
                     }
                 }
 
                 foreach (var m in buttonHeld) {
-                    if (Input.GetButton(m.Key + inputSuffix)) {
+                    if (inputEnabled && Input.GetButton(m.Key + inputSuffix)) {
                         m.Value?.Invoke();
                     }
                 }
 
                 foreach (var m in buttonUp) {
-                    if (Input.GetButtonUp(m.Key + inputSuffix)) {
+                    string key = m.Key + inputSuffix;
+                    if (inputEnabled && Input.GetButtonDown(key)) {
+                        keysHeld.Add(key);
+                    }
+
+                    if ((!inputEnabled || Input.GetButtonUp(m.Key + inputSuffix)) && keysHeld.Remove(key)) {
                         m.Value?.Invoke();
                     }
                 }

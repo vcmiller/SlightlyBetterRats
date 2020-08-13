@@ -62,6 +62,8 @@ namespace SBR {
         private float fadeSpeed;
         private bool fading;
 
+        public bool IsFadedIn => currentTarget > 0;
+
         /// <summary>
         /// Fade the volume to its initial volume, and play if not already playing.
         /// </summary>

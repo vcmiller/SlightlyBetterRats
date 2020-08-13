@@ -26,7 +26,7 @@ using UnityEngine;
 
 namespace SBR {
     /// <summary>
-    /// Destroys a GameObject after a set amount of time.
+    /// Despawns a GameObject after a set amount of time.
     /// The field timeToLive can be modified in code to extend or reduce the lifetime.
     /// </summary>
     public class TimeToLive : MonoBehaviour {
@@ -34,13 +34,28 @@ namespace SBR {
         /// How much time remains before the GameObject is destroyed.
         /// </summary>
         [Tooltip("How much time remains before the GameObject is destroyed.")]
-        public float timeToLive;
+        public float timeToLive = 5;
+
+        public GameObject spawnOnDeath;
+
+        private float initialTimeToLive;
+
+        private void Awake() {
+            initialTimeToLive = timeToLive;
+        }
+
+        private void OnSpawned() {
+            timeToLive = initialTimeToLive;
+        }
 
         private void Update() {
             timeToLive -= Time.deltaTime;
 
             if (timeToLive <= 0) {
-                Destroy(gameObject);
+                if (spawnOnDeath) {
+                    Spawnable.Spawn(spawnOnDeath, transform.position, transform.rotation);
+                }
+                Spawnable.Despawn(gameObject);
             }
         }
     }

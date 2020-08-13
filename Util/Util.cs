@@ -80,7 +80,7 @@ namespace SBR {
             src.Play();
 
             if (!loop) {
-                Object.Destroy(obj, clip.length);
+                Spawnable.Despawn(obj, clip.length);
             }
 
             return src;
@@ -132,6 +132,13 @@ namespace SBR {
                 result = result[0].ToString().ToUpper() + result.Substring(1);
             }
             return result;
+        }
+
+        public static void SetLayerRecursively(this GameObject obj, int layer) {
+            obj.layer = layer;
+            for (int i = 0; i < obj.transform.childCount; i++) {
+                SetLayerRecursively(obj.transform.GetChild(i).gameObject, layer);
+            }
         }
 
         public static Type GetType(string fullName) {

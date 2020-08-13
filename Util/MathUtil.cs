@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
+
+using Complex = System.Numerics.Complex;
 
 namespace SBR {
     // This class is extended by Externals/Math3D.cs
     public static partial class MathUtil {
-
         #region Float Operations
 
         /// <summary>
@@ -49,6 +49,71 @@ namespace SBR {
             if (value > 0) return 1;
             if (value < 0) return -1;
             else return 0;
+        }
+
+        /// <summary>
+        /// Evaluate all cubic roots of this <c>Complex</c>.
+        /// Modified from https://github.com/mathnet/mathnet-numerics/blob/master/src/Numerics/ComplexExtensions.cs
+        /// </summary>
+        public static (Complex, Complex, Complex) ComplexCubeRoot(Complex complex) {
+            double r = Math.Pow(complex.Magnitude, 1.0 / 3.0);
+            double theta = complex.Phase / 3.0;
+            const double shift = Math.PI * 2.0 / 3.0;
+            return (Complex.FromPolarCoordinates(r, theta),
+                    Complex.FromPolarCoordinates(r, theta + shift),
+                    Complex.FromPolarCoordinates(r, theta - shift));
+        }
+
+        public static (Complex r1, Complex r2) SolveQuadratic(Complex a, Complex b, Complex c) {
+            Complex sqrt = Complex.Sqrt(b * b - 4 * a * c);
+            Complex denom = 2 * a;
+
+            return ((-b + sqrt) / denom, (-b - sqrt) / denom);
+        }
+
+        public static (Complex r1, Complex r2, Complex r3) SolveCubic(Complex a, Complex b, Complex c, Complex d) {
+            Complex delta0 = (b * b) - (3 * a * c);
+            Complex delta1 = (2 * b * b * b) - (9 * a * b * c) + (27 * a * a * d);
+
+            Complex root = Complex.Sqrt((delta1 * delta1) - (4 * delta0 * delta0 * delta0));
+
+            double epsilon = 0.00001;
+            if (Math.Abs(delta1.Real - root.Real) < epsilon && Math.Abs(delta1.Imaginary - root.Imaginary) < epsilon) {
+                root = -root;
+            }
+
+            var (C1, C2, C3) = ComplexCubeRoot((delta1 - root) / 2.0);
+
+            Complex r1 = -(1.0 / (3.0 * a)) * (b + C1 + (delta0 / C1));
+            Complex r2 = -(1.0 / (3.0 * a)) * (b + C2 + (delta0 / C2));
+            Complex r3 = -(1.0 / (3.0 * a)) * (b + C3 + (delta0 / C3));
+
+            return (r1, r2, r3);
+        }
+
+        public static (Complex r1, Complex r2, Complex r3, Complex r4) SolveQuartic(Complex a, Complex b, Complex c, Complex d, Complex e) {
+            // https://math.stackexchange.com/a/57688
+
+            Complex A = (c / a) - ((3 * b * b) / (8 * a * a));
+            Complex B = (d / a) - ((b * c) / (2 * a * a)) + ((b * b * b) / (8 * a * a * a));
+            Complex C = (e / a) - ((b * d) / (4 * a * a)) + ((b * b * c) / (16 * a * a * a)) - ((3 * b * b * b * b) / (256 * a * a * a * a));
+
+            var (s1, s2, s3) = SolveCubic(8.0, -4.0 * A, -8.0 * C, (4.0 * A * C) - (B * B));
+
+            Complex cmp1 = 0.5 * Complex.Sqrt((2.0 * s1) - A);
+            Complex cmp2 = (-2.0 * s1) - A;
+            Complex cmp3 = (2.0 * B) / Complex.Sqrt((2.0 * s1) - A);
+            Complex cmp4 = -b / (4.0 * a);
+
+            Complex sqrt1 = 0.5 * Complex.Sqrt(cmp2 + cmp3) + cmp4;
+            Complex sqrt2 = 0.5 * Complex.Sqrt(cmp2 - cmp3) + cmp4;
+
+            Complex r1 = -cmp1 + sqrt1;
+            Complex r2 = -cmp1 - sqrt1;
+            Complex r3 =  cmp1 + sqrt2;
+            Complex r4 =  cmp1 - sqrt2;
+
+            return (r1, r2, r3, r4);
         }
 
         #endregion
@@ -161,6 +226,30 @@ namespace SBR {
                 RoundToNearest(vector.y, factor),
                 RoundToNearest(vector.z, factor)
                 );
+        }
+
+        public static bool GetNearestPointOnLines(Ray line1, Ray line2, out float t1, out float t2) {
+            // https://stackoverflow.com/a/2316934
+            // mua = ( d1343 d4321 - d1321 d4343 ) / ( d2121 d4343 - d4321 d4321 )
+
+            Vector3 p1 = line1.origin;
+            Vector3 v1 = line1.direction;
+            Vector3 p2 = line2.origin;
+            Vector3 v2 = line2.direction;
+
+            float d(Vector3 a, Vector3 b) => Vector3.Dot(a, b);
+
+            t1 = ((d(p1 - p2, v2) * d(v2, v1)) - (d(p1 - p2, v1) * d(v2, v2))) / 
+                 ((d(v1, v1)      * d(v2, v2)) - (d(v2, v1)      * d(v2, v1)));
+
+            t2 = (d(p1 - p2, v2) + t1 * d(v2, v1)) / d(v2, v2);
+
+            return !float.IsNaN(t1) && !float.IsNaN(t2) && !float.IsInfinity(t1) && !float.IsInfinity(t2);
+        }
+
+        public static float GetNearestPointOnLine(Ray line, Vector3 p) {
+            Vector3 v = p - line.origin;
+            return Vector3.Dot(line.direction, v);
         }
 
         #endregion

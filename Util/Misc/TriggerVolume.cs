@@ -34,7 +34,7 @@ namespace SBR {
         public event Action<GameObject> TriggerExited;
 
         [SerializeField]
-        private Events events;
+        private Events events = default;
 
         [Serializable]
         public struct Events {

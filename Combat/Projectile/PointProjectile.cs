@@ -77,7 +77,7 @@ namespace SBR {
                     if (didHit) {
                         position += dir * (hit.distance + 0.01f);
                         distance -= hit.distance;
-                        if (OnHitCollider(hit.collider, hit.point)) {
+                        if (OnHitCollider(hit.collider, hit.point) && (stopOnHit || destroyOnHit)) {
                             break;
                         }
                     } else {

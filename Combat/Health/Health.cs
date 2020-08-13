@@ -131,10 +131,21 @@ namespace SBR {
         public delegate void Modifier<T>(ref T input);
 
         protected virtual void Awake() {
-            health = maxHealth;
-
             hitInvulnTimer = new CooldownTimer(hitInvuln, 0);
             healthRegenTimer = new ExpirationTimer(healthRegenDelay);
+
+            ResetHealth();
+        }
+
+        protected virtual void OnSpawned() {
+            ResetHealth();
+        }
+
+        protected virtual void ResetHealth() {
+            hitInvulnTimer.Clear();
+            healthRegenTimer.Clear();
+            health = maxHealth;
+            dead = false;
         }
 
         protected virtual void Start() {

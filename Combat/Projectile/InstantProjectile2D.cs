@@ -49,7 +49,7 @@ namespace SBR {
             if (hit = Physics2D.Raycast(transform.position, direction, range, hitMask)) {
                 OnHitCollider2D(hit.collider, hit.point);
             } else {
-                Destroy(gameObject, linger);
+                Spawnable.Despawn(gameObject, linger);
             }
 
             Physics2D.queriesHitTriggers = trig;

@@ -42,6 +42,8 @@ namespace SBR.Menu {
 
         public Selectable initialSelection;
 
+        private bool _initialized = false;
+
         private void Reset() {
             targetObject = gameObject;
             targetAnimator = GetComponentInParent<Animator>();
@@ -50,6 +52,13 @@ namespace SBR.Menu {
         }
 
         private void OnEnable() {
+            Initialize();
+        }
+
+        private void Initialize() {
+            if (_initialized) return;
+            _initialized = true;
+
             if (initialSelection) {
                 initialSelection.Select();
             }
@@ -67,6 +76,7 @@ namespace SBR.Menu {
         public bool show {
             get => _show;
             set {
+                Initialize();
                 if (_show != value) {
                     _show = value;
                     if (mode == Mode.SetActive) {

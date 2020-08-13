@@ -78,7 +78,7 @@ namespace SBR {
         /// <summary>
         /// Length of the array.
         /// </summary>
-        public int length { get { return items.Length; } }
+        public int Length { get { return items.Length; } }
 
         /// <summary>
         /// Get a copy of the items array.

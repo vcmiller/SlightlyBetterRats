@@ -79,10 +79,22 @@ namespace SBR {
         public bool destroyOnHit = true;
 
         /// <summary>
+        /// Whether the projectile should stop moving when it hits an object.
+        /// </summary>
+        [Tooltip("Whether the projectile should stop moving when it hits an object.")]
+        public bool stopOnHit = true;
+
+        /// <summary>
         /// Prefab to spawn on impact, such as an explosion.
         /// </summary>
         [Tooltip("Prefab to spawn on impact, such as an explosion.")]
         public GameObject impactPrefab;
+
+        /// <summary>
+        /// Whether to parent the spawned impact object to the hit object.
+        /// </summary>
+        [Tooltip("Whether to parent the spawned impact object to the hit object.")]
+        public bool parentImpactObject;
 
         /// <summary>
         /// Sound to play on impact.
@@ -130,6 +142,10 @@ namespace SBR {
             fired = true;
         }
 
+        protected virtual void OnSpawned() {
+            fired = false;
+        }
+
         protected virtual bool OnHitCollider(Collider col, Vector3 position) {
             if (ShouldHitObject(col.transform, position) && (hitsTriggers || !col.isTrigger)) {
                 OnHitObject(col.transform, position);
@@ -156,10 +172,12 @@ namespace SBR {
 
             HitObject?.Invoke(col.gameObject, position);
 
-            velocity = Vector3.zero;
+            if (stopOnHit) {
+                velocity = Vector3.zero;
+            }
 
             if (destroyOnHit) {
-                Destroy(gameObject, linger);
+                Spawnable.Despawn(gameObject, linger);
             }
 
             if (impactSound) {
@@ -167,7 +185,7 @@ namespace SBR {
             }
 
             if (impactPrefab) {
-                Instantiate(impactPrefab, position, transform.rotation);
+                Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, true);
             }
         }
     }

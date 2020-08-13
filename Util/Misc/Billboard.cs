@@ -100,7 +100,7 @@ namespace SBR {
                 transform.rotation = t.rotation;
             } else if (mode == Mode.LookAt) {
                 transform.rotation = Quaternion.LookRotation(t.position - transform.position);
-            } else {
+            } else if (mode == Mode.LookAtYaw) {
                 Vector3 right = Vector3.Cross(Vector3.up, t.position - transform.position);
                 Vector3 fwd = Vector3.Cross(right, Vector3.up).normalized;
                 transform.rotation = Quaternion.LookRotation(fwd);
@@ -113,7 +113,7 @@ namespace SBR {
         }
 
         public enum Mode {
-            CopyRotation, LookAt, LookAtYaw
+            CopyRotation, LookAt, LookAtYaw, NoRotation
         }
 
         public enum TargetMode {

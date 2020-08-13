@@ -124,7 +124,7 @@ namespace SBR {
                     return;
                 } else {
                     inst.Stop();
-                    Destroy(inst.gameObject, inst.GetComponent<AudioFade>().fadeDuration);
+                    Spawnable.Despawn(inst.gameObject, inst.GetComponent<AudioFade>().fadeDuration);
                 }
             }
 
