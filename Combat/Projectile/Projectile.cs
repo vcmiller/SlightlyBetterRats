@@ -178,6 +178,7 @@ namespace SBR {
 
             if (destroyOnHit) {
                 Spawnable.Despawn(gameObject, linger);
+                fired = false;
             }
 
             if (impactSound) {

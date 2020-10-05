@@ -40,7 +40,7 @@ namespace SBR {
         /// </summary>
         public event Action<bool> EnableInputChanged;
 
-        private bool _enableInput = true;
+        [SerializeField] private bool _enableInput = true;
         /// <summary>
         /// Allows enabling/disabling DoOutput callback without disabling the entire Component.
         /// </summary>

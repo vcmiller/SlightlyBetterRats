@@ -220,7 +220,7 @@ namespace SBR {
             }
 
             fillImage.enabled = en;
-            backImage.enabled = en;
+            if (backImage) backImage.enabled = en;
             if (amountText) amountText.enabled = en;
 
             foreach (var graphic in additionalGraphics) {

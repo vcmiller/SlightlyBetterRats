@@ -64,6 +64,10 @@ namespace SBR {
                     Complex.FromPolarCoordinates(r, theta - shift));
         }
 
+        /// <summary>
+        /// Solve a quadratic equation in the form ax^2 + bx + c = 0
+        /// </summary>
+        /// <returns>The two roots of the quadratic equation, which may be complex.</returns>
         public static (Complex r1, Complex r2) SolveQuadratic(Complex a, Complex b, Complex c) {
             Complex sqrt = Complex.Sqrt(b * b - 4 * a * c);
             Complex denom = 2 * a;
@@ -71,6 +75,10 @@ namespace SBR {
             return ((-b + sqrt) / denom, (-b - sqrt) / denom);
         }
 
+        /// <summary>
+        /// Solve a cubic equation in the form ax^3 + bx^2 + cx + d = 0
+        /// </summary>
+        /// <returns>The three roots of the cubic, which may be complex.</returns>
         public static (Complex r1, Complex r2, Complex r3) SolveCubic(Complex a, Complex b, Complex c, Complex d) {
             Complex delta0 = (b * b) - (3 * a * c);
             Complex delta1 = (2 * b * b * b) - (9 * a * b * c) + (27 * a * a * d);
@@ -91,6 +99,10 @@ namespace SBR {
             return (r1, r2, r3);
         }
 
+        /// <summary>
+        /// Solve a quartic equation of the form ax^4 + bx^3 + cx^2 + dx + e = 0.
+        /// </summary>
+        /// <returns>The four roots of the quartic, which may be complex.</returns>
         public static (Complex r1, Complex r2, Complex r3, Complex r4) SolveQuartic(Complex a, Complex b, Complex c, Complex d, Complex e) {
             // https://math.stackexchange.com/a/57688
 
@@ -105,13 +117,13 @@ namespace SBR {
             Complex cmp3 = (2.0 * B) / Complex.Sqrt((2.0 * s1) - A);
             Complex cmp4 = -b / (4.0 * a);
 
-            Complex sqrt1 = 0.5 * Complex.Sqrt(cmp2 + cmp3) + cmp4;
-            Complex sqrt2 = 0.5 * Complex.Sqrt(cmp2 - cmp3) + cmp4;
+            Complex sqrt1 = 0.5 * Complex.Sqrt(cmp2 + cmp3);
+            Complex sqrt2 = 0.5 * Complex.Sqrt(cmp2 - cmp3);
 
-            Complex r1 = -cmp1 + sqrt1;
-            Complex r2 = -cmp1 - sqrt1;
-            Complex r3 =  cmp1 + sqrt2;
-            Complex r4 =  cmp1 - sqrt2;
+            Complex r1 = -cmp1 + sqrt1 + cmp4;
+            Complex r2 = -cmp1 - sqrt1 + cmp4;
+            Complex r3 = cmp1 + sqrt2 + cmp4;
+            Complex r4 = cmp1 - sqrt2 + cmp4;
 
             return (r1, r2, r3, r4);
         }
@@ -239,8 +251,8 @@ namespace SBR {
 
             float d(Vector3 a, Vector3 b) => Vector3.Dot(a, b);
 
-            t1 = ((d(p1 - p2, v2) * d(v2, v1)) - (d(p1 - p2, v1) * d(v2, v2))) / 
-                 ((d(v1, v1)      * d(v2, v2)) - (d(v2, v1)      * d(v2, v1)));
+            t1 = ((d(p1 - p2, v2) * d(v2, v1)) - (d(p1 - p2, v1) * d(v2, v2))) /
+                 ((d(v1, v1) * d(v2, v2)) - (d(v2, v1) * d(v2, v1)));
 
             t2 = (d(p1 - p2, v2) + t1 * d(v2, v1)) / d(v2, v2);
 
@@ -251,6 +263,14 @@ namespace SBR {
             Vector3 v = p - line.origin;
             return Vector3.Dot(line.direction, v);
         }
+
+        #endregion
+
+        #region Vector Component Mixing
+
+        public static Vector3 WithX(this Vector3 v, float x) => new Vector3(x, v.y, v.z);
+        public static Vector3 WithY(this Vector3 v, float y) => new Vector3(v.x, y, v.z);
+        public static Vector3 WithZ(this Vector3 v, float z) => new Vector3(v.x, v.y, z);
 
         #endregion
 
