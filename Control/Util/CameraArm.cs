@@ -61,13 +61,15 @@ namespace SBR {
         [Tooltip("Distance that the camera will be from the player as long as it doesn't collide with anything.")]
         public float targetLength = 6;
 
+        public Transform cameraTransform;
+
         public bool cameraMovement = true;
 
         private float lastX;
         private float lastY;
 
         private Quaternion rot;
-        private Camera cam;
+        private Camera camera;
 
         protected override void Awake() {
             base.Awake();
@@ -76,7 +78,8 @@ namespace SBR {
             lastX = v.x;
             lastY = v.y;
 
-            cam = GetComponentInChildren<Camera>();
+            camera = GetComponentInChildren<Camera>();
+            if (!cameraTransform) cameraTransform = camera.transform;
         }
 
         private void UpdateCamera() {
@@ -105,13 +108,14 @@ namespace SBR {
             lastX = v.x;
             lastY = v.y;
 
-            if (cam && blocking != 0 && cameraMovement) {
+            if (cameraTransform && blocking != 0 && cameraMovement) {
                 RaycastHit hit;
 
-                if (Physics.SphereCast(transform.position, cam.nearClipPlane, -transform.forward, out hit, targetLength + cam.nearClipPlane, blocking)) {
-                    cam.transform.localPosition = new Vector3(0, 0, -hit.distance);
+                if (Physics.SphereCast(transform.position, camera.nearClipPlane, -transform.forward, 
+                    out hit, targetLength + camera.nearClipPlane, blocking)) {
+                    cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
                 } else {
-                    cam.transform.localPosition = new Vector3(0, 0, -targetLength);
+                    cameraTransform.transform.localPosition = new Vector3(0, 0, -targetLength);
                 }
             }
         }
