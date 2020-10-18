@@ -57,11 +57,11 @@ namespace SBR.Serialization {
             for (int i = 0; i < states.Length; i++) {
                 var values = states[i].values;
 
-                states[i].fieldIDs = new int[values.overrides.Length];
+                states[i].fieldIDs = new int[values ? values.overrides.Length : 0];
                 states[i].isActive = false;
                 states[i].isBlocked = false;
 
-                for (int j = 0; j < values.overrides.Length; j++) {
+                for (int j = 0; j < states[i].fieldIDs.Length; j++) {
                     if (!fieldIDs.TryGetValue(values.overrides[j].path, out int fieldID)) {
                         fieldID = fieldIDs.Count;
                         fieldIDs[values.overrides[j].path] = fieldID;
