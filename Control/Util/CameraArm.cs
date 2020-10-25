@@ -69,7 +69,7 @@ namespace SBR {
         private float lastY;
 
         private Quaternion rot;
-        private Camera camera;
+        private Camera _camera;
 
         protected override void Awake() {
             base.Awake();
@@ -78,8 +78,8 @@ namespace SBR {
             lastX = v.x;
             lastY = v.y;
 
-            camera = GetComponentInChildren<Camera>();
-            if (!cameraTransform) cameraTransform = camera.transform;
+            _camera = GetComponentInChildren<Camera>();
+            if (!cameraTransform) cameraTransform = _camera.transform;
         }
 
         private void UpdateCamera() {
@@ -111,8 +111,8 @@ namespace SBR {
             if (cameraTransform && blocking != 0 && cameraMovement) {
                 RaycastHit hit;
 
-                if (Physics.SphereCast(transform.position, camera.nearClipPlane, -transform.forward, 
-                    out hit, targetLength + camera.nearClipPlane, blocking)) {
+                if (Physics.SphereCast(transform.position, _camera.nearClipPlane, -transform.forward, 
+                    out hit, targetLength + _camera.nearClipPlane, blocking)) {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
                 } else {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -targetLength);
