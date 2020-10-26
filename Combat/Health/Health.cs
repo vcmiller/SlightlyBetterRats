@@ -106,6 +106,8 @@ namespace SBR {
         [Tooltip("Delay after taking damage before health starts regenerating.")]
         public float healthRegenDelay = 0;
 
+        public float healthRegenThreshold = 0.3f;
+
         /// <summary>
         /// Whether to allow revival by healing after health has reached zero.
         /// </summary>
@@ -153,8 +155,10 @@ namespace SBR {
         }
 
         protected virtual void Update() {
-            if (healthRegenTimer.expired && !dead && healthRegenRate > 0) {
-                Heal(healthRegenRate * Time.deltaTime);
+            float healthRatio = health / maxHealth;
+            if (healthRegenTimer.expired && !dead && healthRegenRate > 0 && healthRatio < healthRegenThreshold) {
+                float healing = Mathf.Min(healthRegenThreshold * maxHealth - health, healthRegenRate * Time.deltaTime);
+                Heal(healing);
             }
         }
 

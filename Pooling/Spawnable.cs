@@ -24,7 +24,7 @@ namespace SBR {
             BroadcastMessage("OnDespawned", SendMessageOptions.DontRequireReceiver);
         }
 
-        private void DespawnSelf() {
+        public void DespawnSelf() {
             PoolManager.Instance.DespawnInstance(this);
         }
 
