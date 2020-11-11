@@ -80,7 +80,7 @@ namespace SBR.Serialization {
         }
 
         public void RefreshStateBehaviours() {
-            behaviours = GetComponentsInChildren<IStateBehaviour>();
+            behaviours = GetComponentsInChildren<IStateBehaviour>(true);
             ApplyInternalStates();
         }
 
