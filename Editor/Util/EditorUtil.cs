@@ -127,16 +127,21 @@ namespace SBR.Editor {
                     continue;
                 } else if (path.StartsWith("data[")) {
                     int len = "data[".Length;
-                    int index = int.Parse(path.Substring(len, path.LastIndexOf("]") - len));
-                    if (reflectionTarget is Array) {
-                        Array array = (Array)reflectionTarget;
+                    int index = int.Parse(path.Substring(len, path.LastIndexOf("]", StringComparison.Ordinal) - len));
+                    if (reflectionTarget is Array array) {
                         reflectionTarget = array.GetValue(index);
-                    } else if (reflectionTarget is IList) {
-                        IList list = (IList)reflectionTarget;
+                    } else if (reflectionTarget is IList list) {
                         reflectionTarget = list[index];
                     }
                 } else {
-                    FieldInfo fieldInfo = reflectionTarget.GetType().GetField(path, BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                    FieldInfo fieldInfo = null;
+                    var tempTarget = reflectionTarget.GetType();
+                    while (fieldInfo == null && tempTarget != null) {
+                        fieldInfo = tempTarget.GetField(path, BindingFlags.NonPublic |
+                                                                        BindingFlags.Instance |
+                                                                        BindingFlags.Public);
+                        tempTarget = tempTarget.BaseType;
+                    }
                     reflectionTarget = fieldInfo.GetValue(reflectionTarget);
                 }
             }
