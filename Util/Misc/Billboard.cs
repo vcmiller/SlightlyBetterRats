@@ -71,13 +71,16 @@ namespace SBR {
         private void OnEnable() {
             Camera.onPreCull -= Camera_OnPreCull;
             Camera.onPreCull += Camera_OnPreCull;
+
+            var cam = Camera.main;
+            if (cam) Camera_OnPreCull(cam);
         }
 
-        void Camera_OnPreCull(Camera camera) {
+        void Camera_OnPreCull(Camera currentCamera) {
             if (!editorPreview && !Application.isPlaying) return;
 
             if (targetMode == TargetMode.Camera) {
-                LookAt(camera.transform);
+                LookAt(currentCamera.transform);
             }
         }
 
