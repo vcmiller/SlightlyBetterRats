@@ -32,6 +32,7 @@ namespace SBR {
 
         public event Action<GameObject> TriggerEntered;
         public event Action<GameObject> TriggerExited;
+        public event Action<GameObject> AllExited;
 
         [SerializeField]
         private Events events = default;
@@ -40,7 +41,10 @@ namespace SBR {
         public struct Events {
             public UnityEvent OnTriggerEnter;
             public UnityEvent OnTriggerExit;
+            public UnityEvent OnAllExit;
         }
+
+        private int _count = 0;
 
         private void Start() {
             if (hideOnPlay) {
@@ -48,33 +52,33 @@ namespace SBR {
             }
         }
 
-        private void OnTriggerEnter(Collider other) {
-            if (other.CompareTag(tagFilter)) {
-                events.OnTriggerEnter?.Invoke();
-                TriggerEntered?.Invoke(other.gameObject);
+        private void HandleEnter(GameObject other) {
+            if (!other.CompareTag(tagFilter)) return;
+            
+            events.OnTriggerEnter?.Invoke();
+            TriggerEntered?.Invoke(other.gameObject);
+            _count++;
+        }
+
+        private void HandleExit(GameObject other) {
+            if (!other.CompareTag(tagFilter)) return;
+            
+            events.OnTriggerExit?.Invoke();
+            TriggerExited?.Invoke(other.gameObject);
+            _count--;
+            if (_count == 0) {
+                events.OnAllExit?.Invoke();
+                AllExited?.Invoke(other.gameObject);
             }
         }
 
-        private void OnTriggerExit(Collider other) {
-            if (other.CompareTag(tagFilter)) {
-                events.OnTriggerExit?.Invoke();
-                TriggerExited?.Invoke(other.gameObject);
-            }
-        }
+        private void OnTriggerEnter(Collider other) => HandleEnter(other.gameObject);
 
-        private void OnTriggerEnter2D(Collider2D other) {
-            if (other.CompareTag(tagFilter)) {
-                events.OnTriggerEnter?.Invoke();
-                TriggerEntered?.Invoke(other.gameObject);
-            }
-        }
+        private void OnTriggerExit(Collider other) => HandleExit(other.gameObject);
 
-        private void OnTriggerExit2D(Collider2D other) {
-            if (other.CompareTag(tagFilter)) {
-                events.OnTriggerExit?.Invoke();
-                TriggerExited?.Invoke(other.gameObject);
-            }
-        }
+        private void OnTriggerEnter2D(Collider2D other) => HandleEnter(other.gameObject);
+
+        private void OnTriggerExit2D(Collider2D other) => HandleExit(other.gameObject);
     }
 
 }
