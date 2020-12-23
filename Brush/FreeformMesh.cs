@@ -224,7 +224,7 @@ namespace SBR.Geometry {
 
                 bool found = false;
                 foreach (var e in edges) {
-                    if (e == curEdge || (e.t1 != cur && e.t2 != cur)) continue;
+                    if (e == curEdge || (e.Item1 != cur && e.Item2 != cur)) continue;
                     int next = e.Not(cur);
 
                     if (next == vertices[0]) {
@@ -333,16 +333,16 @@ namespace SBR.Geometry {
 
             Face f = faces[n[0]];
 
-            int ind1 = f.vertices.IndexOf(edge.t1);
-            int ind2 = f.vertices.IndexOf(edge.t2);
+            int ind1 = f.vertices.IndexOf(edge.Item1);
+            int ind2 = f.vertices.IndexOf(edge.Item2);
 
             if (ind2 == (ind1 + 1) % f.vertices.Count) {
-                t1 = edge.t2;
-                t2 = edge.t1;
+                t1 = edge.Item2;
+                t2 = edge.Item1;
                 return true;
             } else if (ind1 == (ind2 + 1) % f.vertices.Count) {
-                t1 = edge.t1;
-                t2 = edge.t2;
+                t1 = edge.Item1;
+                t2 = edge.Item2;
                 return true;
             } else {
                 t1 = -1;
@@ -386,7 +386,7 @@ namespace SBR.Geometry {
         }
 
         public Vector3 GetEdgeCenter(UnorderedPair<int> edge) {
-            return (vertices[edge.t1].position + vertices[edge.t2].position) / 2.0f;
+            return (vertices[edge.Item1].position + vertices[edge.Item2].position) / 2.0f;
         }
 
         public Vector3 GetFacesNormal(ICollection<int> faces) {
@@ -410,8 +410,8 @@ namespace SBR.Geometry {
             HashSet<int> result = new HashSet<int>();
 
             foreach (var edge in edges) {
-                result.Add(edge.t1);
-                result.Add(edge.t2);
+                result.Add(edge.Item1);
+                result.Add(edge.Item2);
             }
 
             return result;
@@ -523,14 +523,14 @@ namespace SBR.Geometry {
                 int delFace = f1;
                 int keepFace = f2;
 
-                int start = faces[delFace].vertices.IndexOf(edge.t1);
+                int start = faces[delFace].vertices.IndexOf(edge.Item1);
                 int next = (start + 1) % faces[delFace].vertices.Count;
 
-                if (faces[delFace].vertices[next] == edge.t2) {
+                if (faces[delFace].vertices[next] == edge.Item2) {
                     delFace = f2;
                     keepFace = f1;
 
-                    start = faces[delFace].vertices.IndexOf(edge.t1);
+                    start = faces[delFace].vertices.IndexOf(edge.Item1);
                 }
 
                 List<int> transfer = new List<int>();
@@ -538,11 +538,11 @@ namespace SBR.Geometry {
                 var delVerts = faces[delFace].vertices;
                 var keepVerts = faces[keepFace].vertices;
 
-                for (int i = (start + 1) % delVerts.Count; delVerts[i] != edge.t2; i = (i + 1) % delVerts.Count) {
+                for (int i = (start + 1) % delVerts.Count; delVerts[i] != edge.Item2; i = (i + 1) % delVerts.Count) {
                     transfer.Add(delVerts[i]);
                 }
 
-                int pos = keepVerts.IndexOf(edge.t1);
+                int pos = keepVerts.IndexOf(edge.Item1);
                 keepVerts.InsertRange(pos + 1, transfer);
 
                 // Mark face for deletion. This is easier than remembering the indices of marked faces.
@@ -751,8 +751,8 @@ namespace SBR.Geometry {
         }
 
         private void InsertVertex(Face face, UnorderedPair<int> edge, int vertex) {
-            int i1 = face.vertices.IndexOf(edge.t1);
-            int i2 = face.vertices.IndexOf(edge.t2);
+            int i1 = face.vertices.IndexOf(edge.Item1);
+            int i2 = face.vertices.IndexOf(edge.Item2);
 
             if (i2 == (i1 + 1) % face.vertices.Count) {
                 face.vertices.Insert(i1 + 1, vertex);
@@ -773,7 +773,7 @@ namespace SBR.Geometry {
 
             var startEdge = FindOuterEdge(selected);
 
-            if (startEdge.t1 == -1) {
+            if (startEdge.Item1 == -1) {
                 Debug.LogError("Cannot Find Outer Edge");
                 return false;
             }
@@ -781,21 +781,20 @@ namespace SBR.Geometry {
             // Make sure the first two vertices are in the right order by comparing with a selected face
             foreach (var f in edgeFaces[startEdge]) {
                 if (!selected.Contains(f)) continue;
-                int t1index = faces[f].vertices.IndexOf(startEdge.t1);
-                int t2index = faces[f].vertices.IndexOf(startEdge.t2);
+                int t1index = faces[f].vertices.IndexOf(startEdge.Item1);
+                int t2index = faces[f].vertices.IndexOf(startEdge.Item2);
 
                 if (t1index == (t2index + 1) % faces[f].vertices.Count) {
                     // Edge is in the wrong order. Fix it (this doesn't modify the orignal edge).
-                    int temp = startEdge.t2;
-                    startEdge.t2 = startEdge.t1;
-                    startEdge.t1 = temp;
+                    int temp = startEdge.Item2;
+                    startEdge = new UnorderedPair<int>(temp, startEdge.Item1);
                 }
 
                 break;
             }
 
             Vector3 normal = GetFacesNormal(selected);
-            List<int> edgeLoop = new List<int> {startEdge.t1, startEdge.t2};
+            List<int> edgeLoop = new List<int> {startEdge.Item1, startEdge.Item2};
 
             while (true) {
                 int cur = edgeLoop[edgeLoop.Count - 1];
@@ -865,8 +864,8 @@ namespace SBR.Geometry {
             UpdateGraph();
             edges.Add(start);
 
-            int prev = start.t1;
-            int cur = start.t2;
+            int prev = start.Item1;
+            int cur = start.Item2;
             while (true) {
                 UnorderedPair<int> curEdge = new UnorderedPair<int>(prev, cur);
 
@@ -895,13 +894,13 @@ namespace SBR.Geometry {
                     }
                 }
 
-                if (!found || cur == start.t1) {
+                if (!found || cur == start.Item1) {
                     break;
                 }
             }
 
-            if (recurses && cur != start.t1) {
-                SelectEdgeLoop(edges, new UnorderedPair<int>(start.t2, start.t1), false);
+            if (recurses && cur != start.Item1) {
+                SelectEdgeLoop(edges, new UnorderedPair<int>(start.Item2, start.Item1), false);
             }
         }
 
@@ -935,8 +934,8 @@ namespace SBR.Geometry {
             }
 
             foreach (var e in GetEdges()) {
-                Vertex vert1 = vertices[e.t1];
-                Vertex vert2 = vertices[e.t2];
+                Vertex vert1 = vertices[e.Item1];
+                Vertex vert2 = vertices[e.Item2];
 
                 Vector3 v1 = vert1.position;
                 Vector3 v2 = vert2.position;
@@ -990,8 +989,7 @@ namespace SBR.Geometry {
 
                     if (inside) {
                         selVertex = -1;
-                        selEdge.t1 = -1;
-                        selEdge.t2 = -1;
+                        selEdge = new UnorderedPair<int>(-1, -1);
                         selFace = f;
                         minDist = dist;
                     }

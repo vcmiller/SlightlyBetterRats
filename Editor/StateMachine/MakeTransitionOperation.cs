@@ -80,11 +80,10 @@ namespace SBR.Editor {
                     Handles.color = Color.red;
                 }
 
-                var fake = new StateMachineDefinition.Transition();
-                fake.to = targ.name;
+                var fake = new StateMachineDefinition.Transition { to = targ.name };
                 var line = definition.GetTransitionPoints(state, fake);
 
-                Handles.DrawAAPolyLine(3, window.ToScreen(line.t1), window.ToScreen(line.t2));
+                Handles.DrawAAPolyLine(3, window.ToScreen(line.Item1), window.ToScreen(line.Item2));
             }
 
             Handles.EndGUI();

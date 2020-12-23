@@ -335,8 +335,8 @@ namespace SBR {
 
                             var line = GetTransitionPoints(from, tr);
 
-                            Vector2 src = line.t1;
-                            Vector2 dest = line.t2;
+                            Vector2 src = line.Item1;
+                            Vector2 dest = line.Item2;
 
                             Vector2 v = (dest - src).normalized;
 

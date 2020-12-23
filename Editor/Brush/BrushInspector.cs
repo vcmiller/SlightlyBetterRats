@@ -77,7 +77,7 @@ namespace SBR.Editor {
             if (selectedFaces.Count > 0 || selectedVertices.Count > 0 || selectedEdges.Count > 0) {
                 selectedFaces.RemoveWhere(i => i < 0 || i >= brush.mesh.faces.Count);
                 selectedVertices.RemoveWhere(i => i < 0 || i >= brush.mesh.vertices.Count);
-                selectedEdges.RemoveWhere(e => e.t1 < 0 || e.t1 >= brush.mesh.vertices.Count || e.t2 < 0 || e.t2 >= brush.mesh.vertices.Count);
+                selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush.mesh.vertices.Count || e.Item2 < 0 || e.Item2 >= brush.mesh.vertices.Count);
                 
                 HashSet<int> vertices;
 
@@ -322,7 +322,7 @@ namespace SBR.Editor {
             
             selectedFaces.RemoveWhere(i => i < 0 || i >= brush.mesh.faces.Count);
             selectedVertices.RemoveWhere(i => i < 0 || i >= brush.mesh.vertices.Count);
-            selectedEdges.RemoveWhere(e => e.t1 < 0 || e.t1 >= brush.mesh.vertices.Count || e.t2 < 0 || e.t2 >= brush.mesh.vertices.Count);
+            selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush.mesh.vertices.Count || e.Item2 < 0 || e.Item2 >= brush.mesh.vertices.Count);
 
             bool moved = false;
 
@@ -416,7 +416,7 @@ namespace SBR.Editor {
                             brush.mesh.Select(brush.transform, v, Camera.current, out selVertex, out selFace, out selEdge);
                             hadSelected = selectedVertices.Count > 0 || selectedEdges.Count > 0 || selectedFaces.Count > 0;
 
-                            if (selEdge.t1 >= 0 && Event.current.clickCount == 2 && selectedEdges.Count > 0) {
+                            if (selEdge.Item1 >= 0 && Event.current.clickCount == 2 && selectedEdges.Count > 0) {
                                 brush.mesh.SelectEdgeLoop(selectedEdges,selEdge);
                             } else {
                                 if (selVertex >= 0) {
@@ -434,7 +434,7 @@ namespace SBR.Editor {
                                 } else {
                                     selectedVertices.Clear();
 
-                                    if (selEdge.t1 >= 0) {
+                                    if (selEdge.Item1 >= 0) {
                                         selectedFaces.Clear();
                                         if (!ctrl) {
                                             selectedEdges.Clear();
@@ -497,8 +497,8 @@ namespace SBR.Editor {
                     case EventType.Repaint:
                         foreach (var edge in brush.mesh.GetEdges()) {
 
-                            Vector3 v1 = brush.mesh.vertices[edge.t1].position;
-                            Vector3 v2 = brush.mesh.vertices[edge.t2].position;
+                            Vector3 v1 = brush.mesh.vertices[edge.Item1].position;
+                            Vector3 v2 = brush.mesh.vertices[edge.Item2].position;
 
                             v1 = brush.transform.TransformPoint(v1);
                             v2 = brush.transform.TransformPoint(v2);
@@ -520,8 +520,8 @@ namespace SBR.Editor {
                         }
 
                         foreach (var selectedEdge in selectedEdges) {
-                            Vector3 v1 = brush.mesh.vertices[selectedEdge.t1].position;
-                            Vector3 v2 = brush.mesh.vertices[selectedEdge.t2].position;
+                            Vector3 v1 = brush.mesh.vertices[selectedEdge.Item1].position;
+                            Vector3 v2 = brush.mesh.vertices[selectedEdge.Item2].position;
 
                             v1 = brush.transform.TransformPoint(v1);
                             v2 = brush.transform.TransformPoint(v2);
