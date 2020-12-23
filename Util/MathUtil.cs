@@ -264,13 +264,43 @@ namespace SBR {
             return Vector3.Dot(line.direction, v);
         }
 
+        public static Vector3 WorldToCanvasPoint(this Camera camera, Canvas canvas, Vector3 point) {
+            Debug.Assert(canvas.renderMode != RenderMode.WorldSpace);
+
+            Vector3 vp;
+            if (canvas.renderMode == RenderMode.ScreenSpaceCamera) {
+                vp = camera.WorldToViewportPoint(point);
+            } else {
+                vp = camera.WorldToScreenPoint(point);
+                vp.x /= Screen.width;
+                vp.y /= Screen.height;
+            }
+
+            return (canvas.GetComponent<RectTransform>().rect.size * vp.ToXY()).WithZ(vp.z);
+        }
+
         #endregion
 
-        #region Vector Component Mixing
+        #region Vector Component Swizzling
 
         public static Vector3 WithX(this Vector3 v, float x) => new Vector3(x, v.y, v.z);
         public static Vector3 WithY(this Vector3 v, float y) => new Vector3(v.x, y, v.z);
         public static Vector3 WithZ(this Vector3 v, float z) => new Vector3(v.x, v.y, z);
+        public static Vector2 WithX(this Vector2 v, float x) => new Vector2(x, v.y);
+        public static Vector2 WithY(this Vector2 v, float y) => new Vector2(v.x, y);
+        public static Vector3 WithZ(this Vector2 v, float z) => new Vector3(v.x, v.y, z);
+        public static Vector3 AsXY(this Vector2 v) => new Vector3(v.x, v.y, 0);
+        public static Vector3 AsYX(this Vector2 v) => new Vector3(v.y, v.x, 0);
+        public static Vector3 AsXZ(this Vector2 v) => new Vector3(v.x, 0, v.y);
+        public static Vector3 AsZX(this Vector2 v) => new Vector3(v.y, 0, v.x);
+        public static Vector3 AsYZ(this Vector2 v) => new Vector3(0, v.x, v.y);
+        public static Vector3 AsZY(this Vector2 v) => new Vector3(0, v.y, v.x);
+        public static Vector2 ToXY(this Vector3 v) => new Vector2(v.x, v.y);
+        public static Vector2 ToYX(this Vector3 v) => new Vector2(v.y, v.x);
+        public static Vector2 ToXZ(this Vector3 v) => new Vector2(v.x, v.z);
+        public static Vector2 ToZX(this Vector3 v) => new Vector2(v.z, v.x);
+        public static Vector2 ToYZ(this Vector3 v) => new Vector2(v.y, v.z);
+        public static Vector2 ToZY(this Vector3 v) => new Vector2(v.z, v.y);
 
         #endregion
 
