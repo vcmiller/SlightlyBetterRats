@@ -436,30 +436,39 @@ namespace SBR {
             }
         }
 
-        private Vector3 GetVelocityMovementComponent(Vector3 vector) {
-            if (projectMovement == ProjectMovementMode.GroundNormal && grounded) {
-                return Vector3.ProjectOnPlane(vector, groundNormal);
-            } else if (projectMovement == ProjectMovementMode.LocalY ||
-                       (projectMovement == ProjectMovementMode.GroundNormal && !grounded)) {
-                return Vector3.ProjectOnPlane(vector, transform.up);
-            } else if (projectMovement == ProjectMovementMode.Gravity) {
-                return Vector3.ProjectOnPlane(vector, gravityDirection);
-            } else {
-                return vector;
+        private Vector3 AlignMovementInput(Vector3 input) {
+            Vector3 result = input;
+            switch (projectMovement) {
+                case ProjectMovementMode.GroundNormal when grounded:
+                    result = Vector3.ProjectOnPlane(input, groundNormal);
+                    break;
+                case ProjectMovementMode.LocalY:
+                case ProjectMovementMode.GroundNormal when !grounded:
+                    result = Vector3.ProjectOnPlane(input, transform.up);
+                    break;
+                case ProjectMovementMode.Gravity:
+                    result = Vector3.ProjectOnPlane(input, gravityDirection);
+                    break;
             }
+
+            if (result.sqrMagnitude > 0.00001f)
+                result = result.normalized * input.magnitude;
+
+            return result;
+        }
+
+        private Vector3 GetVelocityMovementComponent(Vector3 vector) {
+            Vector3 projectPlane = Physics.gravity;
+            if (projectPlane.sqrMagnitude < 0.00001f) return vector;
+            projectPlane = projectPlane.normalized;
+            return Vector3.ProjectOnPlane(vector, projectPlane);
         }
 
         private Vector3 GetVelocityJumpComponent(Vector3 vector) {
-            if (projectMovement == ProjectMovementMode.GroundNormal && grounded) {
-                return Vector3.Project(vector, groundNormal);
-            } else if (projectMovement == ProjectMovementMode.LocalY ||
-                       (projectMovement == ProjectMovementMode.GroundNormal && !grounded)) {
-                return Vector3.Project(vector, transform.up);
-            } else if (projectMovement == ProjectMovementMode.Gravity) {
-                return Vector3.Project(vector, gravityDirection);
-            } else {
-                return Vector3.zero;
-            }
+            Vector3 projectPlane = Physics.gravity;
+            if (projectPlane.sqrMagnitude < 0.00001f) return Vector3.zero;
+            projectPlane = projectPlane.normalized;
+            return Vector3.Project(vector, projectPlane);
         }
 
         protected override void DoOutput(CharacterChannels channels) {
@@ -485,39 +494,36 @@ namespace SBR {
 
         private void UpdateMovementVelocity(Vector3 input, float dt) {
             input = Vector3.ClampMagnitude(input, 1);
-            
+            input = AlignMovementInput(input);
+
             Vector3 desiredVelocity = input * movementSpeed;
             bool activeInput = input.sqrMagnitude > 0.0001f;
             float speedLimit = activeInput ? input.magnitude * movementSpeed : movementSpeed;
 
-            Vector3 movementVelocity = GetVelocityMovementComponent(velocity);
-
+            Vector3 currentMovementVelocity = movementVelocity;
             if (inputAccelerationMode == InputAccelerationMode.Instant) {
-                movementVelocity = desiredVelocity;
+                currentMovementVelocity = desiredVelocity;
             } else {
-                if (activeInput && movementVelocity.sqrMagnitude < speedLimit * speedLimit + 0.0001f) {
+                if (activeInput && currentMovementVelocity.sqrMagnitude < speedLimit * speedLimit + 0.0001f) {
                     // Player is holding input in a direction, and is not moving faster than the speed limit.
                     if (inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
-                        movementVelocity = 
-                            Vector3.MoveTowards(movementVelocity, desiredVelocity, actualMovementAcceleration * dt);
+                        currentMovementVelocity = 
+                            Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, actualMovementAcceleration * dt);
                     } else if (inputAccelerationMode == InputAccelerationMode.Force) {
-                        movementVelocity += input.normalized * (actualMovementAcceleration * dt);
-                        movementVelocity = Vector3.ClampMagnitude(movementVelocity, speedLimit);
+                        currentMovementVelocity += input.normalized * (actualMovementAcceleration * dt);
+                        currentMovementVelocity = Vector3.ClampMagnitude(currentMovementVelocity, speedLimit);
                     }
                 } else {
-                    if (activeInput) {
-                        int i = 0;
-                    }
                     // Player is not holding input, or is moving faster than the speed limit.
-                    movementVelocity =
-                        Vector3.MoveTowards(movementVelocity, desiredVelocity, actualMovementDeceleration * dt);
+                    currentMovementVelocity =
+                        Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, actualMovementDeceleration * dt);
                 }
             }
 
-            Vector3 projectedVel = GetVelocityMovementComponent(movementVelocity);
+            Vector3 projectedVel = GetVelocityMovementComponent(currentMovementVelocity);
 
             if (projectedVel.sqrMagnitude > 0.001f) {
-                projectedVel = projectedVel.normalized * movementVelocity.magnitude;
+                projectedVel = projectedVel.normalized * currentMovementVelocity.magnitude;
             }
 
             if (sliding) {
@@ -530,13 +536,13 @@ namespace SBR {
                 }
             }
 
-            movementVelocity = projectedVel;
+            currentMovementVelocity = projectedVel;
 
             if (movementVelocityDamping > 0) {
-                movementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * dt);
+                currentMovementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * dt);
             }
 
-            velocity = movementVelocity + GetVelocityJumpComponent(velocity);
+            velocity = currentMovementVelocity + GetVelocityJumpComponent(velocity);
         }
 
         public void UpdateGrounded() {
