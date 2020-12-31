@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace SBR.Serialization {
+namespace SBR.StateSystem {
     public class StateManager : MonoBehaviour {
         private IStateBehaviour[] behaviours;
         private Dictionary<string, bool> statesActive;

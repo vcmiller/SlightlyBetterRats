@@ -20,13 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System;
+using SBR.StateSystem;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
-namespace SBR.Serialization {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
-    public class NoOverridesAttribute : Attribute { }
+namespace SBR.Editor {
+
+    [CustomEditor(typeof(StateBehaviour), true)]
+    [CanEditMultipleObjects]
+    public class StateBehaviourInspector : UnityEditor.Editor {
+        public override void OnInspectorGUI() {
+            serializedObject.Update();
+            DrawPropertiesExcluding(serializedObject, "m_Script", "states");
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("states"));
+            serializedObject.ApplyModifiedProperties();
+        }
+    }
 
 }

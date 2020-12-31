@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 using SBR.Internal;
-using SBR.Serialization;
+using SBR.StateSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;

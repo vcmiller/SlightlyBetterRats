@@ -27,7 +27,7 @@ using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SBR.Serialization {
+namespace SBR.StateSystem {
     public enum SerializableType {
         None,
         Byte,

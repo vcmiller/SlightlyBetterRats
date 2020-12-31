@@ -26,7 +26,7 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SBR.Serialization {
+namespace SBR.StateSystem {
     [Serializable]
     public struct State {
         public string name;

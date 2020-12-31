@@ -23,7 +23,7 @@
 using System;
 using UnityEngine;
 
-namespace SBR.Serialization {
+namespace SBR.StateSystem {
     public class ExteriorStateBehaviour : MonoBehaviour, IStateBehaviour {
         [SerializeField] protected Component component;
         [SerializeField] protected StateList states;

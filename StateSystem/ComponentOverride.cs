@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace SBR.Serialization {
+namespace SBR.StateSystem {
     [CreateAssetMenu]
     public class ComponentOverride : ScriptableObject {
         [TypeSelect(typeof(Component), true, true, true)]

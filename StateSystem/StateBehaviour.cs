@@ -20,23 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using SBR.Serialization;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
+using System;
 using UnityEngine;
 
-namespace SBR.Editor {
-
-    [CustomEditor(typeof(StateBehaviour), true)]
-    [CanEditMultipleObjects]
-    public class StateBehaviourInspector : UnityEditor.Editor {
-        public override void OnInspectorGUI() {
-            serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, "m_Script", "states");
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("states"));
-            serializedObject.ApplyModifiedProperties();
-        }
+namespace SBR.StateSystem {
+    public interface IStateBehaviour {
+        Type type { get; }
+        bool HasState(string name);
+        bool IsStateActive(string name);
+        void SetStateActive(string name, bool value);
     }
 
+    public class StateBehaviour : MonoBehaviour, IStateBehaviour {
+        [SerializeField] protected StateList states;
+
+        public Type type => GetType();
+
+        protected virtual void Awake() {
+            states.Initialize(this);
+        }
+
+        public bool HasState(string name) => states.HasState(name);
+        public bool IsStateActive(string name) => states.IsStateActive(name);
+        public void SetStateActive(string name, bool value) => states.SetStateActive(name, value);
+    }
 }
