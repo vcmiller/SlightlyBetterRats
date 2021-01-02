@@ -24,56 +24,73 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
+
 using Object = UnityEngine.Object;
 
 namespace SBR.StateSystem {
     [Serializable]
     public struct State {
-        public string name;
-        public ComponentOverride values;
-        public int blockedBy;
-        public bool isActive;
+        [FormerlySerializedAs("name")] [SerializeField]
+        private string _name;
 
-        [NonSerialized] public bool isBlocked;
-        [NonSerialized] public int[] fieldIDs;
+        [FormerlySerializedAs("values")] [SerializeField]
+        private ComponentOverride _values;
+
+        [FormerlySerializedAs("blockedBy")] [SerializeField]
+        private int _blockedBy;
+
+        [FormerlySerializedAs("isActive")] [SerializeField]
+        private bool _isActive;
+
+        public bool IsBlocked { get; set; }
+        public int[] FieldIDs { get; set; }
+        public string Name => _name;
+        public ComponentOverride Values => _values;
+        public int BlockedBy => _blockedBy;
+        public bool IsActive {
+            get => _isActive;
+            set => _isActive = value;
+        }
     }
 
     [Serializable]
     public class StateList {
-
-        [SerializeField] private State[] states;
-        private Object owner;
-        private object[] fieldDefaultValues;
+        [FormerlySerializedAs("states")] [SerializeField]
+        private State[] _states;
+        
+        private Object _owner;
+        private object[] _fieldDefaultValues;
         public StateList() { }
         public StateList(State[] states) {
-            this.states = states;
+            _states = states;
         }
 
         public void Initialize(Object owner) {
-            this.owner = owner;
+            _owner = owner;
 
-            Dictionary<string, int> fieldIDs = new Dictionary<string, int>();
-            bool[] statesActive = states.Select(s => s.isActive).ToArray();
-            for (int i = 0; i < states.Length; i++) {
-                var values = states[i].values;
+            var fieldIDs = new Dictionary<string, int>();
+            List<bool> statesActive = _states.Select(s => s.IsActive).ToList();
+            for (int i = 0; i < _states.Length; i++) {
+                ComponentOverride values = _states[i].Values;
 
-                states[i].fieldIDs = new int[values ? values.overrides.Length : 0];
-                states[i].isActive = false;
-                states[i].isBlocked = false;
+                _states[i].FieldIDs = new int[values ? values.Overrides.Length : 0];
+                _states[i].IsActive = false;
+                _states[i].IsBlocked = false;
 
-                for (int j = 0; j < states[i].fieldIDs.Length; j++) {
-                    if (!fieldIDs.TryGetValue(values.overrides[j].path, out int fieldID)) {
+                for (int j = 0; j < _states[i].FieldIDs.Length; j++) {
+                    if (!fieldIDs.TryGetValue(values.Overrides[j].Path, out int fieldID)) {
                         fieldID = fieldIDs.Count;
-                        fieldIDs[values.overrides[j].path] = fieldID;
+                        fieldIDs[values.Overrides[j].Path] = fieldID;
                     }
 
-                    states[i].fieldIDs[j] = fieldID;
+                    _states[i].FieldIDs[j] = fieldID;
                 }
             }
 
-            fieldDefaultValues = new object[fieldIDs.Count];
+            _fieldDefaultValues = new object[fieldIDs.Count];
 
-            for (int i = 0; i < states.Length; i++) {
+            for (int i = 0; i < _states.Length; i++) {
                 if (statesActive[i]) {
                     SetStateActive(i, true);
                 }
@@ -81,8 +98,8 @@ namespace SBR.StateSystem {
         }
 
         private int GetStateIndex(string name) {
-            for (int i = 0; i < states.Length; i++) {
-                if (states[i].name == name) {
+            for (int i = 0; i < _states.Length; i++) {
+                if (_states[i].Name == name) {
                     return i;
                 }
             }
@@ -94,9 +111,9 @@ namespace SBR.StateSystem {
         }
 
         private bool IsStateBlocked(int stateIndex) {
-            if (states[stateIndex].blockedBy == 0) return false;
+            if (_states[stateIndex].BlockedBy == 0) return false;
 
-            for (int i = 0; i < states.Length; i++) {
+            for (int i = 0; i < _states.Length; i++) {
                 if (IsStateBlockedBy(stateIndex, i)) {
                     return true;
                 }
@@ -107,13 +124,9 @@ namespace SBR.StateSystem {
 
         private bool IsStateBlockedBy(int state, int blockingState) {
             return state != blockingState && 
-                states[blockingState].isActive && 
-                !states[blockingState].isBlocked && 
-                (states[state].blockedBy & (1 << blockingState)) != 0;
-        }
-
-        public bool IsStateActive(int stateIndex) {
-            return states[stateIndex].isActive;
+                _states[blockingState].IsActive && 
+                !_states[blockingState].IsBlocked && 
+                (_states[state].BlockedBy & (1 << blockingState)) != 0;
         }
 
         public bool IsStateActive(string state) {
@@ -122,36 +135,8 @@ namespace SBR.StateSystem {
             return IsStateActive(index);
         }
 
-        public void SetStateActive(int stateIndex, bool active) {
-            if (states[stateIndex].isActive == active) return;
-
-            UpdateActiveAndBlocked(stateIndex, active, IsStateBlocked(stateIndex));
-        }
-
-        private void UpdateActiveAndBlocked(int stateIndex, bool active, bool isBlocked) {
-            bool fieldStatusChanging = (active && !isBlocked) != (states[stateIndex].isActive && !states[stateIndex].isBlocked);
-
-            states[stateIndex].isBlocked = isBlocked;
-            states[stateIndex].isActive = active;
-
-            if (fieldStatusChanging) {
-                for (int i = 0; i < states[stateIndex].fieldIDs.Length; i++) {
-                    if (active && !isBlocked) {
-                        ActivateField(stateIndex, i);
-                    } else {
-                        DeactivateField(stateIndex, i);
-                    }
-                }
-            }
-
-            for (int i = 0; i < states.Length; i++) {
-                if (i != stateIndex && 
-                    states[i].isActive && 
-                    IsStateBlockedBy(i, stateIndex) != states[i].isBlocked &&
-                    IsStateBlocked(i) != states[i].isBlocked) {
-                    UpdateActiveAndBlocked(i, states[i].isActive, !states[i].isBlocked);
-                }
-            }
+        public bool IsStateActive(int stateIndex) {
+            return _states[stateIndex].IsActive;
         }
 
         public void SetStateActive(string state, bool active) {
@@ -161,13 +146,46 @@ namespace SBR.StateSystem {
             }
         }
 
-        private int GetFirstStateControllingField(int fieldID, int excludeState, out SerializedValue value) {
-            for (int i = 0; i < states.Length; i++) {
-                if (i == excludeState || !states[i].isActive || states[i].isBlocked) continue;
+        public void SetStateActive(int stateIndex, bool active) {
+            if (_states[stateIndex].IsActive == active) return;
 
-                int index = Array.IndexOf(states[i].fieldIDs, fieldID);
+            UpdateActiveAndBlocked(stateIndex, active, IsStateBlocked(stateIndex));
+        }
+
+        private void UpdateActiveAndBlocked(int stateIndex, bool active, bool isBlocked) {
+            bool fieldStatusChanging = (active && !isBlocked) != (_states[stateIndex].IsActive && !_states[stateIndex].IsBlocked);
+
+            _states[stateIndex].IsBlocked = isBlocked;
+            _states[stateIndex].IsActive = active;
+
+            if (fieldStatusChanging) {
+                bool isActivating = active && !isBlocked;
+                for (int i = 0; i < _states[stateIndex].FieldIDs.Length; i++) {
+                    if (isActivating) {
+                        ActivateField(stateIndex, i);
+                    } else {
+                        DeactivateField(stateIndex, i);
+                    }
+                }
+            }
+
+            for (int i = 0; i < _states.Length; i++) {
+                if (i != stateIndex && 
+                    _states[i].IsActive && 
+                    IsStateBlockedBy(i, stateIndex) != _states[i].IsBlocked &&
+                    IsStateBlocked(i) != _states[i].IsBlocked) {
+                    UpdateActiveAndBlocked(i, _states[i].IsActive, !_states[i].IsBlocked);
+                }
+            }
+        }
+
+        private int GetFirstStateControllingField(int fieldID, int excludeState, out SerializedValueOverride value) {
+            for (int i = 0; i < _states.Length; i++) {
+                if (i == excludeState || !_states[i].IsActive || _states[i].IsBlocked) continue;
+
+                int index = Array.IndexOf(_states[i].FieldIDs, fieldID);
                 if (index >= 0) {
-                    value = states[i].values.overrides[index];
+                    value = _states[i].Values.Overrides[index];
                     return i;
                 }
             }
@@ -177,29 +195,29 @@ namespace SBR.StateSystem {
         }
 
         private void ActivateField(int stateIndex, int localFieldIndex) {
-            int fieldID = states[stateIndex].fieldIDs[localFieldIndex];
+            int fieldID = _states[stateIndex].FieldIDs[localFieldIndex];
             int previous = GetFirstStateControllingField(fieldID, stateIndex, out _);
 
             if (previous >= 0 && previous < stateIndex) return;
 
-            var valueOverride = states[stateIndex].values.overrides[localFieldIndex];
+            var valueOverride = _states[stateIndex].Values.Overrides[localFieldIndex];
             if (previous < 0) {
-                fieldDefaultValues[fieldID] = valueOverride.GetFieldValue(owner);
+                _fieldDefaultValues[fieldID] = valueOverride.GetFieldValue(_owner);
             }
-            valueOverride.SetFieldValue(owner);
+            valueOverride.SetFieldValue(_owner);
         }
 
         private void DeactivateField(int stateIndex, int localFieldIndex) {
-            int fieldID = states[stateIndex].fieldIDs[localFieldIndex];
+            int fieldID = _states[stateIndex].FieldIDs[localFieldIndex];
             int previous = GetFirstStateControllingField(fieldID, stateIndex, out var previousValueOverride);
 
             if (previous >= 0 && previous < stateIndex) return;
 
-            var valueOverride = states[stateIndex].values.overrides[localFieldIndex];
+            var valueOverride = _states[stateIndex].Values.Overrides[localFieldIndex];
             if (previous < 0) {
-                valueOverride.SetFieldValue(owner, fieldDefaultValues[fieldID]);
+                valueOverride.SetFieldValue(_owner, _fieldDefaultValues[fieldID]);
             } else {
-                previousValueOverride.SetFieldValue(owner);
+                previousValueOverride.SetFieldValue(_owner);
             }
         }
     }

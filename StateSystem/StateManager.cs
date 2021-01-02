@@ -27,18 +27,18 @@ using UnityEngine;
 
 namespace SBR.StateSystem {
     public class StateManager : MonoBehaviour {
-        private IStateBehaviour[] behaviours;
-        private Dictionary<string, bool> statesActive;
-
         [SerializeField] private StateManager _parent;
-        private List<StateManager> children;
+        
+        private IStateBehaviour[] _behaviours;
+        private Dictionary<string, bool> _statesActive;
+        private List<StateManager> _children;
 
-        public StateManager parent {
+        public StateManager Parent {
             get => _parent;
             set {
-                if (value != parent) {
-                    if (_parent) _parent.children.Remove(this);
-                    if (value) value.children.Add(this);
+                if (value != Parent) {
+                    if (_parent) _parent._children.Remove(this);
+                    if (value) value._children.Add(this);
 
                     _parent = value;
                     ApplyInternalStates();
@@ -47,31 +47,31 @@ namespace SBR.StateSystem {
         }
 
         private void Awake() {
-            statesActive = new Dictionary<string, bool>();
-            children = new List<StateManager>();
+            _statesActive = new Dictionary<string, bool>();
+            _children = new List<StateManager>();
             RefreshStateBehaviours();
         }
 
         private void Start() {
-            if (_parent) {
-                var tempParent = _parent;
-                _parent = null;
-                parent = tempParent;
-            }
+            if (!_parent) return;
+            
+            StateManager tempParent = _parent;
+            _parent = null;
+            Parent = tempParent;
         }
 
         private void OnDestroy() {
-            if (parent) {
-                parent.children.Remove(this);
+            if (Parent) {
+                Parent._children.Remove(this);
             }
 
-            foreach (var child in children) {
-                child.parent = null;
+            foreach (StateManager child in _children) {
+                child.Parent = null;
             }
         }
 
         private void ApplyInternalStates() {
-            var activeDict = parent ? parent.statesActive : statesActive;
+            var activeDict = Parent ? Parent._statesActive : _statesActive;
             if (activeDict == null) return;
 
             foreach (var item in activeDict) {
@@ -80,17 +80,17 @@ namespace SBR.StateSystem {
         }
 
         public void RefreshStateBehaviours() {
-            behaviours = GetComponentsInChildren<IStateBehaviour>(true);
+            _behaviours = GetComponentsInChildren<IStateBehaviour>(true);
             ApplyInternalStates();
         }
 
-        public bool IsStateActiveOnAny(string state) => behaviours.Any(b => b.IsStateActive(state));
-        public bool IsStateActiveOnAll(string state) => behaviours.All(b => b.IsStateActive(state));
-        public void ForgetState(string state) => statesActive.Remove(state);
+        public bool IsStateActiveOnAny(string state) => _behaviours.Any(b => b.IsStateActive(state));
+        public bool IsStateActiveOnAll(string state) => _behaviours.All(b => b.IsStateActive(state));
+        public void ForgetState(string state) => _statesActive.Remove(state);
         public void SetStateActive(string state, bool active) {
-            if (statesActive.ContainsKey(state) && statesActive[state] == active) return;
+            if (_statesActive.TryGetValue(state, out bool curValue) && curValue == active) return;
 
-            statesActive[state] = active;
+            _statesActive[state] = active;
 
             if (!_parent) {
                 SetStateActiveInternal(state, active);
@@ -98,11 +98,11 @@ namespace SBR.StateSystem {
         }
 
         private void SetStateActiveInternal(string state, bool active) {
-            foreach (var b in behaviours) {
+            foreach (IStateBehaviour b in _behaviours) {
                 b.SetStateActive(state, active);
             }
 
-            foreach (var child in children) {
+            foreach (StateManager child in _children) {
                 child.SetStateActiveInternal(state, active);
             }
         }

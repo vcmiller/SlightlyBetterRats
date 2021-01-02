@@ -77,6 +77,8 @@ namespace SBR {
         public Vector3 movementVelocity {
             get => GetVelocityMovementComponent(velocity);
         }
+        
+        public bool IsMoving { get; private set; }
 
         /// <summary>
         /// Called when the character jumps.
@@ -477,13 +479,7 @@ namespace SBR {
             float minMoveSpeed = movementSpeed * 0.01f;
             minMoveSpeed = minMoveSpeed * minMoveSpeed;
 
-            bool wasMoving = movementInput.sqrMagnitude > minMoveSpeed;
             movementInput = channels.movement;
-            bool isMoving = movementInput.sqrMagnitude > minMoveSpeed;
-
-            if (wasMoving != isMoving) {
-                Moving?.Invoke(isMoving);
-            }
 
             if (grounded && channels.jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
                 Jumped?.Invoke();
@@ -540,6 +536,15 @@ namespace SBR {
 
             if (movementVelocityDamping > 0) {
                 currentMovementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * dt);
+            }
+            
+            float minMoveSpeed = movementSpeed * 0.1f;
+            minMoveSpeed = minMoveSpeed * minMoveSpeed;
+
+            bool newIsMoving = currentMovementVelocity.sqrMagnitude > minMoveSpeed;
+            if (IsMoving != newIsMoving) {
+                IsMoving = newIsMoving;
+                Moving?.Invoke(newIsMoving);
             }
 
             velocity = currentMovementVelocity + GetVelocityJumpComponent(velocity);

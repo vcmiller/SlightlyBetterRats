@@ -25,6 +25,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Serialization;
+
 using Object = UnityEngine.Object;
 
 namespace SBR.StateSystem {
@@ -53,57 +55,76 @@ namespace SBR.StateSystem {
         ObjectReference
     }
 
-    public interface GetSet {
+    public interface IGetSet {
+        Type Type { get; }
+        string Name { get; }
+        MemberInfo Member { get; }
         void SetValue(object obj, object value);
         object GetValue(object obj);
-        Type type { get; }
-        string name { get; }
-        MemberInfo member { get; }
     }
 
-    public class FieldGetSet : GetSet {
-        private FieldInfo field;
-        public FieldGetSet(FieldInfo field) => this.field = field;
-        public object GetValue(object obj) => field.GetValue(obj);
-        public void SetValue(object obj, object value) => field.SetValue(obj, value);
-        public Type type => field.FieldType;
-        public string name => field.Name;
-        public MemberInfo member => field;
+    public class FieldGetSet : IGetSet {
+        private readonly FieldInfo _field;
+        public Type Type => _field.FieldType;
+        public string Name => _field.Name;
+        public MemberInfo Member => _field;
+        public FieldGetSet(FieldInfo field) => _field = field;
+        public object GetValue(object obj) => _field.GetValue(obj);
+        public void SetValue(object obj, object value) => _field.SetValue(obj, value);
     }
 
-    public partial class PropertyGetSet : GetSet {
-        private PropertyInfo property;
-        public PropertyGetSet(PropertyInfo field) => this.property = field;
-        public object GetValue(object obj) => property.GetValue(obj);
-        public void SetValue(object obj, object value) => property.SetValue(obj, value);
-        public Type type => property.PropertyType;
-        public string name => property.Name;
-        public MemberInfo member => property;
+    public class PropertyGetSet : IGetSet {
+        private readonly PropertyInfo _property;
+        public Type Type => _property.PropertyType;
+        public string Name => _property.Name;
+        public MemberInfo Member => _property;
+        public PropertyGetSet(PropertyInfo field) => _property = field;
+        public object GetValue(object obj) => _property.GetValue(obj);
+        public void SetValue(object obj, object value) => _property.SetValue(obj, value);
     }
 
     [Serializable]
-    public class SerializedValue {
-        public string path;
-        public SerializableType type;
+    public class SerializedValueOverride {
+        [FormerlySerializedAs("path")] [SerializeField]
+        private string _path;
+        
+        [FormerlySerializedAs("type")] [SerializeField]
+        private SerializableType _type;
 
-        [SerializeField] private long numberValue;
-        [SerializeField] private Vector4 vectorValue;
-        [SerializeField] private string stringValue;
-        [SerializeField] private Object objectReferenceValue;
+        [FormerlySerializedAs("numberValue")] [SerializeField]
+        private long _numberValue;
 
-        public List<GetSet> fieldChain { get; private set; } = new List<GetSet>();
-        public Type valueType => fieldChain[fieldChain.Count - 1].type;
-        public bool isEnumFlags { get; private set; }
+        [FormerlySerializedAs("vectorValue")] [SerializeField]
+        private Vector4 _vectorValue;
 
-        public bool valid { get; private set; }
-        public bool isProperty => fieldChain[fieldChain.Count - 1] is PropertyGetSet;
+        [FormerlySerializedAs("stringValue")] [SerializeField]
+        private string _stringValue;
+
+        [FormerlySerializedAs("objectReferenceValue")] [SerializeField]
+        private Object _objectReferenceValue;
+
+        public string Path {
+            get => _path;
+            set => _path = value;
+        }
+
+        public SerializableType Type => _type;
+
+        public List<IGetSet> FieldChain { get; } = new List<IGetSet>();
+        public Type ValueType => FieldChain[FieldChain.Count - 1].Type;
+        public bool IsEnumFlags { get; private set; }
+
+        public bool Valid { get; private set; }
+        public bool IsProperty => FieldChain[FieldChain.Count - 1] is PropertyGetSet;
 
         public const int MaxDepth = 7;
-        public const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public;
+        public const BindingFlags BindingFlags = System.Reflection.BindingFlags.Instance |
+                                                 System.Reflection.BindingFlags.NonPublic |
+                                                 System.Reflection.BindingFlags.Public;
 
-        private static readonly Type[] emptyTypeArray = new Type[0];
-        private static readonly object[] emptyObjectArray = new object[0];
-        private static readonly Dictionary<Type, SerializableType> typeMap =
+        private static readonly Type[] EmptyTypeArray = new Type[0];
+        private static readonly object[] EmptyObjectArray = new object[0];
+        private static readonly Dictionary<Type, SerializableType> TypeMap =
             new Dictionary<Type, SerializableType>() {
                 { typeof(byte), SerializableType.Byte },
                 { typeof(sbyte), SerializableType.SByte },
@@ -128,67 +149,67 @@ namespace SBR.StateSystem {
                 // Object reference handled below
             };
 
-        public int ancestryLength => fieldChain.Count - 1;
-        public string fieldName { get; private set; }
-        public string displayName { get; private set; }
+        public int AncestryLength => FieldChain.Count - 1;
+        public string FieldName { get; private set; }
+        public string DisplayName { get; private set; }
 
-        public object value {
+        public object Value {
             get {
-                switch (type) {
+                switch (_type) {
                     case SerializableType.Byte:
-                        return (byte)numberValue;
+                        return (byte)_numberValue;
                     case SerializableType.SByte:
-                        return (sbyte)numberValue;
+                        return (sbyte)_numberValue;
                     case SerializableType.Short:
-                        return (short)numberValue;
+                        return (short)_numberValue;
                     case SerializableType.UShort:
-                        return (ushort)numberValue;
+                        return (ushort)_numberValue;
                     case SerializableType.Int:
-                        return (int)numberValue;
+                        return (int)_numberValue;
                     case SerializableType.UInt:
-                        return (uint)numberValue;
+                        return (uint)_numberValue;
                     case SerializableType.Long:
-                        return numberValue;
+                        return _numberValue;
                     case SerializableType.ULong:
-                        return (ulong)(numberValue - long.MinValue);
+                        return (ulong)(_numberValue - long.MinValue);
                     case SerializableType.Float:
-                        return vectorValue.x;
+                        return _vectorValue.x;
                     case SerializableType.Double:
-                        return BitConverter.Int64BitsToDouble(numberValue);
+                        return BitConverter.Int64BitsToDouble(_numberValue);
                     case SerializableType.Bool:
-                        return numberValue != 0;
+                        return _numberValue != 0;
                     case SerializableType.Char:
-                        return (char)numberValue;
+                        return (char)_numberValue;
                     case SerializableType.String:
-                        return stringValue;
+                        return _stringValue;
                     case SerializableType.Enum:
-                        return valid ? Enum.ToObject(valueType, numberValue) : null;
+                        return Valid ? Enum.ToObject(ValueType, _numberValue) : null;
                     case SerializableType.Vector2:
-                        return (Vector2)vectorValue;
+                        return (Vector2)_vectorValue;
                     case SerializableType.Vector3:
-                        return (Vector3)vectorValue;
+                        return (Vector3)_vectorValue;
                     case SerializableType.Vector4:
-                        return vectorValue;
+                        return _vectorValue;
                     case SerializableType.Quaternion:
-                        return new Quaternion(vectorValue.x, vectorValue.y, vectorValue.z, vectorValue.w);
+                        return new Quaternion(_vectorValue.x, _vectorValue.y, _vectorValue.z, _vectorValue.w);
                     case SerializableType.Color:
-                        return new Color(vectorValue.x, vectorValue.y, vectorValue.z, vectorValue.w);
+                        return new Color(_vectorValue.x, _vectorValue.y, _vectorValue.z, _vectorValue.w);
                     case SerializableType.LayerMask:
-                        return (LayerMask)numberValue;
+                        return (LayerMask)_numberValue;
                     case SerializableType.ObjectReference:
-                        return objectReferenceValue;
+                        return _objectReferenceValue;
                     default:
                         throw new UnityException("ValueOverride has no type!");
                 }
             }
 
             set {
-                numberValue = 0;
-                stringValue = null;
-                vectorValue = Vector3.zero;
-                objectReferenceValue = null;
+                _numberValue = 0;
+                _stringValue = null;
+                _vectorValue = Vector3.zero;
+                _objectReferenceValue = null;
 
-                switch (type) {
+                switch (_type) {
                     case SerializableType.Byte:
                     case SerializableType.SByte:
                     case SerializableType.Short:
@@ -197,48 +218,48 @@ namespace SBR.StateSystem {
                     case SerializableType.UInt:
                     case SerializableType.Long:
                     case SerializableType.Char:
-                        numberValue = (long)value;
+                        _numberValue = (long)value;
                         break;
                     case SerializableType.ULong:
-                        numberValue = (long)value + long.MinValue;
+                        _numberValue = (long)value + long.MinValue;
                         break;
                     case SerializableType.Float:
-                        vectorValue.x = (float)value;
+                        _vectorValue.x = (float)value;
                         break;
                     case SerializableType.Double:
-                        numberValue = BitConverter.DoubleToInt64Bits((double)value);
+                        _numberValue = BitConverter.DoubleToInt64Bits((double)value);
                         break;
                     case SerializableType.Bool:
-                        numberValue = ((bool)value) ? 1 : 0;
+                        _numberValue = ((bool)value) ? 1 : 0;
                         break;
                     case SerializableType.String:
-                        stringValue = (string)value;
+                        _stringValue = (string)value;
                         break;
                     case SerializableType.Enum:
-                        numberValue = Convert.ToInt32((Enum)value);
+                        _numberValue = Convert.ToInt32((Enum)value);
                         break;
                     case SerializableType.Vector2:
-                        vectorValue = (Vector2)value;
+                        _vectorValue = (Vector2)value;
                         break;
                     case SerializableType.Vector3:
-                        vectorValue = (Vector3)value;
+                        _vectorValue = (Vector3)value;
                         break;
                     case SerializableType.Vector4:
-                        vectorValue = (Vector4)value;
+                        _vectorValue = (Vector4)value;
                         break;
                     case SerializableType.Quaternion:
                         var q = (Quaternion)value;
-                        vectorValue = new Vector4(q.x, q.y, q.z, q.w);
+                        _vectorValue = new Vector4(q.x, q.y, q.z, q.w);
                         break;
                     case SerializableType.Color:
                         Color c = (Color)value;
-                        vectorValue = new Vector4(c.r, c.g, c.b, c.a);
+                        _vectorValue = new Vector4(c.r, c.g, c.b, c.a);
                         break;
                     case SerializableType.LayerMask:
-                        numberValue = (LayerMask)value;
+                        _numberValue = (LayerMask)value;
                         break;
                     case SerializableType.ObjectReference:
-                        objectReferenceValue = (Object)value;
+                        _objectReferenceValue = (Object)value;
                         break;
                     default:
                         throw new UnityException("ValueOverride has no type!");
@@ -248,42 +269,42 @@ namespace SBR.StateSystem {
 
         public void FirstTimeInitialize(Type baseType) {
             Initialize(baseType);
-            type = GetSerializableType(valueType);
+            _type = GetSerializableType(ValueType);
         }
 
         public void Initialize(Type baseType) {
-            valid = false;
-            var parts = path.Split('/');
-            fieldChain.Clear();
+            Valid = false;
+            var parts = _path.Split('/');
+            FieldChain.Clear();
 
             if (baseType == null) return;
 
             Type currentType = baseType;
-            foreach (var part in parts) {
-                var field = currentType.GetField(part, bindingFlags);
-                var property = currentType.GetProperty(part, bindingFlags);
+            foreach (string part in parts) {
+                FieldInfo field = currentType.GetField(part, BindingFlags);
+                PropertyInfo property = currentType.GetProperty(part, BindingFlags);
                 if (field != null && IsValidField(field)) {
-                    fieldChain.Add(new FieldGetSet(field));
+                    FieldChain.Add(new FieldGetSet(field));
                     currentType = field.FieldType;
                 } else if (property != null && IsValidProperty(property)) {
-                    fieldChain.Add(new PropertyGetSet(property));
+                    FieldChain.Add(new PropertyGetSet(property));
                     currentType = property.PropertyType;
                 } else {
                     return;
                 }
             }
 
-            isEnumFlags = (type == SerializableType.Enum) &&
-                Attribute.GetCustomAttribute(fieldChain[fieldChain.Count - 1].member, typeof(MultiEnumAttribute)) != null;
-            fieldName = fieldChain[fieldChain.Count - 1].name;
-            displayName = Util.SplitCamelCase(fieldName, true);
+            IsEnumFlags = (_type == SerializableType.Enum) &&
+                Attribute.GetCustomAttribute(ValueType, typeof(FlagsAttribute)) != null;
+            FieldName = FieldChain[FieldChain.Count - 1].Name;
+            DisplayName = FieldName.SplitCamelCase(true);
 
-            valid = true;
+            Valid = true;
         }
 
         public object GetFieldValue(object baseObject) {
             object currentObject = baseObject;
-            foreach (var part in fieldChain) {
+            foreach (IGetSet part in FieldChain) {
                 if (currentObject == null) return null;
                 currentObject = part.GetValue(currentObject);
             }
@@ -292,7 +313,7 @@ namespace SBR.StateSystem {
         }
 
         public void SetFieldValue(object baseObject) {
-            SetFieldValue(baseObject, 0, value);
+            SetFieldValue(baseObject, 0, Value);
         }
 
         public void SetFieldValue(object baseObject, object finalValue) {
@@ -300,23 +321,21 @@ namespace SBR.StateSystem {
         }
 
         private void SetFieldValue(object currentObject, int index, object finalValue) {
-            if (index < fieldChain.Count - 1) {
-                object tempValue = fieldChain[index].GetValue(currentObject);
-                if (tempValue == null) {
-                    tempValue = fieldChain[index].type.GetConstructor(emptyTypeArray).Invoke(emptyObjectArray);
-                }
+            if (index < FieldChain.Count - 1) {
+                object tempValue = FieldChain[index].GetValue(currentObject) ??
+                                   FieldChain[index].Type.GetConstructor(EmptyTypeArray).Invoke(EmptyObjectArray);
                 SetFieldValue(tempValue, index + 1, finalValue);
-                fieldChain[index].SetValue(currentObject, tempValue);
+                FieldChain[index].SetValue(currentObject, tempValue);
             } else {
-                fieldChain[index].SetValue(currentObject, finalValue);
+                FieldChain[index].SetValue(currentObject, finalValue);
             }
         }
 
         public static SerializableType GetSerializableType(Type type) {
             if (type == null) {
                 return SerializableType.None;
-            } else if (typeMap.ContainsKey(type)) {
-                return typeMap[type];
+            } else if (TypeMap.ContainsKey(type)) {
+                return TypeMap[type];
             } else if (type.IsEnum) {
                 return SerializableType.Enum;
             } else if (typeof(Object).IsAssignableFrom(type)) {
@@ -337,7 +356,6 @@ namespace SBR.StateSystem {
         private static bool IsValidProperty(PropertyInfo property) {
             if (property.GetGetMethod() == null || property.GetSetMethod() == null) return false;
             if (!property.GetGetMethod().IsPublic || !property.GetSetMethod().IsPublic) return false;
-            if (property.GetCustomAttribute(typeof(NonSerializedAttribute)) != null) return false;
             if (property.GetCustomAttribute(typeof(NoOverridesAttribute)) != null) return false;
             return true;
         }
@@ -351,7 +369,7 @@ namespace SBR.StateSystem {
                 return false;
             }
 
-            if (type.IsClass && type.GetConstructor(emptyTypeArray) == null) {
+            if (type.IsClass && type.GetConstructor(EmptyTypeArray) == null) {
                 return false;
             }
 
@@ -364,23 +382,23 @@ namespace SBR.StateSystem {
             return result;
         }
 
-        private static void GetValidPathsForType(Type type, List<string> paths, int depth, string path) {
-            var sType = GetSerializableType(type);
+        private static void GetValidPathsForType(Type type, ICollection<string> paths, int depth, string path) {
+            SerializableType sType = GetSerializableType(type);
             if (sType != SerializableType.None && !string.IsNullOrEmpty(path)) {
                 paths.Add(path);
             } else if (depth < MaxDepth && (depth == 0 || IsSerializableClass(type))) {
                 if (!string.IsNullOrEmpty(path)) path += '/';
-                foreach (var field in type.GetFields(bindingFlags)) {
+                foreach (var field in type.GetFields(BindingFlags)) {
                     if (IsValidField(field)) GetValidPathsForType(field.FieldType, paths, depth + 1, path + field.Name);
                 }
-                foreach (var property in type.GetProperties(bindingFlags)) {
+                foreach (var property in type.GetProperties(BindingFlags)) {
                     if (IsValidProperty(property)) GetValidPathsForType(property.PropertyType, paths, depth + 1, path + property.Name);
                 }
             }
         }
 
         public override string ToString() {
-            return $"{path} ({type})";
+            return $"{_path} ({_type})";
         }
     }
 }

@@ -22,26 +22,28 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR.StateSystem {
     public interface IStateBehaviour {
-        Type type { get; }
-        bool HasState(string name);
-        bool IsStateActive(string name);
-        void SetStateActive(string name, bool value);
+        Type Type { get; }
+        bool HasState(string stateName);
+        bool IsStateActive(string stateName);
+        void SetStateActive(string stateName, bool value);
     }
 
-    public class StateBehaviour : MonoBehaviour, IStateBehaviour {
-        [SerializeField] protected StateList states;
+    public abstract class StateBehaviour : MonoBehaviour, IStateBehaviour {
+        [FormerlySerializedAs("states")] [SerializeField]
+        private StateList _states;
 
-        public Type type => GetType();
+        public Type Type => GetType();
 
         protected virtual void Awake() {
-            states.Initialize(this);
+            _states.Initialize(this);
         }
 
-        public bool HasState(string name) => states.HasState(name);
-        public bool IsStateActive(string name) => states.IsStateActive(name);
-        public void SetStateActive(string name, bool value) => states.SetStateActive(name, value);
+        public bool HasState(string stateName) => _states.HasState(stateName);
+        public bool IsStateActive(string stateName) => _states.IsStateActive(stateName);
+        public void SetStateActive(string stateName, bool value) => _states.SetStateActive(stateName, value);
     }
 }

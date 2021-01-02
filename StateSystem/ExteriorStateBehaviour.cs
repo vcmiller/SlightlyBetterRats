@@ -28,7 +28,7 @@ namespace SBR.StateSystem {
         [SerializeField] protected Component component;
         [SerializeField] protected StateList states;
 
-        public Type type => component ? component.GetType() : typeof(Component);
+        public Type Type => component ? component.GetType() : typeof(Component);
 
         protected virtual void Awake() {
             states.Initialize(component);

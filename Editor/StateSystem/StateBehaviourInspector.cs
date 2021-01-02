@@ -33,8 +33,8 @@ namespace SBR.Editor {
     public class StateBehaviourInspector : UnityEditor.Editor {
         public override void OnInspectorGUI() {
             serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, "m_Script", "states");
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("states"));
+            DrawPropertiesExcluding(serializedObject, "m_Script", "_states");
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_states"));
             serializedObject.ApplyModifiedProperties();
         }
     }

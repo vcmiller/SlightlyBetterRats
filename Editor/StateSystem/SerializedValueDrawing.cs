@@ -30,29 +30,29 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace SBR.Editor {
-    public class SerializedValueDrawer {
-        private static bool loaded;
-        private static Texture2D iconProperty;
-        private static Texture2D iconField;
-        private static Texture2D iconMissing;
+    public static class SerializedValueDrawing {
+        private static bool _loaded;
+        private static Texture2D _iconProperty;
+        private static Texture2D _iconField;
+        private static Texture2D _iconMissing;
 
         private static void InitResources() {
-            if (!loaded) {
-                iconProperty = Resources.Load<Texture2D>("IconProperty");
-                iconField = Resources.Load<Texture2D>("IconField");
-                iconMissing = Resources.Load<Texture2D>("IconMissing");
-                loaded = true;
-            }
+            if (_loaded) return;
+            
+            _iconProperty = Resources.Load<Texture2D>("IconProperty");
+            _iconField = Resources.Load<Texture2D>("IconField");
+            _iconMissing = Resources.Load<Texture2D>("IconMissing");
+            _loaded = true;
         }
 
-        public static void UpdateHeading(SerializedValue property, List<string> current) {
-            var propPath = property.path.Split('/');
+        public static void UpdateHeading(SerializedValueOverride property, List<string> current) {
+            string[] propPath = property.Path.Split('/');
             while (true) {
                 string join = string.Join("/", current);
                 if (current.Count > 0) {
                     join += "/";
                 }
-                if (property.path.StartsWith(join)) {
+                if (property.Path.StartsWith(join)) {
                     break;
                 }
 
@@ -61,11 +61,14 @@ namespace SBR.Editor {
             }
 
             while (current.Count < propPath.Length - 1) {
-                var field = property.fieldChain.Count > current.Count ? property.fieldChain[current.Count] : null;
-                var name = propPath[current.Count];
+                IGetSet field = property.FieldChain.Count > current.Count ? property.FieldChain[current.Count] : null;
+                string name = propPath[current.Count];
                 string newName = name;
                 current.Add(newName);
-                GUIContent label = new GUIContent(Util.SplitCamelCase(newName, true), field != null ? (field is PropertyGetSet ? iconProperty : iconField) : iconMissing);
+                var label = new GUIContent(newName.SplitCamelCase(true),
+                                           field != null
+                                               ? field is PropertyGetSet ? _iconProperty : _iconField
+                                               : _iconMissing);
                 EditorGUI.BeginDisabledGroup(field == null);
                 EditorGUILayout.LabelField(label);
                 EditorGUI.EndDisabledGroup();
@@ -73,19 +76,19 @@ namespace SBR.Editor {
             }
         }
 
-        public static void DrawLayout(Object reference, SerializedValue property) {
+        public static void DrawLayout(Object reference, SerializedValueOverride property) {
             InitResources();
-            GUIContent label = new GUIContent(property.displayName);
-            if (property.valid) {
-                label.image = property.isProperty ? iconProperty : iconField;
+            GUIContent label = new GUIContent(property.DisplayName);
+            if (property.Valid) {
+                label.image = property.IsProperty ? _iconProperty : _iconField;
             } else {
-                label.image = iconMissing;
+                label.image = _iconMissing;
             }
 
-            EditorGUI.BeginDisabledGroup(!property.valid);
-            object value = property.value;
+            EditorGUI.BeginDisabledGroup(!property.Valid);
+            object value = property.Value;
             object newValue = value;
-            switch (property.type) {
+            switch (property.Type) {
                 case SerializableType.Byte:
                 case SerializableType.SByte:
                 case SerializableType.Short:
@@ -121,7 +124,7 @@ namespace SBR.Editor {
                 case SerializableType.Enum:
                     if (value == null) {
                         EditorGUILayout.LabelField(label, new GUIContent("Invalid Enum"));
-                    } else if (property.isEnumFlags) {
+                    } else if (property.IsEnumFlags) {
                         newValue = EditorGUILayout.EnumFlagsField(label, (Enum)value);
                     } else {
                         newValue = EditorGUILayout.EnumPopup(label, (Enum)value);
@@ -138,7 +141,7 @@ namespace SBR.Editor {
                     break;
                 case SerializableType.Quaternion:
                     var q = (Quaternion)value;
-                    var v = EditorGUILayout.Vector4Field(label, new Vector4(q.x, q.y, q.z, q.w));
+                    Vector4 v = EditorGUILayout.Vector4Field(label, new Vector4(q.x, q.y, q.z, q.w));
                     newValue = new Quaternion(v.x, v.y, v.z, v.w);
                     break;
                 case SerializableType.Color:
@@ -151,12 +154,12 @@ namespace SBR.Editor {
                     newValue = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
                     break;
                 case SerializableType.ObjectReference:
-                    newValue = EditorGUILayout.ObjectField(label, (Object)value, property.valid ? property.valueType : typeof(Object), false);
+                    newValue = EditorGUILayout.ObjectField(label, (Object)value, property.Valid ? property.ValueType : typeof(Object), false);
                     break;
             }
             if (!Equals(value, newValue)) {
                 Undo.RecordObject(reference, "Change Override Value");
-                property.value = newValue;
+                property.Value = newValue;
                 EditorUtility.SetDirty(reference);
             }
             EditorGUI.EndDisabledGroup();

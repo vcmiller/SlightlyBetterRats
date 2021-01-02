@@ -24,36 +24,53 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR.StateSystem {
     [CreateAssetMenu]
     public class ComponentOverride : ScriptableObject {
         [TypeSelect(typeof(Component), true, true, true)]
-        public string typeName;
-        public SerializedValue[] overrides = new SerializedValue[0];
-
+        [FormerlySerializedAs("typeName")] [SerializeField]
+        private string _typeName;
+        
+        [FormerlySerializedAs("overrides")] [SerializeField]
+        private SerializedValueOverride[] _overrides = new SerializedValueOverride[0];
+        
+        private List<string> _validPaths;
         private Type _type;
-        public Type type {
+        
+        public string TypeName {
+            get => _typeName;
+            set {
+                if (_typeName == value) return;
+                
+                _typeName = value;
+                _type = null;
+            }
+        }
+        
+        public SerializedValueOverride[] Overrides => _overrides;
+
+        public Type Type {
             get {
                 if (_type == null) {
-                    _type = Util.GetType(typeName);
+                    _type = Util.GetType(_typeName);
                 }
                 return _type;
             }
         }
 
-        [NonSerialized] private List<string> _validPaths;
-        public List<string> validPaths {
+        public List<string> ValidPaths {
             get {
                 if (_validPaths == null || _validPaths.Count == 0) {
-                    _validPaths = SerializedValue.GetValidPathsForType(type);
+                    _validPaths = SerializedValueOverride.GetValidPathsForType(Type);
                 }
 
                 return _validPaths;
             }
         }
 
-        public IEnumerable<string> uniqueValidPaths => validPaths.Where(t => !overrides.Any(o => o.path == t));
+        public IEnumerable<string> UnusedValidPaths => ValidPaths.Where(t => _overrides.All(o => o.Path != t));
 
         private void OnEnable() {
             Refresh();
@@ -64,45 +81,44 @@ namespace SBR.StateSystem {
         }
 
         public void NotifyChanged(int index) {
-            overrides[index].Initialize(type);
+            _overrides[index].Initialize(Type);
         }
 
         public void AddOverride(string path) {
-            if (overrides.Any(t => t.path == path)) return;
-            int pathsIndex = validPaths.IndexOf(path);
+            if (_overrides.Any(t => t.Path == path)) return;
+            int pathsIndex = ValidPaths.IndexOf(path);
             if (pathsIndex < 0) return;
 
-            var newObj = new SerializedValue();
-            newObj.path = path;
-            newObj.FirstTimeInitialize(type);
+            var newObj = new SerializedValueOverride { Path = path };
+            newObj.FirstTimeInitialize(Type);
 
-            Array.Resize(ref overrides, overrides.Length + 1);
-            overrides[overrides.Length - 1] = newObj;
+            Array.Resize(ref _overrides, _overrides.Length + 1);
+            _overrides[_overrides.Length - 1] = newObj;
 
-            for (int i = overrides.Length - 1; i > 0; i--) {
-                int prevIndex = validPaths.IndexOf(overrides[i - 1].path);
+            for (int i = _overrides.Length - 1; i > 0; i--) {
+                int prevIndex = ValidPaths.IndexOf(_overrides[i - 1].Path);
                 if (prevIndex < pathsIndex) {
                     break;
                 } else {
-                    var temp = overrides[i];
-                    overrides[i] = overrides[i - 1];
-                    overrides[i - 1] = temp;
+                    var temp = _overrides[i];
+                    _overrides[i] = _overrides[i - 1];
+                    _overrides[i - 1] = temp;
                 }
             }
         }
 
         public void RemoveOverride(int index) {
-            for (int i = index; i < overrides.Length - 1; i++) {
-                overrides[i] = overrides[i + 1];
+            for (int i = index; i < _overrides.Length - 1; i++) {
+                _overrides[i] = _overrides[i + 1];
             }
-            Array.Resize(ref overrides, overrides.Length - 1);
+            Array.Resize(ref _overrides, _overrides.Length - 1);
         }
 
         public void CheckValid() {
-            if (overrides == null) return;
-            foreach (var value in overrides) {
-                if (!value.valid) {
-                    value.Initialize(type);
+            if (_overrides == null) return;
+            foreach (var value in _overrides) {
+                if (!value.Valid) {
+                    value.Initialize(Type);
                 }
             }
         }
@@ -111,9 +127,9 @@ namespace SBR.StateSystem {
             _validPaths = null;
             _type = null;
 
-            if (overrides != null) {
-                foreach (var value in overrides) {
-                    value.Initialize(type);
+            if (_overrides != null) {
+                foreach (var value in _overrides) {
+                    value.Initialize(Type);
                 }
             }
         }
@@ -124,7 +140,7 @@ namespace SBR.StateSystem {
 
         public string displayName {
             get {
-                string suffix = DefaultNameForType(type);
+                string suffix = DefaultNameForType(Type);
                 if (name.EndsWith(suffix)) {
                     return name.Substring(0, name.Length - suffix.Length);
                 } else {
@@ -134,11 +150,11 @@ namespace SBR.StateSystem {
         }
 
         public void ApplyTo(Component component) {
-            if (!type.IsAssignableFrom(component.GetType())) {
+            if (!Type.IsAssignableFrom(component.GetType())) {
                 throw new UnityException("Component " + component.name + " of incorrect type.");
             }
 
-            foreach (var item in overrides) {
+            foreach (var item in _overrides) {
                 item.SetFieldValue(component);
             }
         }

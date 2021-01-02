@@ -36,7 +36,7 @@ namespace SBR.Editor {
         private void ListDropdown() {
             var menu = new GenericMenu();
             
-            foreach (var path in target.uniqueValidPaths) {
+            foreach (var path in target.UnusedValidPaths) {
                 menu.AddItem(new GUIContent(path),
                     false, (object data) => {
                         Undo.RecordObject(target, "Add Override");
@@ -59,15 +59,15 @@ namespace SBR.Editor {
             target.CheckValid();
 
             serializedObject.Update();
-            var type = target.typeName;
+            var type = target.TypeName;
             EditorGUILayout.PropertyField(serializedObject.FindProperty("typeName"), new GUIContent("Target Type"));
             serializedObject.ApplyModifiedProperties();
 
-            if (target.typeName != type) {
+            if (target.TypeName != type) {
                 target.NotifyChanged();
             }
 
-            if (target.type == null) {
+            if (target.Type == null) {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Invalid Target Type", EditorStyles.boldLabel);
             } else {
@@ -76,18 +76,18 @@ namespace SBR.Editor {
                 int toRemove = -1;
                 headers.Clear();
                 var indent = EditorGUI.indentLevel;
-                for (int i = 0; i < target.overrides.Length; i++) {
-                    var prop = target.overrides[i];
-                    SerializedValueDrawer.UpdateHeading(prop, headers);
+                for (int i = 0; i < target.Overrides.Length; i++) {
+                    var prop = target.Overrides[i];
+                    SerializedValueDrawing.UpdateHeading(prop, headers);
                     EditorGUILayout.BeginHorizontal();
-                    SerializedValueDrawer.DrawLayout(target, prop);
+                    SerializedValueDrawing.DrawLayout(target, prop);
                     if (GUILayout.Button("X", GUILayout.MaxWidth(20), GUILayout.MinWidth(20))) {
                         toRemove = i;
                     }
                     EditorGUILayout.EndHorizontal();
                 }
 
-                EditorGUI.BeginDisabledGroup(!target.uniqueValidPaths.Any());
+                EditorGUI.BeginDisabledGroup(!target.UnusedValidPaths.Any());
                 EditorGUI.indentLevel = indent;
                 EditorGUILayout.Space();
                 if (EditorGUILayout.DropdownButton(new GUIContent("Add Override"), FocusType.Keyboard, GUILayout.MaxWidth(150))) {
