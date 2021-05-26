@@ -51,6 +51,7 @@ namespace SBR.Editor {
             float size = HandleUtility.GetHandleSize(pos) * 0.2f;
             pos -= Camera.current.transform.up * size * 2;
             Handles.color = Color.white;
+            Handles.DrawWireDisc(node.transform.position, node.transform.up, node.radius);
             if (Handles.Button(pos, Quaternion.identity, size, size, Handles.SphereHandleCap)) {
                 var newNode = Instantiate(node);
                 newNode.name = node.name;

@@ -25,6 +25,9 @@ using UnityEngine;
 namespace SBR {
     public class PatrolNode : MonoBehaviour {
         public PatrolNode next;
+        public bool lookAround;
+        public float pause;
+        public float radius;
     }
 
 }

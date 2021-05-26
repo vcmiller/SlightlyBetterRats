@@ -60,7 +60,7 @@ namespace SBR.Editor {
 
             serializedObject.Update();
             var type = target.TypeName;
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("typeName"), new GUIContent("Target Type"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_typeName"), new GUIContent("Target Type"));
             serializedObject.ApplyModifiedProperties();
 
             if (target.TypeName != type) {
