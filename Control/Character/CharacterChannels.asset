@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseClass: SBR.Channels
   channels:
-  - name: movement
+  - name: Movement
     type: 3
     clears: 1
     floatHasRange: 0
@@ -31,7 +31,7 @@ MonoBehaviour:
     defaultVector: {x: 0, y: 0, z: 0}
     defaultRotation: {x: 0, y: 0, z: 0}
     objectType: 
-  - name: rotation
+  - name: Rotation
     type: 4
     clears: 0
     floatHasRange: 0
@@ -48,7 +48,7 @@ MonoBehaviour:
     defaultVector: {x: 0, y: 0, z: 0}
     defaultRotation: {x: 0, y: 0, z: 0}
     objectType: 
-  - name: jump
+  - name: Jump
     type: 2
     clears: 0
     floatHasRange: 0

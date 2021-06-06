@@ -110,7 +110,7 @@ namespace SBR {
             Vector2 move = Vector2.zero;
 
             if (enableInput) {
-                move = Vector3.Project(channels.movement, transform.right) * walkSpeed;
+                move = Vector3.Project(channels.Movement, transform.right) * walkSpeed;
             }
 
             //if (body.isGrounded) {
@@ -143,7 +143,7 @@ namespace SBR {
             velocity = Vector2.MoveTowards(velocity, targetVel, accel * Time.deltaTime);
 
             jumpedThisFrame = false;
-            if (grounded && channels.jump) {
+            if (grounded && channels.Jump) {
                 jumpedThisFrame = true;
                 jumping = true;
                 velocity = Vector3.Project(velocity, transform.right) + transform.up * jumpSpeed;
@@ -151,10 +151,10 @@ namespace SBR {
 
             if (Vector2.Dot(velocity, transform.up) <= 0) {
                 jumping = false;
-                channels.jump = false;
+                channels.Jump = false;
             }
             
-            if (jumping && !channels.jump && enableJumpCancel) {
+            if (jumping && !channels.Jump && enableJumpCancel) {
                 jumping = false;
                 velocity.y = 0;
             }

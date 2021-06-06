@@ -89,10 +89,10 @@ namespace SBR {
             }
 
             if (agent.hasPath) {
-                channels.movement = Vector3.ClampMagnitude(agent.desiredVelocity, 1) * desiredSpeed;
+                channels.Movement = Vector3.ClampMagnitude(agent.desiredVelocity, 1) * desiredSpeed;
 
                 if (agent.isOnOffMeshLink && agent.currentOffMeshLinkData.linkType == OffMeshLinkType.LinkTypeJumpAcross) {
-                    channels.jump = true;
+                    channels.Jump = true;
                 } 
             }
         }

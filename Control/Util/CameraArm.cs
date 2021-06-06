@@ -121,7 +121,7 @@ namespace SBR {
         }
 
         protected override void DoOutput(CharacterChannels c) {
-            rot = c.rotation;
+            rot = c.Rotation;
         }
 
         protected override void PostOutput(CharacterChannels c) {

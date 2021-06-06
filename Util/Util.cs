@@ -25,6 +25,7 @@ using System.Collections;
 using UnityEngine.Audio;
 using System.Text.RegularExpressions;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Object = UnityEngine.Object;
 
@@ -39,12 +40,33 @@ namespace SBR {
         /// <summary>
         /// Returns an array of all loaded assemblies.
         /// </summary>
-        public static Assembly[] allAssemblies {
+        public static Assembly[] AllAssemblies {
             get {
                 if (_allAssemblies == null) {
                     _allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
                 }
                 return _allAssemblies;
+            }
+        }
+
+        public static IEnumerable<Type> AllTypes {
+            get {
+                foreach (Assembly assembly in AllAssemblies) {
+                    Type[] types = null;
+                    try {
+                        types = assembly.GetTypes();
+                    } catch (ReflectionTypeLoadException ex) {
+                        types = ex.Types;
+                    } catch {
+                        continue;
+                    }
+
+                    foreach (Type type in types) {
+                        if (type != null) {
+                            yield return type;
+                        }
+                    }
+                }
             }
         }
 
@@ -144,7 +166,7 @@ namespace SBR {
         public static Type GetType(string fullName) {
             if (string.IsNullOrEmpty(fullName)) return null;
 
-            foreach (var item in allAssemblies) {
+            foreach (var item in AllAssemblies) {
                 var type = item.GetType(fullName);
                 if (type != null) {
                     return type;

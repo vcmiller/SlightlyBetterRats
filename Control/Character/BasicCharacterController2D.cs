@@ -43,15 +43,15 @@ namespace SBR {
 
         private void Axis_Horizontal(float value) {
             Vector3 right = viewTarget ? viewTarget.flatRight : Vector3.right;
-            channels.movement += right * value;
+            channels.Movement += right * value;
         }
 
         private void ButtonDown_Jump() {
-            channels.jump = true;
+            channels.Jump = true;
         }
 
         private void ButtonUp_Jump() {
-            channels.jump = false;
+            channels.Jump = false;
         }
     }
 }

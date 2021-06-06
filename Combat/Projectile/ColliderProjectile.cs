@@ -28,8 +28,21 @@ namespace SBR {
     /// Should have a Rigidbody with isKinematic set to true in order to work properly.
     /// </summary>
     public class ColliderProjectile : Projectile {
+        private Rigidbody _rigidbody;
+        
+        public override void Fire() {
+            base.Fire();
+            if (TryGetComponent(out _rigidbody)) {
+                _rigidbody.velocity = velocity;
+            }
+        }
+
         protected virtual void Update() {
-            transform.position += velocity * Time.deltaTime;
+            if (_rigidbody) {
+                velocity = _rigidbody.velocity;
+            } else {
+                transform.position += velocity * Time.deltaTime;
+            }
         }
 
         private void OnCollisionEnter(Collision collision) {

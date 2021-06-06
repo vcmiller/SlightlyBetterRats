@@ -407,7 +407,7 @@ namespace SBR {
         private void UpdateJumping() {
             if (jumping && transform.InverseTransformDirection(velocity).y <= 0) {
                 jumping = false;
-                lastChannels.jump = false;
+                lastChannels.Jump = false;
             }
         }
 
@@ -430,11 +430,11 @@ namespace SBR {
 
         private void DoRotationOutput(CharacterChannels channels) {
             if (rotateMode == RotateMode.Movement) {
-                if (channels.movement.sqrMagnitude > 0) {
-                    MoveTargetRotationTowards(Quaternion.LookRotation(channels.movement, transform.up));
+                if (channels.Movement.sqrMagnitude > 0) {
+                    MoveTargetRotationTowards(Quaternion.LookRotation(channels.Movement, transform.up));
                 }
             } else if (rotateMode == RotateMode.Control) {
-                MoveTargetRotationTowards(channels.rotation);
+                MoveTargetRotationTowards(channels.Rotation);
             }
         }
 
@@ -479,9 +479,9 @@ namespace SBR {
             float minMoveSpeed = movementSpeed * 0.01f;
             minMoveSpeed = minMoveSpeed * minMoveSpeed;
 
-            movementInput = channels.movement;
+            movementInput = channels.Movement;
 
-            if (grounded && channels.jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
+            if (grounded && channels.Jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
                 Jumped?.Invoke();
                 jumping = true;
                 velocity = transform.TransformDirection(jumpVelocity);

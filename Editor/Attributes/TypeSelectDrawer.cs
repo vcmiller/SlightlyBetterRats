@@ -41,7 +41,7 @@ namespace SBR.Editor {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 
             // First get the attribute since it contains the range for the slider
-            TypeSelectAttribute attr = attribute as TypeSelectAttribute;
+            TypeSelectAttribute attr = (TypeSelectAttribute) attribute;
 
             // Now draw the property as a Slider or an IntSlider based on whether it's a float or integer.
             if (property.propertyType == SerializedPropertyType.String) {
@@ -50,8 +50,10 @@ namespace SBR.Editor {
                 }
 
                 if (types == null) {
-                    var tempTypes = Util.allAssemblies.SelectMany(t => t.GetTypes())
-                        .Where(p => !p.IsInterface && (attr.allowGeneric || !p.IsGenericType) && (attr.allowAbstract || !p.IsAbstract) && attr.baseClass.IsAssignableFrom(p));
+                    var tempTypes = Util.AllTypes.Where(p => !p.IsInterface &&
+                                                             (attr.allowGeneric || !p.IsGenericType) &&
+                                                             (attr.allowAbstract || !p.IsAbstract) &&
+                                                             attr.baseClass.IsAssignableFrom(p));
 
                     if (attr.search) {
                         tempTypes = tempTypes.Where(t => t.Name.ToLower().Contains(search));
