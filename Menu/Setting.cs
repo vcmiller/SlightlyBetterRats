@@ -91,7 +91,7 @@ namespace SBR.Menu {
         public T value {
             get => currentValue;
             set {
-                Debug.Log(key + ": " + value);
+                //Debug.Log(key + ": " + value);
                 if (!Equals(value, currentValue)) {
                     currentValue = value;
                     modified = true;

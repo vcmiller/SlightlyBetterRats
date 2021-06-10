@@ -67,6 +67,7 @@ namespace SBR.Editor {
 
         public bool includeAudioSettings;
         public bool includeGraphicsSettings;
+        public bool autoLoadScene0InEditor;
 
         public static void EnsureDataFolderExists() {
             if (!Directory.Exists(dataFolder)) {

@@ -26,7 +26,10 @@ using UnityEngine.Audio;
 using System.Text.RegularExpressions;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+
 using Object = UnityEngine.Object;
 
 namespace SBR {
