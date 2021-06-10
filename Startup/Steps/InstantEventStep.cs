@@ -9,7 +9,7 @@ namespace SBR.Startup {
         
         public bool IsFinished => true;
         
-        public void ExecuteForward() {
+        public void ExecuteForward(ExecutionStepArguments arguments) {
             _onExecute?.Invoke();
         }
     }

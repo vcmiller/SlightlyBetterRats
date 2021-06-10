@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using UnityEngine;
 
@@ -17,6 +18,14 @@ namespace SBR.Startup {
         public override string ResourcePath => "LevelManifest.asset";
         
         public IReadOnlyList<LevelManifestLevelEntry> Levels => _levels;
+
+        public LevelManifestLevelEntry GetLevelWithID(int id) {
+            return _levels.FirstOrDefault(l => l.LevelID == id);
+        }
+
+        public LevelManifestLevelEntry GetLevelWithSceneName(string sceneName) {
+            return _levels.FirstOrDefault(l => l.Scene.Name == sceneName);
+        }
         
 #if UNITY_EDITOR
         [MenuItem("Assets/Level Manifest")]

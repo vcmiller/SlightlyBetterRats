@@ -4,10 +4,9 @@ using UnityEngine;
 
 namespace SBR.Startup {
     public class RegionRoot : MonoBehaviour {
-        [SerializeField] private int _levelIndex;
-        [SerializeField] private int _regionIndex;
+        [SerializeField] private LevelManifestRegionEntry _manifestEntry;
 
-        public int LevelIndex => _levelIndex;
-        public int RegionIndex => _regionIndex;
+        public LevelManifestRegionEntry ManifestEntry => _manifestEntry;
+        public int RegionIndex => _manifestEntry.RegionID;
     }
 }

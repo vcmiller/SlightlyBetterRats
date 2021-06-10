@@ -5,10 +5,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace SBR.Startup {
-    public class ExecutionStepSequencer : MonoBehaviour {
+    public class ExecutionStepSequencer : MonoBehaviour, IExecutionStep {
         [SerializeField] private bool _playOnAwake = true;
         
         private List<IExecutionStep> _steps;
+        
+        public bool IsFinished { get; private set; }
 
         public static bool InitialSceneIsLoaded {
             get {
@@ -20,43 +22,82 @@ namespace SBR.Startup {
                 return false;
             }
         }
-        
-        private void Start() {
-            if (!InitialSceneIsLoaded) {
-                Debug.LogError("Initial scene is not loaded!");
-                SceneControl.Quit();
-            }
 
+        private void Awake() {
             _steps = new List<IExecutionStep>();
             for (int i = 0; i < transform.childCount; i++) {
                 if (transform.GetChild(i).TryGetComponent(out IExecutionStep step)) {
                     _steps.Add(step);
                 }
             }
+        }
 
+        private void Start() {
             if (_playOnAwake) {
-                Play();
+                if (!InitialSceneIsLoaded) {
+                    Debug.LogError("Initial scene is not loaded!");
+                    SceneControl.Quit();
+                }
+
+                ExecuteForward(new ExecutionStepArguments());
             }
         }
 
-        public void Play() {
-            StartCoroutine(PlayCoroutine());
+        public void ExecuteForward(ExecutionStepArguments arguments) {
+            StartCoroutine(ExecuteForwardCoroutine(arguments));
         }
 
-        public IEnumerator PlayCoroutine() {
+        public IEnumerator ExecuteForwardCoroutine(ExecutionStepArguments arguments) {
+            IsFinished = false;
+            
             for (int index = 0; index < _steps.Count; index++) {
                 IExecutionStep step = _steps[index];
-                step.ExecuteForward();
+                step.ExecuteForward(arguments);
                 while (!step.IsFinished) {
                     yield return null;
                 }
             }
+
+            IsFinished = true;
         }
     }
 
     public interface IExecutionStep {
         bool IsFinished { get; }
         
-        void ExecuteForward();
+        void ExecuteForward(ExecutionStepArguments arguments);
+    }
+
+    public class ExecutionStepArguments {
+        private Dictionary<object, object> _arguments;
+
+        public bool GetArgument<T>(ExecutionStepParameter<T> param, out T value) {
+            if (_arguments != null && _arguments.TryGetValue(param, out object arg)) {
+                value = (T)arg;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
+        public void SetArgument<T>(ExecutionStepParameter<T> param, T value) {
+            if (_arguments == null) _arguments = new Dictionary<object, object>();
+            _arguments[param] = value;
+        }
+    }
+    
+    public class ExecutionStepParameter<T> {
+        public bool Get(ExecutionStepArguments args, out T value) {
+            return args.GetArgument(this, out value);
+        }
+
+        public T GetOrDefault(ExecutionStepArguments args, T defaultValue) {
+            return Get(args, out T result) ? result : defaultValue;
+        }
+
+        public void Set(ExecutionStepArguments args, T value) {
+            args.SetArgument(this, value);
+        }
     }
 }

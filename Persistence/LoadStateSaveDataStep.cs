@@ -1,15 +1,20 @@
-﻿using SBR.Startup;
+﻿using System.Collections.Generic;
+
+using SBR.Startup;
 
 using UnityEngine;
 
 namespace SBR.Persistence {
     public class LoadStateSaveDataStep : MonoBehaviour, IExecutionStep {
-        [SerializeField] private int _stateIndex;
+        [SerializeField] private int _defaultStateIndex;
+
+        public static readonly ExecutionStepParameter<int> ParamStateIndex = new ExecutionStepParameter<int>();
         
         public bool IsFinished => true;
         
-        public void ExecuteForward() {
-            PersistenceManager.Instance.LoadStateData(_stateIndex);
+        public void ExecuteForward(ExecutionStepArguments arguments) {
+            int stateToLoad = ParamStateIndex.GetOrDefault(arguments, _defaultStateIndex);
+            PersistenceManager.Instance.LoadStateData(stateToLoad);
         }
     }
 }

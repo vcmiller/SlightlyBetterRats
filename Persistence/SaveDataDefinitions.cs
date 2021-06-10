@@ -104,7 +104,6 @@ namespace SBR.Persistence {
     public class LevelSaveData : PersistedDataBase {
         private int _levelIndex;
         private object _customLevelData;
-        private bool[] _regionsLoaded;
         private bool _initialized;
 
         public int LevelIndex {
@@ -133,19 +132,6 @@ namespace SBR.Persistence {
                 NotifyStateChanged();
             }
         }
-
-        public bool IsRegionLoaded(int index) {
-            return _regionsLoaded != null && _regionsLoaded[index];
-        }
-
-        public void SetRegionLoaded(int index, bool value) {
-            _regionsLoaded ??= new bool[index + 1];
-            if (_regionsLoaded.Length <= index) Array.Resize(ref _regionsLoaded, index + 1);
-
-            if (_regionsLoaded[index] == value) return;
-            _regionsLoaded[index] = value;
-            NotifyStateChanged();
-        }
     }
 
     [Serializable]
@@ -154,6 +140,7 @@ namespace SBR.Persistence {
         private Dictionary<int, ObjectSaveData> _objects = new Dictionary<int, ObjectSaveData>();
         private object _customRegionData;
         private bool _initialized;
+        private bool _loaded;
         
         public int RegionIndex {
             get => _regionIndex;
@@ -180,6 +167,15 @@ namespace SBR.Persistence {
             set {
                 if (_initialized == value) return;
                 _initialized = value;
+                NotifyStateChanged();
+            }
+        }
+
+        public bool Loaded {
+            get => _loaded;
+            set {
+                if (_loaded == value) return;
+                _loaded = value;
                 NotifyStateChanged();
             }
         }

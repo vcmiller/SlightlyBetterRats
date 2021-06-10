@@ -28,26 +28,19 @@ namespace SBR.Editor.Startup {
                     EditorPrefs.SetBool($"OpenScenes[{i}].loaded", scene.isLoaded);
                 }
 
-                var levelRoot = Object.FindObjectOfType<LevelRoot>();
-                if (levelRoot) {
-                    EditorPrefs.SetInt("OpenLevel", levelRoot.LevelIndex);
-                    var regions = levelRoot.RegionScenes;
-                    for (int i = 0; i < regions.Count; i++) {
-                        EditorPrefs.SetBool($"OpenLevelRegions[{i}].loaded",
-                                            SceneManager.GetSceneByPath(regions[i].ScenePath).isLoaded);
+                EditorPrefs.SetInt("OpenLevel", -1);
+                foreach (var level in LevelManifest.Instance.Levels) {
+                    bool isLoaded = SceneManager.GetSceneByPath(level.Scene.Path).isLoaded;
+                    foreach (LevelManifestRegionEntry region in level.Regions) {
+                        bool isRegionLoaded = SceneManager.GetSceneByPath(region.Scene.Path).isLoaded;
+                        EditorPrefs.SetBool($"OpenLevelRegions[{region.RegionID}].loaded", isRegionLoaded);
+                        if (isRegionLoaded) isLoaded = true;
                     }
-                } else {
-                    int openLevel = -1;
-                    foreach (RegionRoot regionRoot in Object.FindObjectsOfType<RegionRoot>()) {
-                        if (openLevel == -1 && regionRoot.LevelIndex >= 0) {
-                            openLevel = regionRoot.LevelIndex;
-                        }
 
-                        if (openLevel >= 0 && regionRoot.LevelIndex == openLevel) {
-                            EditorPrefs.SetBool($"OpenLevelRegions[{regionRoot.RegionIndex}].loaded", true);
-                        }
+                    if (isLoaded) {
+                        EditorPrefs.SetInt("OpenLevel", level.LevelID);
+                        break;
                     }
-                    EditorPrefs.SetInt("OpenLevel", openLevel);
                 }
 
                 EditorSceneManager.OpenScene(EditorBuildSettings.scenes[0].path, OpenSceneMode.Single);
