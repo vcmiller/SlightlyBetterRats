@@ -18,14 +18,14 @@ namespace SBR {
             get {
                 if (_instance == null) {
                     var dummy = CreateInstance<T>();
-                    string path = dummy.ResourcePath;
+                    string path = Path.ChangeExtension(dummy.ResourcePath, null);
                     DestroyImmediate(dummy);
                     
                     _instance = Resources.Load<T>(path);
                 }
 
 #if UNITY_EDITOR
-                if (_instance == null) {
+                if (_instance == null && !Application.isPlaying) {
                     _instance = CreateInstance<T>();
                     string dir = _instance.ResourceFolderPath;
                     if (string.IsNullOrEmpty(dir)) {

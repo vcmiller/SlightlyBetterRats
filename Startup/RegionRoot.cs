@@ -8,5 +8,9 @@ namespace SBR.Startup {
 
         public LevelManifestRegionEntry ManifestEntry => _manifestEntry;
         public int RegionIndex => _manifestEntry.RegionID;
+        
+        public virtual void Initialize() {
+            
+        }
     }
 }

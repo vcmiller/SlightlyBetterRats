@@ -12,15 +12,11 @@ namespace SBR.Startup {
         [SerializeField] private bool _enableImmediately;
 
         public static readonly ExecutionStepParameter<string> ParamSceneToLoad = new ExecutionStepParameter<string>();
-
-        public static readonly ExecutionStepParameter<IEnumerable<int>> ParamRegionsToLoad =
-            new ExecutionStepParameter<IEnumerable<int>>();
         
         public bool IsFinished { get; private set; }
 
         private AsyncOperation _operation;
-        private List<AsyncOperation> _regionOperations;
-
+        private bool _loadingLevel;
         private string _sceneLoading;
         
         public void ExecuteForward(ExecutionStepArguments arguments) {
@@ -35,57 +31,41 @@ namespace SBR.Startup {
             _operation.allowSceneActivation = false;
             
             var level = LevelManifest.Instance.GetLevelWithSceneName(_sceneLoading);
-            if (level) {
-                _regionOperations = new List<AsyncOperation>();
-
-                foreach (int regionID in ParamRegionsToLoad.GetOrDefault(arguments, DefaultRegionsToLoad(level))) {
-                    var region = level.GetRegionWithID(regionID);
-                    if (!region) continue;
-
-                    AsyncOperation regionOperation =
-                        SceneManager.LoadSceneAsync(region.Scene.Name, LoadSceneMode.Additive);
-                    regionOperation.allowSceneActivation = false;
-                    _regionOperations.Add(regionOperation);
-                }
-            } else {
-                _regionOperations = null;
-            }
+            _loadingLevel = level != null;
+            LoadInitialRegionsStep.ParamLoadingLevel.Set(arguments, level);
             
-            while (_operation.progress < 0.9f || (_regionOperations != null && _regionOperations.Any(op => op.progress < 0.9f))) {
+            while (_operation.progress < 0.9f) {
                 yield return null;
             }
 
             if (_enableImmediately) {
-                EnableScene();
+                yield return EnableScene();
             }
 
             IsFinished = true;
         }
 
-        private IEnumerable<int> DefaultRegionsToLoad(LevelManifestLevelEntry level) {
-            foreach (LevelManifestRegionEntry region in level.Regions) {
-                if (region.LoadedByDefault) yield return region.RegionID;
-            }
+        public Coroutine EnableScene() {
+            if (_operation == null || _operation.allowSceneActivation) return null;
+            _operation.allowSceneActivation = true;
+            
+            return StartCoroutine(CRT_ActivateScene(_makeActiveScene));
         }
 
-        public void EnableScene() {
-            if (_operation == null || _operation.allowSceneActivation) return;
-            _operation.allowSceneActivation = true;
+        private IEnumerator CRT_ActivateScene(bool makeActive) {
+            yield return _operation;
 
-            if (_regionOperations != null) {
-                foreach (AsyncOperation operation in _regionOperations) {
-                    operation.allowSceneActivation = true;
+            var scene = SceneManager.GetSceneByName(_sceneLoading);
+            if (_makeActiveScene) {
+                SceneManager.SetActiveScene(scene);
+            }
+            if (_loadingLevel) {
+                foreach (GameObject obj in scene.GetRootGameObjects()) {
+                    if (!obj.TryGetComponentInChildren(out LevelRoot level)) continue;
+                    level.Initialize();
+                    break;
                 }
             }
-            
-            if (_makeActiveScene) {
-                StartCoroutine(CRT_SetActive());
-            }
-        }
-
-        private IEnumerator CRT_SetActive() {
-            yield return _operation;
-            SceneManager.SetActiveScene(SceneManager.GetSceneByName(_sceneLoading));
         }
     }
 }
