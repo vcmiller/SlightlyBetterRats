@@ -28,6 +28,7 @@ namespace SBR.Startup {
 
             _sceneLoading = ParamSceneToLoad.GetOrDefault(arguments, _defaultSceneToLoad.Name);
             _operation = SceneManager.LoadSceneAsync(_sceneLoading, LoadSceneMode.Additive);
+            if (_operation == null) yield break;
             _operation.allowSceneActivation = false;
             
             var level = LevelManifest.Instance.GetLevelWithSceneName(_sceneLoading);
@@ -39,13 +40,15 @@ namespace SBR.Startup {
             }
 
             if (_enableImmediately) {
-                yield return EnableScene();
+                yield return EnableSceneCRT();
             }
 
             IsFinished = true;
         }
 
-        public Coroutine EnableScene() {
+        public void EnableScene() => EnableSceneCRT();
+
+        public Coroutine EnableSceneCRT() {
             if (_operation == null || _operation.allowSceneActivation) return null;
             _operation.allowSceneActivation = true;
             

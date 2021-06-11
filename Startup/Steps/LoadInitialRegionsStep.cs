@@ -27,7 +27,7 @@ namespace SBR.Startup {
         }
         
         public void ExecuteForward(ExecutionStepArguments arguments) {
-            if (ParamLoadingLevel.Get(arguments, out LevelManifestLevelEntry level)) {
+            if (ParamLoadingLevel.Get(arguments, out LevelManifestLevelEntry level) && level != null) {
                 StartCoroutine(CRT_Execution(level, arguments));
             } else {
                 IsFinished = true;
@@ -57,13 +57,15 @@ namespace SBR.Startup {
             }
             
             if (_enableImmediately) {
-                EnableScenes();
+                yield return EnableScenesCRT();
             }
 
             IsFinished = true;
         }
 
-        public Coroutine EnableScenes() {
+        public void EnableScenes() => EnableScenesCRT();
+
+        public Coroutine EnableScenesCRT() {
             if (_regionOperations == null || _regionOperations.Count == 0 ||
                 _regionOperations[0].allowSceneActivation) {
                 return null;
