@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class InstantEventStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private UnityEvent _onExecute;
         

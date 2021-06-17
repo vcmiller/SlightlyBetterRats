@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class ExternalSequencerStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private ExecutionStepSequencer _sequencer;
         

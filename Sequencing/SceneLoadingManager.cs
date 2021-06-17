@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class SceneLoadingManager : Singleton<SceneLoadingManager> {
         private Dictionary<SceneGroup, SceneGroupInfo> _sceneGroups = new Dictionary<SceneGroup, SceneGroupInfo>();
 
@@ -31,7 +31,7 @@ namespace SBR.Startup {
                 _sceneGroups.Add(group, groupInfo);
             }
 
-            AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
+            AsyncOperation op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             if (op == null) return null;
             op.allowSceneActivation = autoActivate;
 

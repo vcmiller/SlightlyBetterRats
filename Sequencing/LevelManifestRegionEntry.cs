@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class 
         LevelManifestRegionEntry : ScriptableObject {
         [SerializeField] private string _displayName;

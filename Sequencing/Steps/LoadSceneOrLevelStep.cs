@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class LoadSceneOrLevelStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private SceneRef _defaultSceneToLoad;
         [SerializeField] private bool _makeActiveScene;
@@ -26,12 +26,15 @@ namespace SBR.Startup {
             string sceneToLoad = ParamSceneToLoad.GetOrDefault(arguments, _defaultSceneToLoad.Name);
             AsyncOperation operation = SceneLoadingManager.Instance.LoadScene(sceneToLoad, _enableImmediately,
                                                                          _makeActiveScene, _sceneGroup);
-            if (operation == null) yield break;
+            if (operation == null) {
+                Debug.LogError($"Failed to load scene {sceneToLoad}.");
+                yield break;
+            }
             
             var level = LevelManifest.Instance.GetLevelWithSceneName(sceneToLoad);
             LoadInitialRegionsStep.ParamLoadingLevel.Set(arguments, level);
 
-            if (_enableImmediately) {
+            if (!_enableImmediately) {
                 while (operation.progress < 0.9f) {
                     yield return null;
                 }

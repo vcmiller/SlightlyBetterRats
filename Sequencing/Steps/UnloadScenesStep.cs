@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class UnloadScenesStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private SceneGroup _groupToUnload;
         

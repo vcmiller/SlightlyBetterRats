@@ -9,7 +9,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class LevelManifest : SingletonAsset<LevelManifest> {
         [SerializeField] [Expandable(false, typeof(LevelManifestLevelEntry))]
         private LevelManifestLevelEntry[] _levels;

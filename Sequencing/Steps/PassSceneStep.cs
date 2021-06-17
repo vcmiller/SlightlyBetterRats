@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class PassSceneStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private SceneRef _sceneToLoad;
         public bool IsFinished => true;

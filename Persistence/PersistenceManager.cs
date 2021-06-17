@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 
 using UnityEngine;
@@ -73,6 +74,15 @@ namespace SBR.Persistence {
             LoadedGlobalData.Initialized = true;
         }
 
+        public void UnloadGlobalData() {
+            LoadedGlobalData = null;
+            _loadedGlobalDataDirty = false;
+            LoadedProfileData = null;
+            _loadedProfileDataDirty = false;
+            LoadedStateData = null;
+            _loadedStateDataDirty = false;
+        }
+
         public void SaveGlobalData() {
             if (!_loadedGlobalDataDirty) return;
             _dataHandler.SetGlobalSaveData(_serializer, _loadedGlobalData);
@@ -81,28 +91,42 @@ namespace SBR.Persistence {
 
         public void DeleteGlobalData() {
             _dataHandler.ClearGlobalSaveData();
-            _loadedGlobalData = null;
-            _loadedGlobalDataDirty = false;
-            _loadedProfileData = null;
-            _loadedProfileDataDirty = false;
-            _loadedStateData = null;
-            _loadedStateDataDirty = false;
+            UnloadGlobalData();
+        }
+
+        public IEnumerable<string> GetAvailableProfiles() {
+            return _dataHandler.GetAvailableProfiles();
+        }
+
+        public ProfileSaveData GetProfileData(string profile) {
+            if (LoadedGlobalData == null) {
+                Debug.LogError("Trying to load profile data when global data is not loaded.");
+                return null;
+            }
+
+            return _dataHandler.GetProfileSaveData(_serializer, profile);
         }
         
         public void LoadProfileData(string profile) {
-            if (LoadedGlobalData == null) {
-                Debug.LogError("Trying to load profile data when global data is not loaded.");
-                return;
-            }
-
+            ProfileSaveData data = GetProfileData(profile);
+            if (data == null) return;
+            
             LoadedProfileData = _dataHandler.GetProfileSaveData(_serializer, profile);
             LoadedProfileData.Initialized = true;
+        }
+
+        public void UnloadProfileData() {
+            LoadedProfileData = null;
+            _loadedProfileDataDirty = false;
+            LoadedStateData = null;
+            _loadedStateDataDirty = false;
         }
 
         public void SaveProfileData() {
             if (!_loadedProfileDataDirty) return;
             _dataHandler.SetProfileSaveData(_serializer, LoadedProfileData.ProfileName, LoadedProfileData);
             _loadedProfileDataDirty = false;
+            LoadedGlobalData.MostRecentProfile = LoadedProfileData.ProfileName;
         }
 
         public void DeleteProfileData(string profile = null) {
@@ -118,21 +142,43 @@ namespace SBR.Persistence {
             bool deletingCurrentProfile = LoadedProfileData != null && LoadedProfileData.ProfileName == profile;
             _dataHandler.ClearProfileSaveData(profile);
             if (deletingCurrentProfile) {
-                _loadedProfileData = null;
-                _loadedProfileDataDirty = false;
-                _loadedStateData = null;
-                _loadedStateDataDirty = false;
+                UnloadProfileData();
             }
+        }
+
+        public IEnumerable<int> GetAvailableStates(string profile = null) {
+            if (string.IsNullOrEmpty(profile)) {
+                if (LoadedProfileData != null) {
+                    profile = LoadedProfileData.ProfileName;
+                } else {
+                    Debug.LogError("Trying to get available states no profile data is loaded.");
+                    return Enumerable.Empty<int>();
+                }
+            }
+
+            return _dataHandler.GetAvailableStates(profile);
+        }
+
+        public StateSaveData GetStateData(int stateIndex) {
+            if (LoadedProfileData == null) {
+                Debug.LogError("Trying to load state data when no profile data is loaded.");
+                return null;
+            }
+
+            return _dataHandler.GetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex);
         }
         
         public void LoadStateData(int stateIndex) {
-            if (LoadedProfileData == null) {
-                Debug.LogError("Trying to load state data when no profile data is loaded.");
-                return;
-            }
+            StateSaveData data = GetStateData(stateIndex);
+            if (data == null) return;
 
-            LoadedStateData = _dataHandler.GetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex);
+            LoadedStateData = data;
             LoadedStateData.Initialized = true;
+        }
+
+        public void UnloadStateData() {
+            LoadedStateData = null;
+            _loadedStateDataDirty = false;
         }
 
         public void SaveStateData() {
@@ -140,6 +186,7 @@ namespace SBR.Persistence {
             _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
                                           LoadedStateData);
             _loadedStateDataDirty = false;
+            LoadedProfileData.MostRecentState = LoadedStateData.StateIndex;
         }
 
         public void DeleteStateData(string profile = null, int state = -1) {
@@ -166,8 +213,7 @@ namespace SBR.Persistence {
             bool deletingCurrentState = LoadedProfileData != null && LoadedProfileData.ProfileName == profile &&
                                         LoadedStateData != null && LoadedStateData.StateIndex == state;
             if (deletingCurrentState) {
-                _loadedStateData = null;
-                _loadedStateDataDirty = false;
+                UnloadStateData();
             }
         }
 

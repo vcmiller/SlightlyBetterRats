@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class ExecutionStepSequencer : MonoBehaviour, IExecutionStep {
         [SerializeField] private bool _playOnAwake = true;
         
         private List<IExecutionStep> _steps;
+        private int _currentStep;
         
         public bool IsFinished { get; private set; }
 
@@ -26,7 +27,8 @@ namespace SBR.Startup {
         private void Awake() {
             _steps = new List<IExecutionStep>();
             for (int i = 0; i < transform.childCount; i++) {
-                if (transform.GetChild(i).TryGetComponent(out IExecutionStep step)) {
+                Transform child = transform.GetChild(i);
+                if (child.gameObject.activeSelf && child.TryGetComponent(out IExecutionStep step)) {
                     _steps.Add(step);
                 }
             }
@@ -51,6 +53,7 @@ namespace SBR.Startup {
             IsFinished = false;
             
             for (int index = 0; index < _steps.Count; index++) {
+                _currentStep = index;
                 IExecutionStep step = _steps[index];
                 step.ExecuteForward(arguments);
                 while (!step.IsFinished) {

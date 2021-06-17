@@ -137,12 +137,17 @@ namespace SBR.Persistence {
 
 #region Private Methods
         
-        private static IEnumerable<string> GetFoldersInDirectoryContainingFile(string path, string file) =>
-            new DirectoryInfo(path).EnumerateDirectories().Where(d => d.EnumerateFiles().Any(f => f.Name == file))
-                                   .Select(d => d.Name);
+        private static IEnumerable<string> GetFoldersInDirectoryContainingFile(string path, string file) {
+            if (!Directory.Exists(path)) return Enumerable.Empty<string>();
+            return new DirectoryInfo(path).EnumerateDirectories()
+                                          .Where(d => d.EnumerateFiles().Any(f => f.Name == file))
+                                          .Select(d => d.Name);
+        }
 
-        private static IEnumerable<string> GetFilesInDirectory(string path) =>
-            new DirectoryInfo(path).EnumerateFiles().Select(t => t.Name);
+        private static IEnumerable<string> GetFilesInDirectory(string path) {
+            if (!Directory.Exists(path)) return Enumerable.Empty<string>();
+            return new DirectoryInfo(path).EnumerateFiles().Select(t => t.Name);
+        }
 
         private static IEnumerable<int> ElementsAsInts(IEnumerable<string> input) {
             return input.Select(n => {

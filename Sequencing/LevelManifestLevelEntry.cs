@@ -3,7 +3,7 @@ using System.Linq;
 
 using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class LevelManifestLevelEntry : ScriptableObject {
         [SerializeField] private string _displayName;
         [SerializeField] private int _levelID;

@@ -12,6 +12,7 @@ namespace SBR.Persistence {
     public class GlobalSaveData : PersistedDataBase {
         private object _customGlobalData;
         private bool _initialized;
+        private string _mostRecentProfile;
 
         public object CustomGlobalData {
             get => _customGlobalData;
@@ -30,6 +31,15 @@ namespace SBR.Persistence {
                 NotifyStateChanged();
             }
         }
+
+        public string MostRecentProfile {
+            get => _mostRecentProfile;
+            set {
+                if (_mostRecentProfile == value) return;
+                _mostRecentProfile = value;
+                NotifyStateChanged();
+            }
+        }
     }
 
     [Serializable]
@@ -37,6 +47,7 @@ namespace SBR.Persistence {
         private string _profileName;
         private object _customProfileData;
         private bool _initialized;
+        private int _mostRecentState;
 
         public string ProfileName {
             get => _profileName;
@@ -61,6 +72,15 @@ namespace SBR.Persistence {
             set {
                 if (_initialized == value) return;
                 _initialized = value;
+                NotifyStateChanged();
+            }
+        }
+
+        public int MostRecentState {
+            get => _mostRecentState;
+            set {
+                if (_mostRecentState == value) return;
+                _mostRecentState = value;
                 NotifyStateChanged();
             }
         }

@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 
-using SBR.Startup;
+using SBR.Sequencing;
 
 using UnityEditor;
 
 using UnityEngine;
 
-namespace SBR.Editor.Startup {
+namespace SBR.Editor.Sequencing {
     [CustomEditor(typeof(LevelManifest))]
     public class LevelManifestEditor : UnityEditor.Editor {
         public override void OnInspectorGUI() {

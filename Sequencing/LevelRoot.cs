@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class LevelRoot : MonoBehaviour {
         [SerializeField] private LevelManifestLevelEntry _manifestEntry;
         public int LevelIndex => _manifestEntry.LevelID;

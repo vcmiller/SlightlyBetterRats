@@ -3,7 +3,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     [CreateAssetMenu(menuName = "SBR/Scene Group")]
     public class SceneGroup : ScriptableObject { }
 }

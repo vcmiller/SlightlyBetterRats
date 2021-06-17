@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
-using SBR.Startup;
+using SBR.Sequencing;
 
 using UnityEngine;
 
 namespace SBR.Persistence {
     public class LoadProfileSaveDataStep : MonoBehaviour, IExecutionStep {
         [SerializeField] private string _defaultProfileName = "Default";
+        [SerializeField] private bool _passMostRecentState = true;
 
         public static readonly ExecutionStepParameter<string> ParamProfileName = new ExecutionStepParameter<string>();
         
@@ -15,6 +16,10 @@ namespace SBR.Persistence {
         public void ExecuteForward(ExecutionStepArguments arguments) {
             string profileToLoad = ParamProfileName.GetOrDefault(arguments, _defaultProfileName);
             PersistenceManager.Instance.LoadProfileData(profileToLoad);
+
+            if (_passMostRecentState && PersistenceManager.Instance.LoadedProfileData?.MostRecentState >= 0) {
+                LoadStateSaveDataStep.ParamStateIndex.Set(arguments, PersistenceManager.Instance.LoadedProfileData.MostRecentState);
+            }
         }
     }
 }

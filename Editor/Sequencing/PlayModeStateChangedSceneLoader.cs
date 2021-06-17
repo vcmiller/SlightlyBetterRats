@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using SBR.Startup;
+using SBR.Sequencing;
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Editor.Startup {
+namespace SBR.Editor.Sequencing {
     [InitializeOnLoad]
     public static class PlayModeStateChangedSceneLoader {
         static PlayModeStateChangedSceneLoader() {

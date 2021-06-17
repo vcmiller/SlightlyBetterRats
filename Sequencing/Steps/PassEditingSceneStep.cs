@@ -13,7 +13,7 @@ using UnityEngine.Windows;
 
 #endif
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class PassEditingSceneStep : MonoBehaviour, IExecutionStep {
         public bool IsFinished => true;
 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SBR.Startup {
+namespace SBR.Sequencing {
     public class RegionRoot : MonoBehaviour {
         [SerializeField] private LevelManifestRegionEntry _manifestEntry;
 
