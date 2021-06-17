@@ -10,14 +10,11 @@ namespace SBR.Startup {
         [SerializeField] private SceneRef _defaultSceneToLoad;
         [SerializeField] private bool _makeActiveScene;
         [SerializeField] private bool _enableImmediately;
+        [SerializeField] private SceneGroup _sceneGroup;
 
         public static readonly ExecutionStepParameter<string> ParamSceneToLoad = new ExecutionStepParameter<string>();
         
         public bool IsFinished { get; private set; }
-
-        private AsyncOperation _operation;
-        private bool _loadingLevel;
-        private string _sceneLoading;
         
         public void ExecuteForward(ExecutionStepArguments arguments) {
             StartCoroutine(CRT_Execution(arguments));
@@ -26,49 +23,23 @@ namespace SBR.Startup {
         private IEnumerator CRT_Execution(ExecutionStepArguments arguments) {
             IsFinished = false;
 
-            _sceneLoading = ParamSceneToLoad.GetOrDefault(arguments, _defaultSceneToLoad.Name);
-            _operation = SceneManager.LoadSceneAsync(_sceneLoading, LoadSceneMode.Additive);
-            if (_operation == null) yield break;
-            _operation.allowSceneActivation = false;
+            string sceneToLoad = ParamSceneToLoad.GetOrDefault(arguments, _defaultSceneToLoad.Name);
+            AsyncOperation operation = SceneLoadingManager.Instance.LoadScene(sceneToLoad, _enableImmediately,
+                                                                         _makeActiveScene, _sceneGroup);
+            if (operation == null) yield break;
             
-            var level = LevelManifest.Instance.GetLevelWithSceneName(_sceneLoading);
-            _loadingLevel = level != null;
+            var level = LevelManifest.Instance.GetLevelWithSceneName(sceneToLoad);
             LoadInitialRegionsStep.ParamLoadingLevel.Set(arguments, level);
-            
-            while (_operation.progress < 0.9f) {
-                yield return null;
-            }
 
             if (_enableImmediately) {
-                yield return EnableSceneCRT();
+                while (operation.progress < 0.9f) {
+                    yield return null;
+                }
+            } else {
+                yield return operation;
             }
 
             IsFinished = true;
-        }
-
-        public void EnableScene() => EnableSceneCRT();
-
-        public Coroutine EnableSceneCRT() {
-            if (_operation == null || _operation.allowSceneActivation) return null;
-            _operation.allowSceneActivation = true;
-            
-            return StartCoroutine(CRT_ActivateScene(_makeActiveScene));
-        }
-
-        private IEnumerator CRT_ActivateScene(bool makeActive) {
-            yield return _operation;
-
-            var scene = SceneManager.GetSceneByName(_sceneLoading);
-            if (_makeActiveScene) {
-                SceneManager.SetActiveScene(scene);
-            }
-            if (_loadingLevel) {
-                foreach (GameObject obj in scene.GetRootGameObjects()) {
-                    if (!obj.TryGetComponentInChildren(out LevelRoot level)) continue;
-                    level.Initialize();
-                    break;
-                }
-            }
         }
     }
 }

@@ -47,6 +47,10 @@ namespace SBR.Persistence {
             SaveDataToFile(serializer, path, globalData);
         }
 
+        public override void ClearGlobalSaveData() {
+            DeleteFileOrFolder(GlobalDataFolder);
+        }
+
         public override IEnumerable<string> GetAvailableProfiles() {
             return GetFoldersInDirectoryContainingFile(GlobalDataFolder, _globalDataFile);
         }
@@ -61,6 +65,10 @@ namespace SBR.Persistence {
         public override void SetProfileSaveData(Serializer serializer, string profile, ProfileSaveData profileData) {
             string path = GetProfileDataFile(profile);
             SaveDataToFile(serializer, path, profileData);
+        }
+
+        public override void ClearProfileSaveData(string profile) {
+            DeleteFileOrFolder(GetProfileDataFolder(profile));
         }
 
         public override IEnumerable<int> GetAvailableStates(string profile) {
@@ -80,6 +88,10 @@ namespace SBR.Persistence {
             SaveDataToFile(serializer, path, stateData);
         }
 
+        public override void ClearStateSaveData(string profile, int state) {
+            DeleteFileOrFolder(GetStateDataFolder(profile, state));
+        }
+
         public override IEnumerable<int> GetAvailableLevels(string profile, int state) {
             return ElementsAsInts(
                 GetFoldersInDirectoryContainingFile(GetStateDataFolder(profile, state), _levelDataFile));
@@ -95,6 +107,10 @@ namespace SBR.Persistence {
         public override void SetLevelSaveData(Serializer serializer, string profile, int state, int level, LevelSaveData levelData) {
             string path = GetLevelDataFile(profile, state, level);
             SaveDataToFile(serializer, path, levelData);
+        }
+
+        public override void ClearLevelSaveData(string profile, int state, int level) {
+            DeleteFileOrFolder(GetLevelDataFolder(profile, state, level));
         }
 
         public override IEnumerable<int> GetAvailableRegions(string profile, int state, int level) {
@@ -113,6 +129,10 @@ namespace SBR.Persistence {
                                                RegionSaveData regionData) {
             string path = GetRegionDataFile(profile, state, level, region);
             SaveDataToFile(serializer, path, regionData);
+        }
+
+        public override void ClearRegionSaveData(string profile, int state, int level, int region) {
+            DeleteFileOrFolder(GetRegionDataFile(profile, state, level, region));
         }
 
 #region Private Methods
@@ -165,7 +185,16 @@ namespace SBR.Persistence {
                 Debug.LogException(ex);
             }
         }
-        
+
+        private static void DeleteFileOrFolder(string path) {
+            if (File.Exists(path)) {
+                File.Delete(path);
+            }
+
+            if (Directory.Exists(path)) {
+                Directory.Delete(path, true);
+            }
+        }
 #endregion
     }
 }

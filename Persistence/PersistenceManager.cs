@@ -6,24 +6,9 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 namespace SBR.Persistence {
-    public class PersistenceManager : MonoBehaviour {
+    public class PersistenceManager : Singleton<PersistenceManager> {
         [SerializeField] private Serializer _serializer;
         [SerializeField] private SaveDataHandler _dataHandler;
-
-        private static PersistenceManager _instance;
-        public static PersistenceManager Instance {
-            get {
-                if (_instance == null) {
-                    _instance = FindObjectOfType<PersistenceManager>();
-                    if (_instance == null) {
-                        Debug.LogError("No persistence manager!");
-                        SceneControl.Quit();
-                    }
-                }
-
-                return _instance;
-            }
-        }
 
         private GlobalSaveData _loadedGlobalData = null;
         private bool _loadedGlobalDataDirty = false;
@@ -93,6 +78,16 @@ namespace SBR.Persistence {
             _dataHandler.SetGlobalSaveData(_serializer, _loadedGlobalData);
             _loadedGlobalDataDirty = false;
         }
+
+        public void DeleteGlobalData() {
+            _dataHandler.ClearGlobalSaveData();
+            _loadedGlobalData = null;
+            _loadedGlobalDataDirty = false;
+            _loadedProfileData = null;
+            _loadedProfileDataDirty = false;
+            _loadedStateData = null;
+            _loadedStateDataDirty = false;
+        }
         
         public void LoadProfileData(string profile) {
             if (LoadedGlobalData == null) {
@@ -108,6 +103,26 @@ namespace SBR.Persistence {
             if (!_loadedProfileDataDirty) return;
             _dataHandler.SetProfileSaveData(_serializer, LoadedProfileData.ProfileName, LoadedProfileData);
             _loadedProfileDataDirty = false;
+        }
+
+        public void DeleteProfileData(string profile = null) {
+            if (string.IsNullOrEmpty(profile)) {
+                if (LoadedProfileData != null) {
+                    profile = LoadedProfileData.ProfileName;
+                } else {
+                    Debug.LogError("Trying to delete current profile data when no profile data is loaded.");
+                    return;
+                }
+            }
+
+            bool deletingCurrentProfile = LoadedProfileData != null && LoadedProfileData.ProfileName == profile;
+            _dataHandler.ClearProfileSaveData(profile);
+            if (deletingCurrentProfile) {
+                _loadedProfileData = null;
+                _loadedProfileDataDirty = false;
+                _loadedStateData = null;
+                _loadedStateDataDirty = false;
+            }
         }
         
         public void LoadStateData(int stateIndex) {
@@ -125,6 +140,35 @@ namespace SBR.Persistence {
             _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
                                           LoadedStateData);
             _loadedStateDataDirty = false;
+        }
+
+        public void DeleteStateData(string profile = null, int state = -1) {
+            if (string.IsNullOrEmpty(profile)) {
+                if (state == -1) {
+                    Debug.LogError("Trying to delete current state on a specified profile. This is not allowed.");
+                    return;
+                } else if (LoadedProfileData == null) {
+                    Debug.LogError("Trying to delete current profile state data when no profile data is loaded.");
+                    return;
+                } else {
+                    profile = LoadedProfileData.ProfileName;
+                } 
+            }
+
+            if (state < 0) {
+                if (LoadedStateData == null) {
+                    Debug.LogError("Trying to delete current profile state data when no state data is loaded.");
+                } else {
+                    state = LoadedStateData.StateIndex;
+                }
+            }
+            
+            bool deletingCurrentState = LoadedProfileData != null && LoadedProfileData.ProfileName == profile &&
+                                        LoadedStateData != null && LoadedStateData.StateIndex == state;
+            if (deletingCurrentState) {
+                _loadedStateData = null;
+                _loadedStateDataDirty = false;
+            }
         }
 
         public LevelSaveData GetLevelData(int levelIndex) {

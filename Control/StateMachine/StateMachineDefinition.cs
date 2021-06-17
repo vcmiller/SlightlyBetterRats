@@ -27,7 +27,7 @@ using System;
 using System.Text.RegularExpressions;
 
 namespace SBR {
-    [CreateAssetMenu(menuName = "State Machine Definition")]
+    [CreateAssetMenu(menuName = "SBR/State Machine")]
     public class StateMachineDefinition : ScriptableObject {
         [Serializable]
         public class State {

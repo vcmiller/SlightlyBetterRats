@@ -27,7 +27,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace SBR.StateSystem {
-    [CreateAssetMenu]
+    [CreateAssetMenu(menuName = "SBR/Component Override")]
     public class ComponentOverride : ScriptableObject {
         [TypeSelect(typeof(Component), true, true, true)]
         [FormerlySerializedAs("typeName")] [SerializeField]

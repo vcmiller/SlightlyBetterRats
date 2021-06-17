@@ -29,7 +29,7 @@ namespace SBR {
     /// <summary>
     /// An asset used to control the appearance of a SplineMesh.
     /// </summary>
-    [CreateAssetMenu(fileName = "NewProfile", menuName = "Spline Mesh Profile")]
+    [CreateAssetMenu(menuName = "SBR/Spline Mesh Profile")]
     public class SplineMeshProfile : ScriptableObject {
         /// <summary>
         /// Invoked when the profile changes and thus the mesh needs to update.

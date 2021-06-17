@@ -71,6 +71,7 @@ namespace SBR.Persistence {
         private int _stateIndex;
         private object _customStateData;
         private bool _initialized;
+        private string _currentScene;
 
         public int StateIndex {
             get => _stateIndex;
@@ -95,6 +96,15 @@ namespace SBR.Persistence {
             set {
                 if (_initialized == value) return;
                 _initialized = value;
+                NotifyStateChanged();
+            }
+        }
+
+        public string CurrentScene {
+            get => _currentScene;
+            set {
+                if (_currentScene == value) return;
+                _currentScene = value;
                 NotifyStateChanged();
             }
         }
