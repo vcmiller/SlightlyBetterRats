@@ -13,6 +13,9 @@ namespace SBR.Sequencing {
         [SerializeField] private SceneGroup _defaultGroup;
 
         public bool IsUnloadingAnyScenes => _sceneGroups.Values.Any(g => g.UnloadingScenes.Count > 0);
+
+        public bool IsLoadingAnyScenes(SceneLoadingType type = SceneLoadingType.All) =>
+            _sceneGroups.Values.Any(g => g.LoadingScenes.Any(op => (op.SceneType & type) != 0));
         
         public List<AsyncOperation> LoadScenes(IEnumerable<string> scenes, bool autoActivate, SceneGroup group = null) {
             List<AsyncOperation> ops = new List<AsyncOperation>();
@@ -88,12 +91,14 @@ namespace SBR.Sequencing {
             return false;
         }
 
-        public void ActivateLoadingScenes(SceneGroup group = null) {
+        public void ActivateLoadingScenes(SceneGroup group = null, SceneLoadingType typesToActivate = SceneLoadingType.All) {
             if (!group) group = _defaultGroup;
             if (!_sceneGroups.TryGetValue(group, out SceneGroupInfo groupInfo)) return;
 
             foreach (SceneLoadingOperation op in groupInfo.LoadingScenes) {
-                op.Operation.allowSceneActivation = true;
+                if ((op.SceneType & typesToActivate) != 0) {
+                    op.Operation.allowSceneActivation = true;
+                }
             }
         }
 
@@ -151,9 +156,14 @@ namespace SBR.Sequencing {
             public SceneLoadingType SceneType { get; set; }
             public bool IsCancelled { get; set; }
         }
+    }
 
-        private enum SceneLoadingType {
-            Scene, Level, Region,
-        }
+    [Flags]
+    public enum SceneLoadingType {
+        Scene = 1 << 0,
+        Level = 1 << 1,
+        Region = 1 << 2,
+        
+        All = Scene | Level | Region,
     }
 }

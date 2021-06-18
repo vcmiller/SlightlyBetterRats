@@ -42,7 +42,7 @@ namespace SBR.Sequencing {
                 new HashSet<int>(ParamRegionsToLoad.GetOrDefault(arguments, DefaultRegionsToLoad(level)));
             
             List<AsyncOperation> regionOperations = SceneLoadingManager.Instance.LoadScenes(
-                level.Regions.Where(r => regionsToLoad.Contains(r.LevelID)).Select(r => r.Scene.Name),
+                level.Regions.Where(r => regionsToLoad.Contains(r.RegionID)).Select(r => r.Scene.Name),
                 _enableImmediately, _sceneGroup);
 
             if (_enableImmediately) {

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 
 namespace SBR.Persistence {
+    [Serializable]
     public class PersistedDataBase {
+        [field:NonSerialized]
         public event Action StateChanged;
 
         public void NotifyStateChanged() => StateChanged?.Invoke();

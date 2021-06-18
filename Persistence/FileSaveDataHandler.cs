@@ -52,7 +52,7 @@ namespace SBR.Persistence {
         }
 
         public override IEnumerable<string> GetAvailableProfiles() {
-            return GetFoldersInDirectoryContainingFile(GlobalDataFolder, _globalDataFile);
+            return GetFoldersInDirectoryContainingFile(GlobalDataFolder, _profileDataFile);
         }
 
         public override ProfileSaveData GetProfileSaveData(Serializer serializer, string profile) {
@@ -138,10 +138,22 @@ namespace SBR.Persistence {
 #region Private Methods
         
         private static IEnumerable<string> GetFoldersInDirectoryContainingFile(string path, string file) {
-            if (!Directory.Exists(path)) return Enumerable.Empty<string>();
-            return new DirectoryInfo(path).EnumerateDirectories()
-                                          .Where(d => d.EnumerateFiles().Any(f => f.Name == file))
-                                          .Select(d => d.Name);
+            if (!Directory.Exists(path)) yield break;
+
+            foreach (DirectoryInfo directoryInfo in new DirectoryInfo(path).EnumerateDirectories()) {
+                foreach (FileInfo fileInfo in directoryInfo.EnumerateFiles()) {
+                    if (fileInfo.Name != file) continue;
+                    
+                    string name = directoryInfo.Name;
+                    int underscore = name.IndexOf('_');
+                    if (underscore >= 0) {
+                        name = name.Substring(underscore + 1);
+                    }
+
+                    yield return name;
+                    break;
+                }
+            }
         }
 
         private static IEnumerable<string> GetFilesInDirectory(string path) {
