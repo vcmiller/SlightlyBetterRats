@@ -8,6 +8,8 @@ using UnityEngine;
 namespace SBR.Persistence {
     public class PersistedLevelRoot : LevelRoot {
         public LevelSaveData SaveData { get; private set; }
+        
+        public new static PersistedLevelRoot Current => LevelRoot.Current as PersistedLevelRoot;
 
         public override void Initialize() {
             base.Initialize();
