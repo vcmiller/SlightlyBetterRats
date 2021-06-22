@@ -11,7 +11,14 @@ namespace SBR.Persistence {
         
         public override void Initialize() {
             base.Initialize();
-            SaveData = PersistenceManager.Instance.GetRegionData(ManifestEntry.LevelID, ManifestEntry.RegionID);
+
+            var level = PersistedLevelRoot.Current;
+            if (!level) {
+                Debug.LogError("Trying to initialize PersistedRegionRoot with no PersistedLevelRoot.");
+                return;
+            }
+
+            SaveData = level.GetOrLoadRegionData(ManifestEntry);
         }
     }
 }

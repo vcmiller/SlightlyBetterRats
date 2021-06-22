@@ -72,6 +72,27 @@ namespace SBR.Sequencing {
             return op;
         }
 
+        private void UnloadSceneInternal(Scene scene, SceneGroupInfo groupInfo) {
+            foreach (GameObject obj in scene.GetRootGameObjects()) {
+                if (!obj.TryGetComponent(out LevelRoot level)) continue;
+                level.Cleanup();
+                break;
+            }
+            
+            foreach (GameObject obj in scene.GetRootGameObjects()) {
+                if (!obj.TryGetComponent(out RegionRoot region)) continue;
+                region.Cleanup();
+                break;
+            }
+            
+            AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
+            groupInfo.UnloadingScenes.Add(new SceneUnloadingOperation {
+                Operation = op,
+                SceneName = scene.name,
+            });
+            _sceneLoadingStates[scene.name] = SceneLoadingState.Unloading;
+        }
+
         public void UnloadScenes(SceneGroup group = null) {
             if (!group) group = _defaultGroup;
             if (!_sceneGroups.TryGetValue(group, out SceneGroupInfo groupInfo)) return;
@@ -82,21 +103,16 @@ namespace SBR.Sequencing {
             }
 
             foreach (Scene scene in groupInfo.LoadedScenes) {
-                AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
-                groupInfo.UnloadingScenes.Add(new SceneUnloadingOperation {
-                    Operation = op,
-                    SceneName = scene.name,
-                });
-                _sceneLoadingStates[scene.name] = SceneLoadingState.Unloading;
+                UnloadSceneInternal(scene, groupInfo);
             }
             groupInfo.LoadedScenes.Clear();
         }
 
         public bool UnloadScene(string sceneName) {
-            if (_sceneLoadingStates.TryGetValue(sceneName, out SceneLoadingState state) &&
-                (state == SceneLoadingState.Unloaded ||
-                 state == SceneLoadingState.Cancelled ||
-                 state == SceneLoadingState.Unloading)) {
+            if (!_sceneLoadingStates.TryGetValue(sceneName, out SceneLoadingState state) ||
+                state == SceneLoadingState.Unloaded ||
+                state == SceneLoadingState.Cancelled ||
+                state == SceneLoadingState.Unloading) {
                 return false;
             }
 
@@ -105,13 +121,9 @@ namespace SBR.Sequencing {
                     for (int index = 0; index < groupInfo.LoadedScenes.Count; index++) {
                         Scene scene = groupInfo.LoadedScenes[index];
                         if (scene.name != sceneName) continue;
-
-                        groupInfo.LoadedScenes.Remove(scene);
-                        AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
-                        groupInfo.UnloadingScenes.Add(new SceneUnloadingOperation {
-                            Operation = op,
-                            SceneName = scene.name,
-                        });
+                        UnloadSceneInternal(scene, groupInfo);
+                        groupInfo.LoadedScenes.RemoveAt(index);
+                        
                         return true;
                     }
                 }

@@ -10,6 +10,7 @@ namespace SBR.Sequencing {
         public bool IsFinished => true;
         
         public void ExecuteForward(ExecutionStepArguments arguments) {
+            Debug.Log($"InstantEvent execute: {name}", this);
             _onExecute?.Invoke();
         }
     }

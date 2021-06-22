@@ -18,11 +18,11 @@ namespace SBR.Sequencing {
         public LevelManifestLevelEntry ManifestEntry => _manifestEntry;
         public IReadOnlyList<RegionRoot> LoadedRegions => _loadedRegions;
 
-        internal void RegisterRegion(RegionRoot region) {
+        internal virtual void RegisterRegion(RegionRoot region) {
             _loadedRegions.Add(region);
         }
 
-        internal void DeregisterRegion(RegionRoot region) {
+        internal virtual void DeregisterRegion(RegionRoot region) {
             _loadedRegions.Remove(region);
         }
 
@@ -35,18 +35,26 @@ namespace SBR.Sequencing {
             Current = this;
         }
 
-        public virtual void OnDestroy() {
+        public virtual void Cleanup() {
             if (Current == this) {
                 Current = null;
             }
         }
 
-        public bool LoadRegion(LevelManifestRegionEntry regionEntry, SceneGroup group = null) {
+        public virtual bool LoadRegion(LevelManifestRegionEntry regionEntry, SceneGroup group = null) {
+            if (regionEntry.AlwaysLoaded) {
+                Debug.LogError($"Region {regionEntry.name} is always loaded, and cannot be passed as an argument to LoadRegion.");
+                return false;
+            }
             AsyncOperation op = SceneLoadingManager.Instance.LoadScene(regionEntry.Scene.Name, true, false, group);
             return op != null;
         }
 
-        public bool UnloadRegion(LevelManifestRegionEntry regionEntry) {
+        public virtual bool UnloadRegion(LevelManifestRegionEntry regionEntry) {
+            if (regionEntry.AlwaysLoaded) {
+                Debug.LogError($"Region {regionEntry.name} is always loaded, and cannot be passed as an argument to UnloadRegion.");
+                return false;
+            }
             return SceneLoadingManager.Instance.UnloadScene(regionEntry.Scene.Name);
         }
     }

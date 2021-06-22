@@ -112,7 +112,7 @@ namespace SBR {
                 RaycastHit hit;
 
                 if (Physics.SphereCast(transform.position, _camera.nearClipPlane, -transform.forward, 
-                    out hit, targetLength + _camera.nearClipPlane, blocking)) {
+                    out hit, targetLength + _camera.nearClipPlane, blocking, QueryTriggerInteraction.Ignore)) {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
                 } else {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -targetLength);

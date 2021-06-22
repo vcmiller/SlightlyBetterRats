@@ -106,6 +106,15 @@ namespace SBR.Persistence {
 
             return _dataHandler.GetProfileSaveData(_serializer, profile);
         }
+
+        public void SetProfileData(string profile, ProfileSaveData data) {
+            if (LoadedGlobalData == null) {
+                Debug.LogError("Trying to save profile data when global data is not loaded.");
+                return;
+            }
+
+            _dataHandler.SetProfileSaveData(_serializer, profile, data);
+        }
         
         public void LoadProfileData(string profile) {
             ProfileSaveData data = GetProfileData(profile);
@@ -167,6 +176,15 @@ namespace SBR.Persistence {
 
             return _dataHandler.GetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex);
         }
+
+        public void SetStateData(int stateIndex, StateSaveData state) {
+            if (LoadedProfileData == null) {
+                Debug.LogError("Trying to save state data when no profile data is loaded.");
+                return;
+            }
+
+            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex, state);
+        }
         
         public void LoadStateData(int stateIndex) {
             StateSaveData data = GetStateData(stateIndex);
@@ -227,15 +245,36 @@ namespace SBR.Persistence {
                                                  levelIndex);
         }
 
+        public void SetLevelData(int levelIndex, LevelSaveData level) {
+            if (LoadedStateData == null) {
+                Debug.LogError("Trying to save level data when no state data is loaded.");
+                return;
+            }
+
+            _dataHandler.SetLevelSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
+                                          levelIndex, level);
+        }
+
         public RegionSaveData GetRegionData(int levelIndex, int regionIndex) {
             if (LoadedStateData == null) {
-                Debug.LogError("Trying to load level data when no state data is loaded.");
+                Debug.LogError("Trying to load region data when no state data is loaded.");
                 return null;
             }
 
             return _dataHandler.GetRegionSaveData(_serializer, LoadedProfileData.ProfileName,
                                                   LoadedStateData.StateIndex,
                                                   levelIndex, regionIndex);
+        }
+
+        public void SetRegionData(int levelIndex, int regionIndex, RegionSaveData regionData) {
+            if (LoadedStateData == null) {
+                Debug.LogError("Trying to save region data when no state data is loaded.");
+                return;
+            }
+
+            _dataHandler.SetRegionSaveData(_serializer, LoadedProfileData.ProfileName,
+                                           LoadedStateData.StateIndex,
+                                           levelIndex, regionIndex, regionData);
         }
     }
 }
