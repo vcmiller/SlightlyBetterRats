@@ -32,6 +32,13 @@ namespace SBR.Sequencing {
             }
             
             var level = LevelManifest.Instance.GetLevelWithSceneName(sceneToLoad);
+
+            var loading = LoadingScreen.Instance;
+            if (loading) {
+                loading.SetProgressSource(operation);
+                loading.SetText(level ? "Loading Level..." : "Loading...");
+            }
+            
             LoadInitialRegionsStep.ParamLoadingLevel.Set(arguments, level);
 
             if (!_enableImmediately) {

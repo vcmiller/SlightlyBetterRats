@@ -45,6 +45,12 @@ namespace SBR.Sequencing {
                 level.Regions.Where(r => regionsToLoad.Contains(r.RegionID)).Select(r => r.Scene.Name),
                 _enableImmediately, _sceneGroup);
 
+            var loading = LoadingScreen.Instance;
+            if (loading && regionOperations.Count > 0) {
+                loading.SetText("Loading Regions...");
+                loading.SetProgressSource(regionOperations);
+            }
+
             if (_enableImmediately) {
                 foreach (AsyncOperation operation in regionOperations) {
                     yield return operation;
