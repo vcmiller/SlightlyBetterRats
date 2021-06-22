@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace SBR {
     public class ProgressBar : MonoBehaviour {
         [SerializeField] private Image _fillImage;
-        [SerializeField] private float _fillAmount = 0.5f;
+        [SerializeField] [Range(0, 1)] private float _fillAmount = 0.5f;
         [SerializeField] private TMP_Text _percentText;
 
         private RectTransform _fillRect;
@@ -19,7 +19,7 @@ namespace SBR {
             get => _fillAmount;
             set {
                 if (_fillAmount == value) return;
-                _fillAmount = value;
+                _fillAmount = Mathf.Clamp01(value);
                 UpdateUI();
             }
         }
@@ -40,7 +40,7 @@ namespace SBR {
                 _fillRect.anchorMax = new Vector2(_fillAmount, 1);
             }
 
-            if (_percentText) _percentText.text = $"{_fillAmount}%";
+            if (_percentText) _percentText.text = $"{Mathf.RoundToInt(_fillAmount * 100)}%";
         }
 
         private void OnValidate() {
