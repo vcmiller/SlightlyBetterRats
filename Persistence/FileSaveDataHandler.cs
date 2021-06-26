@@ -8,10 +8,10 @@ using UnityEngine;
 namespace SBR.Persistence {
     public class FileSaveDataHandler : SaveDataHandler {
         [SerializeField] private string _globalDataFolder = "SaveData/";
-        [SerializeField] private string _globalDataFile = "Global.dat";
-        [SerializeField] private string _profileDataFile = "Profile.dat";
-        [SerializeField] private string _stateDataFile = "State.dat";
-        [SerializeField] private string _levelDataFile = "Level.dat";
+        [SerializeField] private string _globalDataFile = "Global.json";
+        [SerializeField] private string _profileDataFile = "Profile.json";
+        [SerializeField] private string _stateDataFile = "State.json";
+        [SerializeField] private string _levelDataFile = "Level.json";
 
         public string GlobalDataFolder => Path.Combine(Application.persistentDataPath, _globalDataFolder);
         public string GlobalDataFile => Path.Combine(GlobalDataFolder, _globalDataFile);
@@ -22,20 +22,20 @@ namespace SBR.Persistence {
         public string GetProfileDataFile(string profile) =>
             Path.Combine(GetProfileDataFolder(profile), _profileDataFile);
 
-        public string GetStateDataFolder(string profile, int state) =>
+        public string GetStateDataFolder(string profile, string state) =>
             Path.Combine(GetProfileDataFolder(profile), $"State_{state}");
 
-        public string GetStateDataFile(string profile, int state) =>
+        public string GetStateDataFile(string profile, string state) =>
             Path.Combine(GetStateDataFolder(profile, state), _stateDataFile);
 
-        public string GetLevelDataFolder(string profile, int state, int level) =>
+        public string GetLevelDataFolder(string profile, string state, int level) =>
             Path.Combine(GetStateDataFolder(profile, state), $"Level_{level}");
 
-        public string GetLevelDataFile(string profile, int state, int level) =>
+        public string GetLevelDataFile(string profile, string state, int level) =>
             Path.Combine(GetLevelDataFolder(profile, state, level), _levelDataFile);
 
-        public string GetRegionDataFile(string profile, int state, int level, int region) =>
-            Path.Combine(GetLevelDataFolder(profile, state, level), $"Region_{region}");
+        public string GetRegionDataFile(string profile, string state, int level, int region) =>
+            Path.Combine(GetLevelDataFolder(profile, state, level), $"Region_{region}.json");
 
         public override GlobalSaveData GetGlobalSaveData(Serializer serializer) {
             string path = GlobalDataFile;
@@ -71,67 +71,66 @@ namespace SBR.Persistence {
             DeleteFileOrFolder(GetProfileDataFolder(profile));
         }
 
-        public override IEnumerable<int> GetAvailableStates(string profile) {
-            return ElementsAsInts(
-                GetFoldersInDirectoryContainingFile(GetProfileDataFolder(profile), _stateDataFile));
+        public override IEnumerable<string> GetAvailableStates(string profile) {
+            return GetFoldersInDirectoryContainingFile(GetProfileDataFolder(profile), _stateDataFile);
         }
 
-        public override StateSaveData GetStateSaveData(Serializer serializer, string profile, int state) {
+        public override StateSaveData GetStateSaveData(Serializer serializer, string profile, string state) {
             string path = GetStateDataFile(profile, state);
             return LoadDataFromFile<StateSaveData>(serializer, path) ?? new StateSaveData {
-                StateIndex = state,
+                StateName = state,
             };
         }
 
-        public override void SetStateSaveData(Serializer serializer, string profile, int state, StateSaveData stateData) {
+        public override void SetStateSaveData(Serializer serializer, string profile, string state, StateSaveData stateData) {
             string path = GetStateDataFile(profile, state);
             SaveDataToFile(serializer, path, stateData);
         }
 
-        public override void ClearStateSaveData(string profile, int state) {
+        public override void ClearStateSaveData(string profile, string state) {
             DeleteFileOrFolder(GetStateDataFolder(profile, state));
         }
 
-        public override IEnumerable<int> GetAvailableLevels(string profile, int state) {
+        public override IEnumerable<int> GetAvailableLevels(string profile, string state) {
             return ElementsAsInts(
                 GetFoldersInDirectoryContainingFile(GetStateDataFolder(profile, state), _levelDataFile));
         }
 
-        public override LevelSaveData GetLevelSaveData(Serializer serializer, string profile, int state, int level) {
+        public override LevelSaveData GetLevelSaveData(Serializer serializer, string profile, string state, int level) {
             string path = GetLevelDataFile(profile, state, level);
             return LoadDataFromFile<LevelSaveData>(serializer, path) ?? new LevelSaveData {
                 LevelIndex = level,
             };
         }
 
-        public override void SetLevelSaveData(Serializer serializer, string profile, int state, int level, LevelSaveData levelData) {
+        public override void SetLevelSaveData(Serializer serializer, string profile, string state, int level, LevelSaveData levelData) {
             string path = GetLevelDataFile(profile, state, level);
             SaveDataToFile(serializer, path, levelData);
         }
 
-        public override void ClearLevelSaveData(string profile, int state, int level) {
+        public override void ClearLevelSaveData(string profile, string state, int level) {
             DeleteFileOrFolder(GetLevelDataFolder(profile, state, level));
         }
 
-        public override IEnumerable<int> GetAvailableRegions(string profile, int state, int level) {
+        public override IEnumerable<int> GetAvailableRegions(string profile, string state, int level) {
             return ElementsAsInts(GetFilesInDirectory(GetLevelDataFolder(profile, state, level))
                                       .Select(Path.GetFileNameWithoutExtension));
         }
 
-        public override RegionSaveData GetRegionSaveData(Serializer serializer, string profile, int state, int level, int region) {
+        public override RegionSaveData GetRegionSaveData(Serializer serializer, string profile, string state, int level, int region) {
             string path = GetRegionDataFile(profile, state, level, region);
             return LoadDataFromFile<RegionSaveData>(serializer, path) ?? new RegionSaveData {
                 RegionIndex = region,
             };
         }
 
-        public override void SetRegionSaveData(Serializer serializer, string profile, int state, int level, int region,
+        public override void SetRegionSaveData(Serializer serializer, string profile, string state, int level, int region,
                                                RegionSaveData regionData) {
             string path = GetRegionDataFile(profile, state, level, region);
             SaveDataToFile(serializer, path, regionData);
         }
 
-        public override void ClearRegionSaveData(string profile, int state, int level, int region) {
+        public override void ClearRegionSaveData(string profile, string state, int level, int region) {
             DeleteFileOrFolder(GetRegionDataFile(profile, state, level, region));
         }
 

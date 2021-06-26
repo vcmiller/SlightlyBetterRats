@@ -155,39 +155,39 @@ namespace SBR.Persistence {
             }
         }
 
-        public IEnumerable<int> GetAvailableStates(string profile = null) {
+        public IEnumerable<string> GetAvailableStates(string profile = null) {
             if (string.IsNullOrEmpty(profile)) {
                 if (LoadedProfileData != null) {
                     profile = LoadedProfileData.ProfileName;
                 } else {
                     Debug.LogError("Trying to get available states no profile data is loaded.");
-                    return Enumerable.Empty<int>();
+                    return Enumerable.Empty<string>();
                 }
             }
 
             return _dataHandler.GetAvailableStates(profile);
         }
 
-        public StateSaveData GetStateData(int stateIndex) {
+        public StateSaveData GetStateData(string stateName) {
             if (LoadedProfileData == null) {
                 Debug.LogError("Trying to load state data when no profile data is loaded.");
                 return null;
             }
 
-            return _dataHandler.GetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex);
+            return _dataHandler.GetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateName);
         }
 
-        public void SetStateData(int stateIndex, StateSaveData state) {
+        public void SetStateData(string stateName, StateSaveData state) {
             if (LoadedProfileData == null) {
                 Debug.LogError("Trying to save state data when no profile data is loaded.");
                 return;
             }
 
-            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateIndex, state);
+            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateName, state);
         }
         
-        public void LoadStateData(int stateIndex) {
-            StateSaveData data = GetStateData(stateIndex);
+        public void LoadStateData(string stateName) {
+            StateSaveData data = GetStateData(stateName);
             if (data == null) return;
 
             LoadedStateData = data;
@@ -201,15 +201,15 @@ namespace SBR.Persistence {
 
         public void SaveStateData() {
             if (!_loadedStateDataDirty) return;
-            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
+            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateName,
                                           LoadedStateData);
             _loadedStateDataDirty = false;
-            LoadedProfileData.MostRecentState = LoadedStateData.StateIndex;
+            LoadedProfileData.MostRecentState = LoadedStateData.StateName;
         }
 
-        public void DeleteStateData(string profile = null, int state = -1) {
+        public void DeleteStateData(string profile = null, string state = null) {
             if (string.IsNullOrEmpty(profile)) {
-                if (state == -1) {
+                if (string.IsNullOrEmpty(state)) {
                     Debug.LogError("Trying to delete current state on a specified profile. This is not allowed.");
                     return;
                 } else if (LoadedProfileData == null) {
@@ -220,16 +220,16 @@ namespace SBR.Persistence {
                 } 
             }
 
-            if (state < 0) {
+            if (string.IsNullOrEmpty(state)) {
                 if (LoadedStateData == null) {
                     Debug.LogError("Trying to delete current profile state data when no state data is loaded.");
                 } else {
-                    state = LoadedStateData.StateIndex;
+                    state = LoadedStateData.StateName;
                 }
             }
             
             bool deletingCurrentState = LoadedProfileData != null && LoadedProfileData.ProfileName == profile &&
-                                        LoadedStateData != null && LoadedStateData.StateIndex == state;
+                                        LoadedStateData != null && LoadedStateData.StateName == state;
             if (deletingCurrentState) {
                 UnloadStateData();
             }
@@ -241,7 +241,7 @@ namespace SBR.Persistence {
                 return null;
             }
 
-            return _dataHandler.GetLevelSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
+            return _dataHandler.GetLevelSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateName,
                                                  levelIndex);
         }
 
@@ -251,7 +251,7 @@ namespace SBR.Persistence {
                 return;
             }
 
-            _dataHandler.SetLevelSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateIndex,
+            _dataHandler.SetLevelSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateName,
                                           levelIndex, level);
         }
 
@@ -262,7 +262,7 @@ namespace SBR.Persistence {
             }
 
             return _dataHandler.GetRegionSaveData(_serializer, LoadedProfileData.ProfileName,
-                                                  LoadedStateData.StateIndex,
+                                                  LoadedStateData.StateName,
                                                   levelIndex, regionIndex);
         }
 
@@ -273,8 +273,26 @@ namespace SBR.Persistence {
             }
 
             _dataHandler.SetRegionSaveData(_serializer, LoadedProfileData.ProfileName,
-                                           LoadedStateData.StateIndex,
+                                           LoadedStateData.StateName,
                                            levelIndex, regionIndex, regionData);
+        }
+
+        public bool GetCustomData<T>(PersistedDataBase parent, string key, out T result) where T : new() {
+            object current = parent.GetCustomData(key);
+            if (current == null) {
+                result = new T();
+                parent.SetCustomData(key, result);
+                return true;
+            } else if (current is T t) {
+                result = t;
+                return true;
+            } else if (_serializer.IntermediateToObject(current, out result)) {
+                parent.SetCustomData(key, result);
+                return true;
+            }
+
+            result = default;
+            return false;
         }
     }
 }

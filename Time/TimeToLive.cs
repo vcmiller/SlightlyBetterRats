@@ -53,7 +53,7 @@ namespace SBR {
 
             if (timeToLive <= 0) {
                 if (spawnOnDeath) {
-                    Spawnable.Spawn(spawnOnDeath, transform.position, transform.rotation);
+                    Spawnable.Spawn(spawnOnDeath, transform.position, transform.rotation, scene:gameObject.scene);
                 }
                 Spawnable.Despawn(gameObject);
             }

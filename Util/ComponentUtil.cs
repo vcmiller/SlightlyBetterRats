@@ -23,6 +23,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SBR {
     public static class ComponentUtil {
@@ -93,10 +94,12 @@ namespace SBR {
         /// <param name="position">The position.</param>
         /// <param name="rotation">The rotation.</param>
         /// <param name="scale">The scale.</param>
+        /// <param name="parent"></param>
         /// <param name="inWorldSpace">Whether the given position, rotation, and scale should be considered global.</param>
+        /// <param name="scene"></param>
         public static void Initialize(this Transform transform, 
-            Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
-            Transform parent = null, bool inWorldSpace = false) {
+                                      Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
+                                      Transform parent = null, bool inWorldSpace = false, Scene? scene = null) {
 
             if (inWorldSpace) {
                 transform.SetParent(null, false);
@@ -105,6 +108,10 @@ namespace SBR {
             } else {
                 transform.SetParent(parent, false);
                 transform.Initialize(position, rotation, scale);
+            }
+
+            if (scene.HasValue && parent == null) {
+                SceneManager.MoveGameObjectToScene(transform.gameObject, scene.Value);
             }
         }
 
@@ -115,9 +122,7 @@ namespace SBR {
         /// <param name="position">The local position.</param>
         /// <param name="rotation">The local rotation.</param>
         /// <param name="scale">The local scale.</param>
-        public static void Initialize(this Transform transform,
-            Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null) {
-
+        private static void Initialize(this Transform transform, Vector3? position, Quaternion? rotation, Vector3? scale) {
             if (position != null) transform.localPosition = position.Value;
             if (rotation != null) transform.localRotation = rotation.Value;
             if (scale != null) transform.localScale = scale.Value;

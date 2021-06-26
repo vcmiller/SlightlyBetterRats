@@ -1,16 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+
+using SBR.Sequencing;
+
 using UnityEngine;
-using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace SBR.Sequencing {
-    public class InstantEventStep : MonoBehaviour, IExecutionStep {
-        [SerializeField] private UnityEvent _onExecute;
-        
+    public class ClearUnusedResourcesStep : MonoBehaviour, IExecutionStep {
         public bool IsFinished => true;
-        
         public void ExecuteForward(ExecutionStepArguments arguments) {
-            _onExecute?.Invoke();
+            Resources.UnloadUnusedAssets();
         }
     }
+
 }

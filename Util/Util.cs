@@ -21,16 +21,15 @@
 // SOFTWARE.
 
 using UnityEngine;
-using System.Collections;
 using UnityEngine.Audio;
 using System.Text.RegularExpressions;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
-
-using Object = UnityEngine.Object;
+using System.Text;
 
 namespace SBR {
     /// <summary>
@@ -177,6 +176,85 @@ namespace SBR {
             }
 
             return null;
+        }
+
+        public static T DeepCopy<T>(this T obj) {
+            using var ms = new MemoryStream();
+            
+            var formatter = new BinaryFormatter();
+            formatter.Serialize(ms, obj);
+            ms.Position = 0;
+
+            return (T) formatter.Deserialize(ms);
+        }
+
+        public static string GetRelativeTransformPath(this Transform from, Transform to) {
+            StringBuilder builder = new StringBuilder();
+
+            Transform current = to;
+            bool first = true;
+            
+            while (current && current != from) {
+                if (current) {
+                    builder.Insert(0, first ? $"/{current.name}" : current.name);
+                }
+                current = current.parent;
+                first = false;
+            }
+
+            if (current != from) {
+                Debug.LogError($"GetRelativeTransformPath did not find parent {from.name}.");
+                return null;
+            }
+
+            return builder.ToString();
+        }
+
+        public static Transform GetTransformAtRelativePath(this Transform from, string path) {
+            string[] parts = path.Split('/');
+            Transform current = from;
+
+            foreach (string part in parts) {
+                current = from.Find(part);
+                if (current == null) return null;
+            }
+
+            return current;
+        }
+
+        private static byte[] _randBuf = new byte[8];
+        public static long NextLong(this System.Random random, long min, long max) {
+            ulong uRange = (ulong)(max - min);
+            ulong ulongRand;
+            do
+            {
+                random.NextBytes(_randBuf);
+                ulongRand = (ulong)BitConverter.ToInt64(_randBuf, 0);
+            } while (ulongRand > ulong.MaxValue - ((ulong.MaxValue % uRange) + 1) % uRange);
+
+            return (long)(ulongRand % uRange) + min;
+        }
+        
+        public static ulong NextUlong(this System.Random random) {
+            random.NextBytes(_randBuf);
+            return BitConverter.ToUInt64(_randBuf, 0);
+        }
+
+        public delegate bool SelectWhereDelegate<in T1, T2>(T1 input, out T2 output);
+        public static IEnumerable<T2> SelectWhere<T1, T2>(this IEnumerable<T1> input,
+                                                          SelectWhereDelegate<T1, T2> selectionDelegate) {
+            foreach (T1 item in input) {
+                if (selectionDelegate(item, out T2 value)) yield return value;
+            }
+        }
+        
+        public static T2 FirstOrDefaultWhere<T1, T2>(this IEnumerable<T1> input,
+                                                          SelectWhereDelegate<T1, T2> selectionDelegate) {
+            foreach (T1 item in input) {
+                if (selectionDelegate(item, out T2 value)) return value;
+            }
+
+            return default;
         }
     }
 }

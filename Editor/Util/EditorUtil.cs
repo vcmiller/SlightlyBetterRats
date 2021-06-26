@@ -26,9 +26,13 @@ using UnityEngine;
 using UnityEditor;
 using System.Reflection;
 using System;
+using System.IO;
+
+using Object = UnityEngine.Object;
 
 namespace SBR.Editor {
     public static class EditorUtil {
+        private const string ResourceFolder = "Resources/";
         private static BuildTargetGroup[] buildTargetGroups = new BuildTargetGroup[] {
             BuildTargetGroup.Standalone,
             BuildTargetGroup.Android,
@@ -175,6 +179,22 @@ namespace SBR.Editor {
             foreach (var group in buildTargetGroups) {
                 SetSymbolDefined(symbol, value, group);
             }
+        }
+
+        public static string GetResourcePath(Object obj) {
+            string path = AssetDatabase.GetAssetPath(obj);
+            if (string.IsNullOrEmpty(path)) return null;
+            return GetResourcePath(path);
+        }
+
+        public static string GetResourcePath(string path) {
+            int index = path.LastIndexOf(ResourceFolder, StringComparison.Ordinal);
+            if (index < 0) return null;
+            
+            path = path.Substring(index + ResourceFolder.Length);
+            path = Path.ChangeExtension(path, null);
+
+            return path;
         }
     }
 }

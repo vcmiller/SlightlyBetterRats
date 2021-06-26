@@ -1,12 +1,17 @@
 ﻿using System;
+
+using SBR.Persistence;
+
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.SceneManagement;
 
 namespace SBR {
     public class Spawnable : MonoBehaviour {
         public bool IsSpawned { get; private set; }
         internal int PoolID { get; set; } = -1;
         internal int InstanceID { get; set; } = -1;
+        public Spawnable Prefab => InstanceID < 0 || PoolID < 0 ? null : PoolManager.Instance.GetPrefab(PoolID);
 
         public event Action<Spawnable> Spawned;
         public event Action<Spawnable> Despawned;
@@ -29,9 +34,9 @@ namespace SBR {
         }
 
         public static Spawnable Spawn(Spawnable prefab, Vector3? position = null, Quaternion? rotation = null,
-            Transform parent = null, bool inWorldSpace = false) {
+            Transform parent = null, bool inWorldSpace = false, ulong persistedInstanceID = 0, Scene? scene = null) {
 
-            return PoolManager.Instance.SpawnInstance(prefab, position, rotation, parent, inWorldSpace);
+            return PoolManager.Instance.SpawnInstance(prefab, position, rotation, parent, inWorldSpace, persistedInstanceID, scene);
         }
 
         public static void Despawn(Spawnable instance, float inSeconds = 0.0f) {
@@ -43,13 +48,16 @@ namespace SBR {
         }
 
         public static GameObject Spawn(GameObject prefab, Vector3? position = null, Quaternion? rotation = null,
-            Transform parent = null, bool inWorldSpace = false) {
+            Transform parent = null, bool inWorldSpace = false, ulong persistedInstanceID = 0, Scene? scene = null) {
             var spawnable = prefab.GetComponent<Spawnable>();
             if (spawnable) {
-                return Spawn(spawnable, position, rotation, parent, inWorldSpace).gameObject;
+                return Spawn(spawnable, position, rotation, parent, inWorldSpace, persistedInstanceID, scene).gameObject;
             } else {
                 GameObject instance = Instantiate(prefab);
-                instance.transform.Initialize(position, rotation, null, parent, inWorldSpace);
+                instance.transform.Initialize(position, rotation, null, parent, inWorldSpace, scene);
+                if (instance.TryGetComponent(out PersistedGameObject obj)) {
+                    obj.SetupDynamicInstance(persistedInstanceID);
+                }
                 return instance;
             }
         }
@@ -59,14 +67,17 @@ namespace SBR {
             if (spawnable) {
                 Despawn(spawnable, inSeconds);
             } else {
+                if (instance.TryGetComponent(out PersistedGameObject obj)) {
+                    obj.RegisterDestroyed();
+                }
                 if (inSeconds > 0.0f) Destroy(instance, inSeconds);
                 else Destroy(instance);
             }
         }
 
-        public static T Spawn<T>(T prefab, Vector3? position = null, Quaternion? rotation = null,
-            Transform parent = null, bool inWorldSpace = false) where T : Component {
-            return Spawn(prefab.gameObject, position, rotation, parent, inWorldSpace).GetComponent<T>();
+        public static T Spawn<T>(T prefab, Vector3? position = null, Quaternion? rotation = null, Transform parent = null,
+                                 bool inWorldSpace = false, ulong persistedInstanceID = 0, Scene? scene = null) where T : Component {
+            return Spawn(prefab.gameObject, position, rotation, parent, inWorldSpace, persistedInstanceID, scene).GetComponent<T>();
         }
     }
 }

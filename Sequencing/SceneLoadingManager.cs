@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 namespace SBR.Sequencing {
     public class SceneLoadingManager : Singleton<SceneLoadingManager> {
         private Dictionary<SceneGroup, SceneGroupInfo> _sceneGroups = new Dictionary<SceneGroup, SceneGroupInfo>();
-        private Dictionary<string, SceneLoadingState> _sceneLoadingStates = new Dictionary<string, SceneLoadingState>();
+        private Dictionary<string, SceneState> _sceneLoadingStates = new Dictionary<string, SceneState>();
 
         [SerializeField] private SceneGroup _defaultGroup;
 
@@ -17,6 +17,18 @@ namespace SBR.Sequencing {
 
         public bool IsLoadingAnyScenes(SceneLoadingType type = SceneLoadingType.All) =>
             _sceneGroups.Values.Any(g => g.LoadingScenes.Any(op => (op.SceneType & type) != 0));
+
+        public SceneStateType GetSceneLoadedState(string sceneName, out LevelRoot levelRoot, out RegionRoot regionRoot) {
+            if (_sceneLoadingStates.TryGetValue(sceneName, out SceneState state) && state.LoadedInfo != null) {
+                levelRoot = state.LoadedInfo.Level;
+                regionRoot = state.LoadedInfo.Region;
+            } else {
+                levelRoot = null;
+                regionRoot = null;
+            }
+            
+            return state.Type;
+        }
         
         public List<AsyncOperation> LoadScenes(IEnumerable<string> scenes, bool autoActivate, SceneGroup group = null) {
             List<AsyncOperation> ops = new List<AsyncOperation>();
@@ -35,25 +47,27 @@ namespace SBR.Sequencing {
                 _sceneGroups.Add(group, groupInfo);
             }
 
-            if (_sceneLoadingStates.TryGetValue(sceneName, out SceneLoadingState state) &&
-                (state == SceneLoadingState.Loaded || state == SceneLoadingState.Loading)) {
+            if (_sceneLoadingStates.TryGetValue(sceneName, out SceneState state) &&
+                (state.Type == SceneStateType.Loaded || state.Type == SceneStateType.Loading)) {
                 return null;
             }
 
-            if (state == SceneLoadingState.Cancelled) {
+            if (state.Type == SceneStateType.Cancelled) {
                 foreach (SceneLoadingOperation loadingScene in groupInfo.LoadingScenes) {
                     if (loadingScene.SceneName != sceneName) continue;
                     loadingScene.IsCancelled = false;
                     loadingScene.SetActiveOnComplete = setActiveScene;
                     loadingScene.Operation.allowSceneActivation = autoActivate;
-                    _sceneLoadingStates[sceneName] = SceneLoadingState.Loading;
+                    _sceneLoadingStates[sceneName] = new SceneState {
+                        Type = SceneStateType.Loading,
+                        LoadingOperation = loadingScene,
+                    };
                     return loadingScene.Operation;
                 }
             }
             
             AsyncOperation op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             if (op == null) return null;
-            _sceneLoadingStates[sceneName] = SceneLoadingState.Loading;
             op.allowSceneActivation = autoActivate;
 
             SceneLoadingType type = LevelManifest.Instance.GetLevelWithSceneName(sceneName)
@@ -62,35 +76,42 @@ namespace SBR.Sequencing {
                     ? SceneLoadingType.Region
                     : SceneLoadingType.Scene;
             
-            groupInfo.LoadingScenes.Add(new SceneLoadingOperation {
+            var loadingOperation = new SceneLoadingOperation {
                 Operation = op,
                 SceneName = sceneName,
                 SetActiveOnComplete = setActiveScene,
                 SceneType = type,
-            });
+            };
+            
+            _sceneLoadingStates[sceneName] = new SceneState {
+                Type = SceneStateType.Loading,
+                LoadingOperation = loadingOperation,
+            };
+            
+            groupInfo.LoadingScenes.Add(loadingOperation);
 
             return op;
         }
 
         private void UnloadSceneInternal(Scene scene, SceneGroupInfo groupInfo) {
-            foreach (GameObject obj in scene.GetRootGameObjects()) {
-                if (!obj.TryGetComponent(out LevelRoot level)) continue;
-                level.Cleanup();
-                break;
+            if (!_sceneLoadingStates.TryGetValue(scene.name, out SceneState state) || state.LoadedInfo == null) {
+                Debug.LogError($"Trying to unload scene {scene.name} which could not be found in the dictionary.");
+                return;
             }
             
-            foreach (GameObject obj in scene.GetRootGameObjects()) {
-                if (!obj.TryGetComponent(out RegionRoot region)) continue;
-                region.Cleanup();
-                break;
-            }
+            if (state.LoadedInfo.Level) state.LoadedInfo.Level.Cleanup();
+            if (state.LoadedInfo.Region) state.LoadedInfo.Region.Cleanup();
             
             AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
-            groupInfo.UnloadingScenes.Add(new SceneUnloadingOperation {
+            SceneUnloadingOperation unloadingOperation = new SceneUnloadingOperation {
                 Operation = op,
                 SceneName = scene.name,
-            });
-            _sceneLoadingStates[scene.name] = SceneLoadingState.Unloading;
+            };
+            _sceneLoadingStates[scene.name] = new SceneState {
+                Type = SceneStateType.Unloading,
+                UnloadingOperation = unloadingOperation,
+            };
+            groupInfo.UnloadingScenes.Add(unloadingOperation);
         }
 
         public void UnloadScenes(SceneGroup group = null) {
@@ -99,27 +120,30 @@ namespace SBR.Sequencing {
 
             foreach (SceneLoadingOperation loadingScene in groupInfo.LoadingScenes) {
                 loadingScene.IsCancelled = true;
-                _sceneLoadingStates[loadingScene.SceneName] = SceneLoadingState.Cancelled;
+                _sceneLoadingStates[loadingScene.SceneName] = new SceneState {
+                    Type = SceneStateType.Cancelled,
+                    LoadingOperation = loadingScene,
+                };
             }
 
-            foreach (Scene scene in groupInfo.LoadedScenes) {
-                UnloadSceneInternal(scene, groupInfo);
+            foreach (LoadedSceneInfo scene in groupInfo.LoadedScenes) {
+                UnloadSceneInternal(scene.Scene, groupInfo);
             }
             groupInfo.LoadedScenes.Clear();
         }
 
         public bool UnloadScene(string sceneName) {
-            if (!_sceneLoadingStates.TryGetValue(sceneName, out SceneLoadingState state) ||
-                state == SceneLoadingState.Unloaded ||
-                state == SceneLoadingState.Cancelled ||
-                state == SceneLoadingState.Unloading) {
+            if (!_sceneLoadingStates.TryGetValue(sceneName, out SceneState state) ||
+                state.Type == SceneStateType.Unloaded ||
+                state.Type == SceneStateType.Cancelled ||
+                state.Type == SceneStateType.Unloading) {
                 return false;
             }
 
-            if (state == SceneLoadingState.Loaded) {
+            if (state.Type == SceneStateType.Loaded) {
                 foreach (SceneGroupInfo groupInfo in _sceneGroups.Values) {
                     for (int index = 0; index < groupInfo.LoadedScenes.Count; index++) {
-                        Scene scene = groupInfo.LoadedScenes[index];
+                        Scene scene = groupInfo.LoadedScenes[index].Scene;
                         if (scene.name != sceneName) continue;
                         UnloadSceneInternal(scene, groupInfo);
                         groupInfo.LoadedScenes.RemoveAt(index);
@@ -127,11 +151,15 @@ namespace SBR.Sequencing {
                         return true;
                     }
                 }
-            } else if (state == SceneLoadingState.Loading) {
+            } else if (state.Type == SceneStateType.Loading) {
                 foreach (SceneGroupInfo groupInfo in _sceneGroups.Values) {
                     foreach (SceneLoadingOperation loadingScene in groupInfo.LoadingScenes) {
                         if (loadingScene.SceneName != sceneName) continue;
                         loadingScene.IsCancelled = true;
+                        _sceneLoadingStates[loadingScene.SceneName] = new SceneState {
+                            Type = SceneStateType.Cancelled,
+                            LoadingOperation = loadingScene,
+                        };
                         return true;
                     }
                 }
@@ -165,38 +193,50 @@ namespace SBR.Sequencing {
 
                     if (operation.IsCancelled) {
                         AsyncOperation op = SceneManager.UnloadSceneAsync(scene);
-                        groupInfo.UnloadingScenes.Add(new SceneUnloadingOperation {
+                        SceneUnloadingOperation unloadingOperation = new SceneUnloadingOperation {
                             Operation = op,
                             SceneName = scene.name,
-                        });
-                        _sceneLoadingStates[scene.name] = SceneLoadingState.Unloading;
+                        };
+                        groupInfo.UnloadingScenes.Add(unloadingOperation);
+                        _sceneLoadingStates[scene.name] = new SceneState {
+                            Type = SceneStateType.Unloading,
+                            UnloadingOperation = unloadingOperation,
+                        };
                         continue;
                     }
-                        
-                    groupInfo.LoadedScenes.Add(scene);
-                    _sceneLoadingStates[scene.name] = SceneLoadingState.Loaded;
+
+                    var sceneInfo = new LoadedSceneInfo {
+                        Scene = scene,
+                        SceneType = operation.SceneType,
+                        Level = operation.SceneType == SceneLoadingType.Level
+                            ? scene.GetRootGameObjects().FirstOrDefaultWhere(
+                                (GameObject obj, out LevelRoot lvl) => obj.TryGetComponent(out lvl))
+                            : null,
+                        Region = operation.SceneType == SceneLoadingType.Region
+                            ? scene.GetRootGameObjects().FirstOrDefaultWhere(
+                                ((GameObject obj, out RegionRoot reg) => obj.TryGetComponent(out reg)))
+                            : null,
+                    };
+                    
+                    groupInfo.LoadedScenes.Add(sceneInfo);
+                    
+                    _sceneLoadingStates[scene.name] = new SceneState {
+                        Type = SceneStateType.Loaded,
+                        LoadedInfo = sceneInfo,
+                    };
                     if (operation.SetActiveOnComplete) {
                         SceneManager.SetActiveScene(scene);
                     }
 
-                    if (operation.SceneType == SceneLoadingType.Level) {
-                        foreach (GameObject obj in scene.GetRootGameObjects()) {
-                            if (!obj.TryGetComponent(out LevelRoot level)) continue;
-                            level.Initialize();
-                            break;
-                        }
-                    } else if (operation.SceneType == SceneLoadingType.Region) {
-                        foreach (GameObject obj in scene.GetRootGameObjects()) {
-                            if (!obj.TryGetComponent(out RegionRoot region)) continue;
-                            region.Initialize();
-                            break;
-                        }
-                    }
+                    if (sceneInfo.Level) sceneInfo.Level.Initialize();
+                    if (sceneInfo.Region) sceneInfo.Region.Initialize();
                 }
 
                 foreach (SceneUnloadingOperation operation in groupInfo.UnloadingScenes) {
                     if (!operation.Operation.isDone) continue;
-                    _sceneLoadingStates[operation.SceneName] = SceneLoadingState.Unloaded;
+                    _sceneLoadingStates[operation.SceneName] = new SceneState {
+                        Type = SceneStateType.Unloaded,
+                    };
                 }
 
                 groupInfo.LoadingScenes.RemoveAll(op => op.Operation.isDone);
@@ -206,7 +246,7 @@ namespace SBR.Sequencing {
 
         private class SceneGroupInfo {
             public List<SceneLoadingOperation> LoadingScenes { get; } = new List<SceneLoadingOperation>();
-            public List<Scene> LoadedScenes { get; } = new List<Scene>();
+            public List<LoadedSceneInfo> LoadedScenes { get; } = new List<LoadedSceneInfo>();
             public List<SceneUnloadingOperation> UnloadingScenes { get; } = new List<SceneUnloadingOperation>();
         }
         
@@ -218,13 +258,27 @@ namespace SBR.Sequencing {
             public bool IsCancelled { get; set; }
         }
         
+        private class LoadedSceneInfo {
+            public Scene Scene { get; set; }
+            public SceneLoadingType SceneType { get; set; }
+            public LevelRoot Level { get; set; }
+            public RegionRoot Region { get; set; }
+        }
+        
         private class SceneUnloadingOperation {
             public AsyncOperation Operation { get; set; }
             public string SceneName { get; set; }
         }
+
+        private struct SceneState {
+            public SceneStateType Type { get; set; }
+            public LoadedSceneInfo LoadedInfo { get; set; }
+            public SceneLoadingOperation LoadingOperation { get; set; }
+            public SceneUnloadingOperation UnloadingOperation { get; set; }
+        }
     }
 
-    public enum SceneLoadingState {
+    public enum SceneStateType {
         Unloaded, Loading, Cancelled, Loaded, Unloading
     }
 

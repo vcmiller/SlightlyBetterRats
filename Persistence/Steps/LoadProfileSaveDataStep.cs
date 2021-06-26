@@ -17,8 +17,8 @@ namespace SBR.Persistence {
             string profileToLoad = ParamProfileName.GetOrDefault(arguments, _defaultProfileName);
             PersistenceManager.Instance.LoadProfileData(profileToLoad);
 
-            if (_passMostRecentState && PersistenceManager.Instance.LoadedProfileData?.MostRecentState >= 0) {
-                LoadStateSaveDataStep.ParamStateIndex.Set(arguments, PersistenceManager.Instance.LoadedProfileData.MostRecentState);
+            if (_passMostRecentState && !string.IsNullOrEmpty(PersistenceManager.Instance.LoadedProfileData?.MostRecentState)) {
+                LoadStateSaveDataStep.ParamStateName.Set(arguments, PersistenceManager.Instance.LoadedProfileData.MostRecentState);
             }
         }
     }

@@ -188,7 +188,7 @@ namespace SBR {
             }
 
             if (impactPrefab) {
-                Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, true);
+                Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, true, scene:gameObject.scene);
             }
         }
     }

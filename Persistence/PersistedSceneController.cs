@@ -29,14 +29,14 @@ namespace SBR.Persistence {
                 _goToMainMenuSequencer.ExecuteForward(args);
             }
 
-            public virtual void LoadState(int state) {
+            public virtual void LoadState(string state) {
                 if (PersistenceManager.Instance.LoadedProfileData == null) {
                     Debug.LogError("Trying to load a state with no profile data loaded.");
                     return;
                 }
                 
                 ExecutionStepArguments args = new ExecutionStepArguments();
-                LoadStateSaveDataStep.ParamStateIndex.Set(args, state);
+                LoadStateSaveDataStep.ParamStateName.Set(args, state);
                 _loadStateSequencer.ExecuteForward(args);
             }
 

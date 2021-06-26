@@ -1,7 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+
+using SBR.Persistence;
+
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 namespace SBR {
     public class PoolManager : MonoBehaviour {
@@ -24,7 +28,8 @@ namespace SBR {
             }
         }
 
-        public Spawnable SpawnInstance(Spawnable prefab, Vector3? position, Quaternion? rotation, Transform parent, bool inWorldSpace) {
+        public Spawnable SpawnInstance(Spawnable prefab, Vector3? position, Quaternion? rotation, Transform parent,
+                                       bool inWorldSpace, ulong persistedInstanceID, Scene? scene) {
             Debug.Assert(!prefab.IsSpawned);
             if (!_poolsByPrefab.TryGetValue(prefab, out SpawnPool pool)) {
                 pool = new SpawnPool(prefab, _pools.Count, transform);
@@ -32,13 +37,23 @@ namespace SBR {
                 _poolsByPrefab.Add(prefab, pool);
             }
 
-            return pool.Spawn(position, rotation, parent, inWorldSpace);
+            return pool.Spawn(position, rotation, parent, inWorldSpace, persistedInstanceID, scene);
         }
 
         public void DespawnInstance(Spawnable instance) {
             Debug.Assert(instance.IsSpawned);
             Debug.Assert(instance.PoolID >= 0 && instance.PoolID < _pools.Count);
             _pools[instance.PoolID].Despawn(instance);
+        }
+
+        public Spawnable GetPrefab(int poolID) {
+            return _pools[poolID].Prefab;
+        }
+
+        public void ClearInactiveObjects() {
+            foreach (SpawnPool pool in _pools) {
+                pool.ClearInactiveObjects();
+            }
         }
 
         private class SpawnPool {
@@ -54,18 +69,24 @@ namespace SBR {
                 Transform = transform;
             }
 
-            public Spawnable Spawn(Vector3? position, Quaternion? rotation, Transform parent, bool inWorldSpace) {
-                if (_freeList.Count == 0) {
-                    Instantiate();
-                }
+            public Spawnable Spawn(Vector3? position, Quaternion? rotation, Transform parent, bool inWorldSpace, ulong persistedInstanceID, Scene? scene) {
+                int instanceID = -1;
 
-                int instanceID = _freeList.Dequeue();
+                while (instanceID == -1 || !_instances[instanceID]) {
+                    if (_freeList.Count == 0) Instantiate();
+                    instanceID = _freeList.Dequeue();
+                }
+                
                 Spawnable instance = _instances[instanceID];
                 Debug.Assert(!instance.IsSpawned, $"Trying to spawn already-spawned instance {instance}");
 
-                instance.transform.Initialize(position, rotation, null, parent, inWorldSpace);
+                instance.transform.Initialize(position, rotation, null, parent, inWorldSpace, scene);
 
                 instance.gameObject.SetActive(true);
+                if (instance.TryGetComponent(out PersistedGameObject obj)) {
+                    obj.SetupDynamicInstance(persistedInstanceID);
+                }
+                
                 instance.WasSpawned();
                 return instance;
             }
@@ -73,8 +94,11 @@ namespace SBR {
             public void Despawn(Spawnable instance) {
                 Debug.Assert(instance.IsSpawned, $"Trying to despawn not-spawned instance {instance}");
 
-                instance.transform.SetParent(Transform, false);
                 instance.WasDespawned();
+                if (instance.TryGetComponent(out PersistedGameObject obj)) {
+                    obj.RegisterDestroyed();
+                }
+                instance.transform.SetParent(Transform, false);
                 instance.gameObject.SetActive(false);
                 _freeList.Enqueue(instance.InstanceID);
             }
@@ -90,6 +114,22 @@ namespace SBR {
                 _instances.Add(inst);
                 _freeList.Enqueue(instanceID);
                 return instanceID;
+            }
+
+            public void ClearInactiveObjects() {
+                foreach (int instanceID in _freeList) {
+                    Spawnable instance = _instances[instanceID];
+                    if (instance) {
+                        Destroy(instance.gameObject);
+                    }
+                }
+                _freeList.Clear();
+
+                _instances.RemoveAll(s => !s);
+                for (int i = 0; i < _instances.Count; i++) {
+                    Spawnable instance = _instances[i];
+                    instance.InstanceID = i;
+                }
             }
         }
     }

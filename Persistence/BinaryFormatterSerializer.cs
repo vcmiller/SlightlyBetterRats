@@ -23,5 +23,19 @@ namespace SBR.Persistence {
                 return false;
             }
         }
+
+        public override object ObjectToIntermediate(object data) {
+            return data;
+        }
+
+        public override bool IntermediateToObject<T>(object intermediate, out T data) {
+            if (intermediate is T t) {
+                data = t;
+                return true;
+            } else {
+                data = default;
+                return false;
+            }
+        }
     }
 }

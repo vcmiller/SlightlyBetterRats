@@ -8,6 +8,8 @@ namespace SBR.Persistence {
     public abstract class Serializer : MonoBehaviour {
         public abstract void Write(Stream stream, object data);
         public abstract bool Read<T>(Stream stream, out T data);
+        public abstract object ObjectToIntermediate(object data);
+        public abstract bool IntermediateToObject<T>(object intermediate, out T data);
     }
 
     public abstract class SaveDataHandler : MonoBehaviour {
@@ -20,20 +22,20 @@ namespace SBR.Persistence {
         public abstract void SetProfileSaveData(Serializer serializer, string profile, ProfileSaveData profileData);
         public abstract void ClearProfileSaveData(string profile);
         
-        public abstract IEnumerable<int> GetAvailableStates(string profile);
-        public abstract StateSaveData GetStateSaveData(Serializer serializer, string profile, int state);
-        public abstract void SetStateSaveData(Serializer serializer, string profile, int state, StateSaveData stateData);
-        public abstract void ClearStateSaveData(string profile, int state);
+        public abstract IEnumerable<string> GetAvailableStates(string profile);
+        public abstract StateSaveData GetStateSaveData(Serializer serializer, string profile, string state);
+        public abstract void SetStateSaveData(Serializer serializer, string profile, string state, StateSaveData stateData);
+        public abstract void ClearStateSaveData(string profile, string state);
         
-        public abstract IEnumerable<int> GetAvailableLevels(string profile, int state);
-        public abstract LevelSaveData GetLevelSaveData(Serializer serializer, string profile, int state, int level);
-        public abstract void SetLevelSaveData(Serializer serializer, string profile, int state, int level, LevelSaveData levelData);
-        public abstract void ClearLevelSaveData(string profile, int state, int level);
+        public abstract IEnumerable<int> GetAvailableLevels(string profile, string state);
+        public abstract LevelSaveData GetLevelSaveData(Serializer serializer, string profile, string state, int level);
+        public abstract void SetLevelSaveData(Serializer serializer, string profile, string state, int level, LevelSaveData levelData);
+        public abstract void ClearLevelSaveData(string profile, string state, int level);
         
-        public abstract IEnumerable<int> GetAvailableRegions(string profile, int state, int level);
-        public abstract RegionSaveData GetRegionSaveData(Serializer serializer, string profile, int state, int level, int region);
-        public abstract void SetRegionSaveData(Serializer serializer, string profile, int state, int level, int region, RegionSaveData regionData);
-        public abstract void ClearRegionSaveData(string profile, int state, int level, int region);
+        public abstract IEnumerable<int> GetAvailableRegions(string profile, string state, int level);
+        public abstract RegionSaveData GetRegionSaveData(Serializer serializer, string profile, string state, int level, int region);
+        public abstract void SetRegionSaveData(Serializer serializer, string profile, string state, int level, int region, RegionSaveData regionData);
+        public abstract void ClearRegionSaveData(string profile, string state, int level, int region);
     }
 }
 
