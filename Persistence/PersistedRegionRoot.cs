@@ -19,6 +19,7 @@ namespace SBR.Persistence {
             }
 
             SaveData = level.GetOrLoadRegionData(ManifestEntry);
+            PersistedGameObject.CreateDynamicObjects(SaveData.Objects, gameObject.scene);
         }
     }
 }

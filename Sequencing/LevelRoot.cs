@@ -17,6 +17,7 @@ namespace SBR.Sequencing {
         public int LevelIndex => _manifestEntry.LevelID;
         public LevelManifestLevelEntry ManifestEntry => _manifestEntry;
         public IReadOnlyList<RegionRoot> LoadedRegions => _loadedRegions;
+        public bool Initialized { get; private set; }
 
         internal virtual void RegisterRegion(RegionRoot region) {
             _loadedRegions.Add(region);
@@ -33,9 +34,11 @@ namespace SBR.Sequencing {
             }
 
             Current = this;
+            Initialized = true;
         }
 
         public virtual void Cleanup() {
+            Initialized = false;
             if (Current == this) {
                 Current = null;
             }

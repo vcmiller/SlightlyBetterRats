@@ -248,10 +248,13 @@ namespace SBR.Persistence {
             return data;
         }
 
-        public ObjectSaveData RegisterNewDynamicObject(int prefabID) {
-            ulong instanceID = GetUnusedInstanceID();
-            ObjectSaveData data = new ObjectSaveData(instanceID, true, prefabID);
-            _objects[instanceID] = data;
+        public ObjectSaveData RegisterNewDynamicObject(int prefabID, ulong? instanceID = null) {
+            if (!instanceID.HasValue || _objects.ContainsKey(instanceID.Value)) {
+                instanceID = GetUnusedInstanceID();
+            }
+            
+            ObjectSaveData data = new ObjectSaveData(instanceID.Value, true, prefabID);
+            _objects[instanceID.Value] = data;
             Subscribe(data);
             NotifyStateChanged();
             return data;

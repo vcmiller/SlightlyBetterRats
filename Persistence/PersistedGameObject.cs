@@ -1,22 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using SBR.Sequencing;
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SBR.Persistence {
     public class PersistedGameObject : MonoBehaviour {
         [SerializeField] private int _dynamicPrefabID;
         [SerializeField] private ulong _instanceID;
         [SerializeField] private bool _immediatelyConvert = false;
+        [SerializeField] private bool _canTransitionRegions = true;
         
         public ObjectSaveData SaveData { get; private set; }
         public PersistedLevelRoot Level { get; private set; }
         public PersistedRegionRoot Region { get; private set; }
 
+        public bool CanTransitionRegions => _canTransitionRegions;
+
         public int DynamicPrefabID => _dynamicPrefabID;
+        
+        public bool Initialized { get; private set; }
         
         public bool IsDynamicInstance { get; private set; }
 
@@ -78,12 +85,20 @@ namespace SBR.Persistence {
 
             if (SaveData.Destroyed) {
                 Spawnable.Despawn(gameObject);
-            } else if (!IsDynamicInstance && _immediatelyConvert) {
-                ConvertToDynamicInstance();
+            } else {
+                if (!IsDynamicInstance && _immediatelyConvert) {
+                    ConvertToDynamicInstance();
+                }
+                
+                InitializeComponents();
             }
 
+            Initialized = true;
+        }
+
+        private void InitializeComponents() {
             foreach (IPersistedComponent component in _components) {
-                component.Initialize(SaveData, new ComponentID(transform, (Component)component).ToString());
+                component.Initialize(SaveData, new ComponentID(transform, (Component) component).ToString());
             }
         }
 
@@ -99,6 +114,46 @@ namespace SBR.Persistence {
 
         public void RegisterDestroyed() {
             Container.RegisterObjectDestroyed(_instanceID);
+        }
+
+        public void TransitionToRegion(PersistedRegionRoot newRoot) {
+            if (DynamicPrefabID == 0) {
+                Debug.LogError($"Trying to transition object {name}, which doesn't have a dynamic prefab ID.");
+                return;
+            }
+            
+            RegisterDestroyed();
+            Level = null;
+            Region = newRoot;
+            
+            var data = Container.RegisterNewDynamicObject(DynamicPrefabID, _instanceID);
+            data.CustomData = SaveData.CustomData;
+            data.Destroyed = false;
+            data.Initialized = true;
+            
+            SaveData = data;
+            IsDynamicInstance = true;
+            _instanceID = SaveData.InstanceID;
+            InitializeComponents();
+        }
+        
+        public static void CreateDynamicObjects(PersistedObjectCollection objects, Scene scene) {
+            foreach (var objectData in objects.Objects.ToList()) {
+                if (!objectData.IsDynamicInstance) continue;
+                string path = DynamicObjectManifest.Instance.GetEntry(objectData.DynamicPrefabID)?.ResourcePath;
+                if (string.IsNullOrEmpty(path)) {
+                    Debug.LogError($"Could not find prefab path for prefab with ID {objectData.DynamicPrefabID}.");
+                    continue;
+                }
+
+                PersistedGameObject prefab = Resources.Load<PersistedGameObject>(path);
+                if (prefab == null) {
+                    Debug.LogError($"Could not load prefab at path {path}.");
+                    continue;
+                }
+
+                Spawnable.Spawn(prefab, persistedInstanceID: objectData.InstanceID, scene: scene);
+            }
         }
     }
 }

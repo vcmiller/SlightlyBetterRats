@@ -21,27 +21,7 @@ namespace SBR.Persistence {
             SaveData = PersistenceManager.Instance.GetLevelData(ManifestEntry.LevelID);
             SaveData.StateChanged += SaveData_StateChanged;
 
-            CreateDynamicObjects();
-        }
-
-        private void CreateDynamicObjects() {
-            foreach (var objectData in SaveData.Objects.Objects.ToList()) {
-                if (!objectData.IsDynamicInstance) continue;
-                string path = DynamicObjectManifest.Instance.GetEntry(objectData.DynamicPrefabID)?.ResourcePath;
-                if (string.IsNullOrEmpty(path)) {
-                    Debug.LogError($"Could not find prefab path for prefab with ID {objectData.DynamicPrefabID}.");
-                    continue;
-                }
-
-                PersistedGameObject prefab = Resources.Load<PersistedGameObject>(path);
-                if (prefab == null) {
-                    Debug.LogError($"Could not load prefab at path {path}.");
-                    continue;
-                }
-
-                PersistedGameObject inst =
-                    Spawnable.Spawn(prefab, persistedInstanceID: objectData.InstanceID, scene: gameObject.scene);
-            }
+            PersistedGameObject.CreateDynamicObjects(SaveData.Objects, gameObject.scene);
         }
 
         public override void Cleanup() {
