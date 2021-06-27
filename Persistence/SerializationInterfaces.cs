@@ -21,11 +21,13 @@ namespace SBR.Persistence {
         public abstract ProfileSaveData GetProfileSaveData(Serializer serializer, string profile);
         public abstract void SetProfileSaveData(Serializer serializer, string profile, ProfileSaveData profileData);
         public abstract void ClearProfileSaveData(string profile);
+        public abstract void CopyProfileSaveData(string sourceProfile, string destProfile);
         
         public abstract IEnumerable<string> GetAvailableStates(string profile);
         public abstract StateSaveData GetStateSaveData(Serializer serializer, string profile, string state);
         public abstract void SetStateSaveData(Serializer serializer, string profile, string state, StateSaveData stateData);
         public abstract void ClearStateSaveData(string profile, string state);
+        public abstract void CopyStateSaveData(string profile, string sourceState, string destState);
         
         public abstract IEnumerable<int> GetAvailableLevels(string profile, string state);
         public abstract LevelSaveData GetLevelSaveData(Serializer serializer, string profile, string state, int level);

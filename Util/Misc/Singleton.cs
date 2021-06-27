@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
-    public class Singleton<T> : MonoBehaviour where T : MonoBehaviour {
+    public class SingletonBase : MonoBehaviour {
+        public virtual void Initialize() { }
+    }
+    
+    public class Singleton<T> : SingletonBase where T : SingletonBase {
         private static T _instance;
 
         public static T Instance {
@@ -13,6 +17,8 @@ namespace SBR {
                     if (_instance == null) {
                         Debug.LogError($"{typeof(T)} instance not found!");
                     }
+
+                    _instance.Initialize();
                 }
 
                 return _instance;

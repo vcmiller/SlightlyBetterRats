@@ -71,6 +71,11 @@ namespace SBR.Persistence {
             DeleteFileOrFolder(GetProfileDataFolder(profile));
         }
 
+        public override void CopyProfileSaveData(string sourceProfile, string destProfile) {
+            ClearProfileSaveData(destProfile);
+            CopyDirectory(GetProfileDataFolder(sourceProfile), GetProfileDataFolder(destProfile));
+        }
+
         public override IEnumerable<string> GetAvailableStates(string profile) {
             return GetFoldersInDirectoryContainingFile(GetProfileDataFolder(profile), _stateDataFile);
         }
@@ -89,6 +94,11 @@ namespace SBR.Persistence {
 
         public override void ClearStateSaveData(string profile, string state) {
             DeleteFileOrFolder(GetStateDataFolder(profile, state));
+        }
+
+        public override void CopyStateSaveData(string profile, string sourceState, string destState) {
+            ClearStateSaveData(profile, destState);
+            CopyDirectory(GetStateDataFolder(profile, sourceState), GetStateDataFolder(profile, destState));
         }
 
         public override IEnumerable<int> GetAvailableLevels(string profile, string state) {
@@ -209,6 +219,38 @@ namespace SBR.Persistence {
 
             if (Directory.Exists(path)) {
                 Directory.Delete(path, true);
+            }
+        }
+        
+        private static void CopyDirectory(string sourceDirName, string destDirName)
+        {
+            // Get the subdirectories for the specified directory.
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                  + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+        
+            // If the destination directory doesn't exist, create it.       
+            Directory.CreateDirectory(destDirName);        
+
+            // Get the files in the directory and copy them to the new location.
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string tempPath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(tempPath, false);
+            }
+
+            foreach (DirectoryInfo subdir in dirs)
+            {
+                string tempPath = Path.Combine(destDirName, subdir.Name);
+                CopyDirectory(subdir.FullName, tempPath);
             }
         }
 #endregion

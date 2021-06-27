@@ -41,6 +41,7 @@ namespace SBR.Persistence {
 
         private void SaveData_StateChanged() {
             _dirty = true;
+            SaveData.StateChanged -= SaveData_StateChanged;
         }
 
         public RegionSaveData GetOrLoadRegionData(LevelManifestRegionEntry region) {
@@ -62,6 +63,7 @@ namespace SBR.Persistence {
                 
                 if (info.Dirty) {
                     info.Dirty = false;
+                    info.Data.StateChanged += info.SetDirty;
                     PersistenceManager.Instance.SetRegionData(LevelIndex, regionID, info.Data);
                 }
 
@@ -72,6 +74,7 @@ namespace SBR.Persistence {
             
             if (_dirty) {
                 _dirty = false;
+                SaveData.StateChanged += SaveData_StateChanged;
                 PersistenceManager.Instance.SetLevelData(LevelIndex, SaveData);
             }
         }
@@ -80,7 +83,10 @@ namespace SBR.Persistence {
             public RegionSaveData Data { get; set; }
             public bool Dirty { get; set; }
 
-            public void SetDirty() => Dirty = true;
+            public void SetDirty() {
+                Dirty = true;
+                Data.StateChanged -= SetDirty;
+            }
         }
     }
 }

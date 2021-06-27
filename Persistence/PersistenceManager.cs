@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -13,6 +14,7 @@ namespace SBR.Persistence {
 
         private GlobalSaveData _loadedGlobalData = null;
         private bool _loadedGlobalDataDirty = false;
+        public event Action GlobalDataLoaded;
         public GlobalSaveData LoadedGlobalData {
             get => _loadedGlobalData;
             private set {
@@ -23,12 +25,14 @@ namespace SBR.Persistence {
                 if (_loadedGlobalData != null) _loadedGlobalData.StateChanged += LoadedGlobalData_StateChanged;
                 
                 _loadedGlobalDataDirty = false;
+                GlobalDataLoaded?.Invoke();
             }
         }
 
+
         private ProfileSaveData _loadedProfileData = null;
         private bool _loadedProfileDataDirty = false;
-
+        public event Action ProfileDataLoaded;
         public ProfileSaveData LoadedProfileData {
             get => _loadedProfileData;
             private set {
@@ -39,11 +43,13 @@ namespace SBR.Persistence {
                 if (_loadedProfileData != null) _loadedProfileData.StateChanged += LoadedProfileData_StateChanged;
 
                 _loadedProfileDataDirty = false;
+                ProfileDataLoaded?.Invoke();
             }
         }
 
         private StateSaveData _loadedStateData = null;
         private bool _loadedStateDataDirty = false;
+        public event Action StateDataLoaded;
         public StateSaveData LoadedStateData {
             get => _loadedStateData;
             private set {
@@ -54,6 +60,7 @@ namespace SBR.Persistence {
                 if (_loadedStateData != null) _loadedStateData.StateChanged += LoadedStateData_StateChanged;
 
                 _loadedStateDataDirty = false;
+                StateDataLoaded?.Invoke();
             }
         }
 
@@ -201,10 +208,21 @@ namespace SBR.Persistence {
 
         public void SaveStateData() {
             if (!_loadedStateDataDirty) return;
-            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, LoadedStateData.StateName,
+            SaveStateDataAs(LoadedStateData.StateName);
+        }
+
+        public void SaveStateDataAs(string newStateName) {
+            if (newStateName != LoadedStateData.StateName) {
+                _dataHandler.CopyStateSaveData(LoadedProfileData.ProfileName, LoadedStateData.StateName, newStateName);
+            }
+            
+            LoadedStateData.StateName = newStateName;
+            LoadedProfileData.MostRecentState = LoadedStateData.StateName;
+            
+            if (!_loadedStateDataDirty) return;
+            _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, newStateName,
                                           LoadedStateData);
             _loadedStateDataDirty = false;
-            LoadedProfileData.MostRecentState = LoadedStateData.StateName;
         }
 
         public void DeleteStateData(string profile = null, string state = null) {

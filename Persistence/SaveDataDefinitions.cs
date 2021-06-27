@@ -63,7 +63,7 @@ namespace SBR.Persistence {
             if (_customData == null) return;
             foreach (object obj in _customData.Values) {
                 if (!(obj is PersistedDataBase data)) continue;
-                data.StateChanged -= CustomData_StateChanged;
+                data.StateChanged += CustomData_StateChanged;
             }
         }
 
@@ -71,7 +71,7 @@ namespace SBR.Persistence {
             if (_customData == null) return;
             foreach (object obj in _customData.Values) {
                 if (!(obj is PersistedDataBase data)) continue;
-                data.StateChanged += CustomData_StateChanged;
+                data.StateChanged -= CustomData_StateChanged;
             }
         }
 
@@ -147,7 +147,7 @@ namespace SBR.Persistence {
             set {
                 if (_stateName == value) return;
                 _stateName = value;
-                return;
+                NotifyStateChanged();
             }
         }
 
