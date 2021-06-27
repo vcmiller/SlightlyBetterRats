@@ -13,13 +13,10 @@ namespace SBR.Persistence {
         [SerializeField] private int _dynamicPrefabID;
         [SerializeField] private ulong _instanceID;
         [SerializeField] private bool _immediatelyConvert = false;
-        [SerializeField] private bool _canTransitionRegions = true;
         
         public ObjectSaveData SaveData { get; private set; }
         public PersistedLevelRoot Level { get; private set; }
         public PersistedRegionRoot Region { get; private set; }
-
-        public bool CanTransitionRegions => _canTransitionRegions;
 
         public int DynamicPrefabID => _dynamicPrefabID;
         

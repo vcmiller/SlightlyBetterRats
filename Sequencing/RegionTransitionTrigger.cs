@@ -1,13 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+
+using SBR.Sequencing;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SBR.Persistence {
+namespace SBR.Sequencing {
     [RequireComponent(typeof(TriggerVolume))]
     public class RegionTransitionTrigger : MonoBehaviour {
-        [SerializeField] private PersistedRegionRoot _transitionTo;
+        [SerializeField] private RegionRoot _transitionTo;
         
         private TriggerVolume _volume;
         
@@ -18,12 +21,8 @@ namespace SBR.Persistence {
 
         private void Volume_TriggerEntered(GameObject obj) {
             if (!_transitionTo || !_transitionTo.Initialized) return;
-            if (obj.TryGetComponentInParent(out PersistedGameObject pgo) && pgo.CanTransitionRegions &&
-                pgo.Level == null && pgo.Region != _transitionTo && pgo.DynamicPrefabID != 0) {
-                if (pgo.Initialized) {
-                    pgo.TransitionToRegion(_transitionTo);
-                }
-                SceneManager.MoveGameObjectToScene(pgo.gameObject, _transitionTo.gameObject.scene);
+            if (obj.TryGetComponentInParent(out IRegionAwareObject rao) && rao.CurrentRegion != _transitionTo && rao.CanTransitionTo(_transitionTo)) {
+                rao.CurrentRegion = _transitionTo;
             }
         }
     }
