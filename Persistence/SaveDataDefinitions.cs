@@ -141,6 +141,7 @@ namespace SBR.Persistence {
     public class StateSaveData : PersistedDataBase {
         private string _stateName;
         private string _currentScene;
+        private DateTime _saveTime;
 
         public string StateName {
             get => _stateName;
@@ -156,6 +157,15 @@ namespace SBR.Persistence {
             set {
                 if (_currentScene == value) return;
                 _currentScene = value;
+                NotifyStateChanged();
+            }
+        }
+
+        public DateTime SaveTime {
+            get => _saveTime;
+            set {
+                if (_saveTime == value) return;
+                _saveTime = value;
                 NotifyStateChanged();
             }
         }

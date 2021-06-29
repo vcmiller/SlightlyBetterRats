@@ -190,6 +190,7 @@ namespace SBR.Persistence {
                 return;
             }
 
+            state.SaveTime = DateTime.Now;
             _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, stateName, state);
         }
         
@@ -220,6 +221,7 @@ namespace SBR.Persistence {
             LoadedProfileData.MostRecentState = LoadedStateData.StateName;
             
             if (!_loadedStateDataDirty) return;
+            LoadedStateData.SaveTime = DateTime.Now;
             _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, newStateName,
                                           LoadedStateData);
             _loadedStateDataDirty = false;

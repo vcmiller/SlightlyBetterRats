@@ -61,6 +61,17 @@ namespace SBR.Persistence {
                 if (string.IsNullOrEmpty(profile)) profile = "Default";
                 LoadProfile(profile);
             }
+
+            public virtual void LoadMostRecentState() {
+                if (PersistenceManager.Instance.LoadedProfileData == null) {
+                    Debug.LogError("Trying to load a state with no profile data loaded.");
+                    return;
+                }
+
+                string state = PersistenceManager.Instance.LoadedProfileData.MostRecentState;
+                if (string.IsNullOrEmpty(state)) state = "DefaultState";
+                LoadProfile(state);
+            }
         }
     }
 }

@@ -13,9 +13,23 @@ namespace SBR.Editor {
             label = EditorGUI.BeginProperty(position, label, property);
             
             SerializedProperty nameProp = property.FindPropertyRelative("_path");
+            SerializedProperty guidProp = property.FindPropertyRelative("_guid");
             SceneAsset scene = string.IsNullOrEmpty(nameProp.stringValue)
                 ? null
                 : AssetDatabase.LoadAssetAtPath<SceneAsset>(nameProp.stringValue);
+            
+            if (!scene && !string.IsNullOrEmpty(guidProp.stringValue)) {
+                foreach (EditorBuildSettingsScene buildScene in EditorBuildSettings.scenes) {
+                    if (buildScene.guid.ToString() == guidProp.stringValue) {
+                        scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(buildScene.path);
+                        break;
+                    }
+                }
+                
+                if (scene) {
+                    nameProp.stringValue = AssetDatabase.GetAssetPath(scene);
+                }
+            }
             
             EditorGUI.BeginChangeCheck();
             var newScene = (SceneAsset)EditorGUI.ObjectField(position, label, scene, typeof(SceneAsset), false);
@@ -24,6 +38,10 @@ namespace SBR.Editor {
             {
                 var newPath = AssetDatabase.GetAssetPath(newScene);
                 nameProp.stringValue = newPath;
+            }
+
+            if (newScene) {
+                guidProp.stringValue = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(newScene));
             }
             
             EditorGUI.EndProperty();
