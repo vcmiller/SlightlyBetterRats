@@ -78,7 +78,7 @@ namespace SBR {
         }
 
         private void Update() {
-            if (Pause.paused) return;
+            if (Pause.Paused) return;
 
             try {
                 DoInput();

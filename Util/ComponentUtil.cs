@@ -128,6 +128,18 @@ namespace SBR {
             if (scale != null) transform.localScale = scale.Value;
         }
 
+        public static void DestroyChildren(this Transform transform) {
+            for (int i = transform.childCount - 1; i >= 0; i--) {
+                Object.Destroy(transform.GetChild(i).gameObject);
+            }
+        }
+
+        public static void DestroyChildrenImmediate(this Transform transform) {
+            for (int i = transform.childCount - 1; i >= 0; i--) {
+                Object.DestroyImmediate(transform.GetChild(i).gameObject);
+            }
+        }
+
         /// <summary>
         /// Like GetComponentInParent, but more convenient if using in if statements and also using the component value.
         /// </summary>

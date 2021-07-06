@@ -21,6 +21,11 @@ namespace SBR.Persistence {
                 Debug.LogError($"State {id} could not be loaded.");
             }
         }
+
+        protected void CreateFakeState() {
+            State = new T();
+            LoadDefaultState();
+        }
         
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}

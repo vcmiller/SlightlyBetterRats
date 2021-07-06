@@ -37,15 +37,10 @@ namespace SBR {
     /// </remarks>
     public static class Pause {
         private static bool _paused;
-        private static float timeScale;
+        private static float _timeScale;
 
         public static event Action GamePaused;
         public static event Action GameResumed;
-
-        [RuntimeInitializeOnLoadMethod]
-        public static void RegisterSceneLoadCallback() {
-            SceneManager.sceneLoaded += SceneLoaded;
-        }
 
         /// <summary>
         /// Controls paused state of the game. 
@@ -53,26 +48,20 @@ namespace SBR {
         /// - Sets Time.timeScale to 0 so that Physics and animation will stop.
         /// - Disables all Motors and Controllers from updating.
         /// </summary>
-        public static bool paused {
+        public static bool Paused {
             get => _paused;
             set {
-                if (_paused != value) {
-                    _paused = value;
-                    if (value) {
-                        timeScale = Time.timeScale;
-                        Time.timeScale = 0;
-                        GamePaused?.Invoke();
-                    } else {
-                        Time.timeScale = timeScale;
-                        GameResumed?.Invoke();
-                    }
+                if (_paused == value) return;
+                _paused = value;
+                if (value) {
+                    _timeScale = Time.timeScale;
+                    Time.timeScale = 0;
+                    GamePaused?.Invoke();
+                } else {
+                    Time.timeScale = _timeScale;
+                    GameResumed?.Invoke();
                 }
             }
         }
-
-        private static void SceneLoaded(Scene scene, LoadSceneMode mode) {
-            paused = false;
-        }
     }
-
 }

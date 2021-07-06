@@ -111,7 +111,7 @@ namespace SBR {
         }
 
         private void ControllerInputReceived(T channels) {
-            if (Pause.paused) return;
+            if (Pause.Paused) return;
 
             lastChannels = channels;
             if (enableInput) {
@@ -124,7 +124,7 @@ namespace SBR {
         }
 
         private void ControllerPostInputReceived(T channels) {
-            if (Pause.paused) return;
+            if (Pause.Paused) return;
 
             try {
                 PostOutput(channels);

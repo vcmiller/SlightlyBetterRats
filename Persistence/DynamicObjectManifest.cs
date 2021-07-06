@@ -27,7 +27,8 @@ namespace SBR.Persistence {
             } else {
                 _entries = null;
             }
-            
+
+            if (_prefabs == null) return null;
             foreach (var prefab in _prefabs) {
                 if (prefab.PrefabID != prefabID) continue;
                 

@@ -174,21 +174,21 @@ namespace SBR {
 
             if (fillImage && target) {
                 if (fillImage.type == Image.Type.Filled) {
-                    fillImage.fillAmount = target.health / target.maxHealth;
+                    fillImage.fillAmount = target.CurrentHealth / target.maxHealth;
                     fillRect.anchorMax = Vector2.one;
                 } else {
                     fillImage.fillAmount = 1.0f;
-                    fillRect.anchorMax = new Vector2(target.health / target.maxHealth, 1);
+                    fillRect.anchorMax = new Vector2(target.CurrentHealth / target.maxHealth, 1);
                 }
             }
 
             if (amountText && target) {
                 if (amountTextType == AmountTextType.Amount) {
-                    amountText.text = Mathf.CeilToInt(target.health).ToString();
+                    amountText.text = Mathf.CeilToInt(target.CurrentHealth).ToString();
                 } else if (amountTextType == AmountTextType.Fraction) {
-                    amountText.text = Mathf.CeilToInt(target.health) + " / " + Mathf.CeilToInt(target.maxHealth);
+                    amountText.text = Mathf.CeilToInt(target.CurrentHealth) + " / " + Mathf.CeilToInt(target.maxHealth);
                 } else {
-                    amountText.text = Mathf.CeilToInt(target.health * 100 / target.maxHealth) + " %";
+                    amountText.text = Mathf.CeilToInt(target.CurrentHealth * 100 / target.maxHealth) + " %";
                 }
             }
 

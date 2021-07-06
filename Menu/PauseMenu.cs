@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SBR.Menu {
     public class PauseMenu : MonoBehaviour {
@@ -29,6 +30,9 @@ namespace SBR.Menu {
 
         public string pauseButton = "Cancel";
         public string resumeButton = "Cancel";
+
+        public UnityEvent onOpen;
+        public UnityEvent onClose;
 
         private CursorLockMode cursorLockState;
         private bool cursorVisible;
@@ -44,29 +48,30 @@ namespace SBR.Menu {
         private void Update() {
             if (!string.IsNullOrEmpty(pauseButton) &&
                 Input.GetButtonDown(pauseButton) && 
-                !SBR.Pause.paused && (!target || !target.show)) {
+                !SBR.Pause.Paused && (!target || !target.show)) {
 
                 Pause();
             } else if (!string.IsNullOrEmpty(resumeButton) &&
                 Input.GetButtonDown(resumeButton) && 
-                SBR.Pause.paused && (!target || target.show)) {
+                SBR.Pause.Paused && (!target || target.show)) {
 
                 Unpause();
             }
         }
 
         public void Pause() {
-            SBR.Pause.paused = true;
+            SBR.Pause.Paused = true;
             Paused();
         }
 
         public void Unpause() {
-            SBR.Pause.paused = false;
+            SBR.Pause.Paused = false;
             Unpaused();
         }
 
         private void Paused() {
             if (target) target.show = true;
+            onOpen?.Invoke();
             if (ungrabMouse) {
                 cursorLockState = Cursor.lockState;
                 cursorVisible = Cursor.visible;
@@ -78,11 +83,11 @@ namespace SBR.Menu {
 
         private void Unpaused() {
             if (target) target.show = false;
+            onClose?.Invoke();
             if (ungrabMouse) {
                 Cursor.lockState = cursorLockState;
                 Cursor.visible = cursorVisible;
             }
         }
     }
-
 }

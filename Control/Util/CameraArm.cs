@@ -64,12 +64,12 @@ namespace SBR {
         public Transform cameraTransform;
 
         public bool cameraMovement = true;
+        public float cameraRadius = 0.1f;
 
         private float lastX;
         private float lastY;
 
         private Quaternion rot;
-        private Camera _camera;
 
         protected override void Awake() {
             base.Awake();
@@ -77,9 +77,6 @@ namespace SBR {
             Vector3 v = transform.eulerAngles;
             lastX = v.x;
             lastY = v.y;
-
-            _camera = GetComponentInChildren<Camera>();
-            if (!cameraTransform) cameraTransform = _camera.transform;
         }
 
         private void UpdateCamera() {
@@ -111,8 +108,8 @@ namespace SBR {
             if (cameraTransform && blocking != 0 && cameraMovement) {
                 RaycastHit hit;
 
-                if (Physics.SphereCast(transform.position, _camera.nearClipPlane, -transform.forward, 
-                    out hit, targetLength + _camera.nearClipPlane, blocking, QueryTriggerInteraction.Ignore)) {
+                if (Physics.SphereCast(transform.position, cameraRadius, -transform.forward, 
+                    out hit, targetLength + cameraRadius, blocking, QueryTriggerInteraction.Ignore)) {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
                 } else {
                     cameraTransform.transform.localPosition = new Vector3(0, 0, -targetLength);

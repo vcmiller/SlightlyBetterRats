@@ -23,6 +23,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+
+using SBR.Persistence;
+
 using UnityEngine;
 
 namespace SBR {
@@ -30,7 +33,7 @@ namespace SBR {
     /// Used to give a GameObject a health value.
     /// </summary>
     [DisallowMultipleComponent]
-    public class Health : MonoBehaviour, IParentDamageable {
+    public class Health : PersistedComponent<Health.StateInfo>, IParentDamageable {
         /// <summary>
         /// Invoked when a new Health is created.
         /// </summary>
@@ -75,12 +78,23 @@ namespace SBR {
         /// <summary>
         /// The current health value.
         /// </summary>
-        public float health { get; private set; }
+        public float CurrentHealth {
+            get => State?.Health ?? maxHealth;
+            set {
+                value = Mathf.Max(value, 0);
+                if (State.Health == value) return;
+                State.Health = value;
+                if (State.Health == 0) {
+                    SendDeathMessage();
+                }
+                State.NotifyStateChanged();
+            }
+        }
 
         /// <summary>
         /// Whether this Health is dead (has reached zero), and has not been revived.
         /// </summary>
-        public bool dead { get; private set; }
+        public bool Dead => CurrentHealth == 0;
 
         /// <summary>
         /// Maximum health value.
@@ -114,40 +128,60 @@ namespace SBR {
         [Tooltip("Whether to allow revival by healing after health has reached zero.")]
         public bool allowRevival = true;
 
+        public bool persisted = true;
+
         /// <summary>
         /// Sound to play when damaged.
         /// </summary>
         [Tooltip("Sound to play when damaged")]
         public AudioParameters damageSound;
-        
+
         /// <summary>
         /// Timer used for regeneration delay.
         /// </summary>
-        public ExpirationTimer healthRegenTimer { get; private set; }
+        public float TimeUntilRegen {
+            get => State?.TimeUntilRegen ?? 0;
+            set {
+                value = Mathf.Max(value, 0);
+                if (value == State.TimeUntilRegen) return;
+                State.TimeUntilRegen = value;
+                State.NotifyStateChanged();
+            }
+        }
 
         /// <summary>
         /// Timer used to check if invulnerable from hit.
         /// </summary>
-        public CooldownTimer hitInvulnTimer { get; private set; }
+        public float TimeUntilNotInvuln {
+            get => State?.TimeUntilNotInvuln ?? 0;
+            set {
+                value = Math.Max(value, 0);
+                if (value == State.TimeUntilNotInvuln) return;
+                State.TimeUntilNotInvuln = value;
+                State.NotifyStateChanged();
+            }
+        }
         
         public delegate void Modifier<T>(ref T input);
 
         protected virtual void Awake() {
-            hitInvulnTimer = new CooldownTimer(hitInvuln, 0);
-            healthRegenTimer = new ExpirationTimer(healthRegenDelay);
-
-            ResetHealth();
+            if (!persisted) CreateFakeState();
         }
 
         protected virtual void OnSpawned() {
-            ResetHealth();
+            if (!persisted) CreateFakeState();
         }
 
-        protected virtual void ResetHealth() {
-            hitInvulnTimer.Clear();
-            healthRegenTimer.Clear();
-            health = maxHealth;
-            dead = false;
+        public override void LoadDefaultState() {
+            TimeUntilRegen = 0;
+            TimeUntilNotInvuln = 0;
+            CurrentHealth = maxHealth;
+        }
+
+        public override void LoadState() {
+            base.LoadState();
+            if (!persisted) LoadDefaultState();
+            if (Dead) SendDeathMessage();
         }
 
         protected virtual void Start() {
@@ -155,9 +189,13 @@ namespace SBR {
         }
 
         protected virtual void Update() {
-            float healthRatio = health / maxHealth;
-            if (healthRegenTimer.expired && !dead && healthRegenRate > 0 && healthRatio < healthRegenThreshold) {
-                float healing = Mathf.Min(healthRegenThreshold * maxHealth - health, healthRegenRate * Time.deltaTime);
+            float healthRatio = CurrentHealth / maxHealth;
+
+            if (TimeUntilRegen > 0) TimeUntilRegen -= Time.deltaTime;
+            if (TimeUntilNotInvuln > 0) TimeUntilNotInvuln -= Time.deltaTime;
+            
+            if (TimeUntilRegen == 0 && !Dead && healthRegenRate > 0 && healthRatio < healthRegenThreshold) {
+                float healing = Mathf.Min(healthRegenThreshold * maxHealth - CurrentHealth, healthRegenRate * Time.deltaTime);
                 Heal(healing);
             }
         }
@@ -166,32 +204,32 @@ namespace SBR {
             Destroyed?.Invoke(this);
         }
 
+        private void SendDeathMessage() {
+            SendMessage("OnZeroHealth", SendMessageOptions.DontRequireReceiver);
+            ZeroHealth?.Invoke();
+        }
+
         /// <summary>
         /// Apply damage to the Health.
         /// </summary>
         /// <param name="dmg">The damage to apply.</param>
         /// <returns>The actual damage amount dealt.</returns>
         public virtual float Damage(Damage dmg) {
-            if (enabled && dmg.amount > 0 && hitInvulnTimer.Use()) {
+            if (enabled && dmg.amount > 0 && TimeUntilNotInvuln == 0) {
                 DamageModifier?.Invoke(ref dmg);
 
-                float prevHealth = health;
-                health -= dmg.amount;
-                health = Mathf.Max(health, 0);
-                dmg.amount = prevHealth - health;
+                float prevHealth = CurrentHealth;
+                CurrentHealth -= dmg.amount;
+                dmg.amount = prevHealth - CurrentHealth;
 
-                healthRegenTimer.Set();
+                TimeUntilNotInvuln = hitInvuln;
+                TimeUntilRegen = healthRegenDelay;
                 SendMessage("OnDamage", dmg, SendMessageOptions.DontRequireReceiver);
                 Damaged?.Invoke(dmg);
                 if (damageSound) {
                     damageSound.Play();
                 }
 
-                if (health == 0 && !dead) {
-                    dead = true;
-                    SendMessage("OnZeroHealth", SendMessageOptions.DontRequireReceiver);
-                    ZeroHealth?.Invoke();
-                }
             } else {
                 dmg.amount = 0;
             }
@@ -205,18 +243,17 @@ namespace SBR {
         /// <param name="amount">The amount of healing.</param>
         /// <returns>The actual healing amount applied.</returns>
         public virtual float Heal(float amount) {
-            if (enabled && (!dead || allowRevival) && amount > 0) {
+            if (enabled && (!Dead || allowRevival) && amount > 0) {
                 HealingModifier?.Invoke(ref amount);
 
-                float prevHealth = health;
-                health += amount;
-                health = Mathf.Min(health, maxHealth);
-                amount = health - prevHealth;
+                float prevHealth = CurrentHealth;
+                CurrentHealth += amount;
+                CurrentHealth = Mathf.Min(CurrentHealth, maxHealth);
+                amount = CurrentHealth - prevHealth;
                 SendMessage("OnHeal", amount, SendMessageOptions.DontRequireReceiver);
                 Healed?.Invoke(amount);
 
-                if (dead) {
-                    dead = false;
+                if (Dead) {
                     SendMessage("OnRevive", SendMessageOptions.DontRequireReceiver);
                     Revived?.Invoke();
                 }
@@ -225,6 +262,13 @@ namespace SBR {
             }
 
             return amount;
+        }
+        
+        [Serializable]
+        public class StateInfo : PersistedDataBase {
+            public float TimeUntilRegen { get; set; }
+            public float TimeUntilNotInvuln { get; set; }
+            public float Health { get; set; }
         }
     }
 
@@ -267,7 +311,7 @@ namespace SBR {
         /// <returns>Whether there was a Health component.</returns>
         public static bool TryGetHealth(this GameObject obj, out float health) {
             if (obj.TryGetComponentInParent<Health>(out var h)) {
-                health = h.health;
+                health = h.CurrentHealth;
                 return true;
             } else {
                 health = 0;
