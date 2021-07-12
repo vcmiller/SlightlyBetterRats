@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 using System;
+using System.Collections.Generic;
+
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -44,29 +46,27 @@ namespace SBR {
             public UnityEvent OnAllExit;
         }
 
-        private int _count = 0;
+        private HashSet<GameObject> _objects = new HashSet<GameObject>();
 
-        private void Start() {
-            if (hideOnPlay) {
-                GetComponent<MeshRenderer>().enabled = false;
-            }
-        }
+        private void Start() { }
 
         private void HandleEnter(GameObject other) {
+            if (!enabled) return;
             if (!other.CompareTag(tagFilter)) return;
+            if (!_objects.Add(other.gameObject)) return;
             
             events.OnTriggerEnter?.Invoke();
-            TriggerEntered?.Invoke(other.gameObject);
-            _count++;
+            TriggerEntered?.Invoke(other);
         }
 
         private void HandleExit(GameObject other) {
+            if (!enabled) return;
             if (!other.CompareTag(tagFilter)) return;
+            if (!_objects.Remove(other)) return;
             
             events.OnTriggerExit?.Invoke();
             TriggerExited?.Invoke(other.gameObject);
-            _count--;
-            if (_count == 0) {
+            if (_objects.Count == 0) {
                 events.OnAllExit?.Invoke();
                 AllExited?.Invoke(other.gameObject);
             }

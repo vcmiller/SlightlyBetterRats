@@ -43,6 +43,11 @@ namespace SBR.Persistence {
         private void Awake() {
             if (!Application.isPlaying) return;
             _components = GetComponentsInChildren<IPersistedComponent>();
+            OnSpawned();
+        }
+
+        private void OnDestroy() {
+            OnDespawned();
         }
 
         private PersistedObjectCollection Container {
@@ -53,13 +58,13 @@ namespace SBR.Persistence {
             }
         }
 
-        private void OnEnable() {
+        private void OnSpawned() {
             if (!Application.isPlaying) return;
             _needsToInitialize = true;
             IsDynamicInstance = false;
         }
 
-        private void OnDisable() {
+        private void OnDespawned() {
             if (!Application.isPlaying) return;
             _needsToInitialize = false;
             IsDynamicInstance = false;

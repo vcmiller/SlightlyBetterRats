@@ -11,6 +11,11 @@ namespace SBR.Persistence {
         [SerializeField] private bool _saveScale = false;
         [SerializeField] private bool _localSpace = false;
 
+        public override void LoadDefaultState() {
+            base.LoadDefaultState();
+            SaveState();
+        }
+
         public override void LoadState() {
             base.LoadState();
             if (_savePosition) {

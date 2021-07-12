@@ -20,6 +20,7 @@ namespace SBR.Editor.Sequencing {
         private static void EditorApplication_PlayModeStateChanged(PlayModeStateChange mode) {
             if (!SBRProjectSettings.inst.autoLoadScene0InEditor) return;
             if (mode == PlayModeStateChange.ExitingEditMode) {
+                EditorSceneManager.SaveOpenScenes();
                 EditorPrefs.SetString("ActiveScene", SceneManager.GetActiveScene().path);
                 EditorPrefs.SetInt("OpenSceneCount", SceneManager.sceneCount);
                 for (int i = 0; i < SceneManager.sceneCount; i++) {
