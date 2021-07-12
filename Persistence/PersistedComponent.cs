@@ -1,16 +1,20 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR.Persistence {
     public interface IPersistedComponent {
-        public void Initialize(PersistedDataBase parent, string id);
+        public void Initialize(PersistedData parent, string id);
+        public void PostLoad();
+        public void WillSaveState();
     }
     
-    public class PersistedComponent<T> : MonoBehaviour, IPersistedComponent where T : PersistedDataBase, new() {
+    public class PersistedComponent<T> : MonoBehaviour, IPersistedComponent where T : PersistedData, new() {
         protected T State { get; private set; }
-        
-        public void Initialize(PersistedDataBase parent, string id) {
+        public bool Initialized => State != null;
+
+        public void Initialize(PersistedData parent, string id) {
             if (PersistenceManager.Instance.GetCustomData(parent, id, out T state)) {
                 State = state;
                 if (state.Initialized) LoadState();
@@ -29,5 +33,7 @@ namespace SBR.Persistence {
         
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
+        public virtual void PostLoad() {}
+        public virtual void WillSaveState() {}
     }
 }

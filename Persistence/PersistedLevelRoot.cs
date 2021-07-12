@@ -5,23 +5,44 @@ using System.Linq;
 
 using SBR.Sequencing;
 
+using SlightlyBetterRats.Persistence;
+
 using UnityEngine;
 
 namespace SBR.Persistence {
     public class PersistedLevelRoot : LevelRoot {
         public LevelSaveData SaveData { get; private set; }
         public new static PersistedLevelRoot Current => LevelRoot.Current as PersistedLevelRoot;
+        public bool ObjectsLoaded { get; private set; }
         
         private bool _dirty;
 
         private Dictionary<int, LoadedRegionInfo> _loadedRegionData = new Dictionary<int, LoadedRegionInfo>();
 
+        public event Action WillSave;
+
         public override void Initialize() {
             base.Initialize();
             SaveData = PersistenceManager.Instance.GetLevelData(ManifestEntry.LevelID);
             SaveData.StateChanged += SaveData_StateChanged;
+        }
 
-            PersistedGameObject.CreateDynamicObjects(SaveData.Objects, gameObject.scene);
+        public virtual void LoadObjects() {
+            List<PersistedRegionRoot> persistedRegions = LoadedRegions.OfType<PersistedRegionRoot>().ToList();
+
+            List<PersistedGameObject> gameObjects = new List<PersistedGameObject>();
+            
+            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene);
+            PersistedGameObject.CollectGameObjects(gameObject.scene, gameObjects);
+            
+            foreach (PersistedRegionRoot regionRoot in persistedRegions) {
+                regionRoot.LoadDynamicObjects();
+                PersistedGameObject.CollectGameObjects(regionRoot.gameObject.scene, gameObjects);
+            }
+            
+            PersistedGameObject.InitializeGameObjects(gameObjects);
+
+            ObjectsLoaded = true;
         }
 
         public override void Cleanup() {
@@ -32,11 +53,23 @@ namespace SBR.Persistence {
         internal override void RegisterRegion(RegionRoot region) {
             base.RegisterRegion(region);
             GetOrLoadRegionData(region.ManifestEntry).Loaded = true;
+
+            if (ObjectsLoaded && region is PersistedRegionRoot root) {
+                root.LoadDynamicObjects();
+                List<PersistedGameObject> gameObjects = new List<PersistedGameObject>();
+                PersistedGameObject.CollectGameObjects(root.gameObject.scene, gameObjects);
+                PersistedGameObject.InitializeGameObjects(gameObjects);
+            }
         }
 
         internal override void DeregisterRegion(RegionRoot region) {
             GetOrLoadRegionData(region.ManifestEntry).Loaded = false;
             base.DeregisterRegion(region);
+        }
+
+        public override bool UnloadRegion(LevelManifestRegionEntry regionEntry) {
+            WillSave?.Invoke();
+            return base.UnloadRegion(regionEntry);
         }
 
         private void SaveData_StateChanged() {
@@ -58,6 +91,7 @@ namespace SBR.Persistence {
         }
 
         public void Save() {
+            WillSave?.Invoke();
             foreach (int regionID in _loadedRegionData.Keys.ToList()) {
                 LoadedRegionInfo info = _loadedRegionData[regionID];
                 

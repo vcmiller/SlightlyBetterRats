@@ -9,8 +9,7 @@ namespace SBR.Persistence {
         [SerializeField] private bool _savePosition = true;
         [SerializeField] private bool _saveRotation = true;
         [SerializeField] private bool _saveScale = false;
-        [SerializeField] private bool _localSpace = true;
-        [SerializeField] private bool _saveEveryFrame = true;
+        [SerializeField] private bool _localSpace = false;
 
         public override void LoadState() {
             base.LoadState();
@@ -27,14 +26,15 @@ namespace SBR.Persistence {
             if (_saveScale) transform.localScale = _transform.localScale;
         }
 
-        public void SaveState() {
+        public override void WillSaveState() {
+            base.WillSaveState();
+            SaveState();
+        }
+
+        private void SaveState() {
             if (_savePosition) State.Position = _localSpace ? _transform.localPosition : _transform.position;
             if (_saveRotation) State.Rotation = _localSpace ? _transform.localRotation : _transform.rotation;
             if (_saveScale) State.Scale = _transform.localScale;
-        }
-
-        private void Update() {
-            if (_saveEveryFrame && State != null) SaveState();
         }
 
         private void Reset() {
@@ -42,7 +42,7 @@ namespace SBR.Persistence {
         }
 
         [Serializable]
-        public class StateInfo : PersistedDataBase {
+        public class StateInfo : PersistedData {
             private Vector3 _position;
             private Quaternion _rotation;
             private Vector3 _scale;

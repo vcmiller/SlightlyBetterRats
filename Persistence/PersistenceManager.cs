@@ -219,9 +219,9 @@ namespace SBR.Persistence {
             
             LoadedStateData.StateName = newStateName;
             LoadedProfileData.MostRecentState = LoadedStateData.StateName;
+            LoadedStateData.SaveTime = DateTime.Now;
             
             if (!_loadedStateDataDirty) return;
-            LoadedStateData.SaveTime = DateTime.Now;
             _dataHandler.SetStateSaveData(_serializer, LoadedProfileData.ProfileName, newStateName,
                                           LoadedStateData);
             _loadedStateDataDirty = false;
@@ -297,7 +297,7 @@ namespace SBR.Persistence {
                                            levelIndex, regionIndex, regionData);
         }
 
-        public bool GetCustomData<T>(PersistedDataBase parent, string key, out T result) where T : new() {
+        public bool GetCustomData<T>(PersistedData parent, string key, out T result) where T : new() {
             object current = parent.GetCustomData(key);
             if (current == null) {
                 result = new T();

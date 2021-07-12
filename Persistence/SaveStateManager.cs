@@ -68,7 +68,7 @@ namespace SBR.Persistence {
         }
         
         [Serializable]
-        public class StateInfo : PersistedDataBase {
+        public class StateInfo : PersistedData {
             public int LastAutoSave { get; set; } = -1;
             public int NextAutoSave { get; set; } = 0;
             public bool HasQuickSave { get; set; } = false;

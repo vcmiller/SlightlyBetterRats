@@ -265,7 +265,7 @@ namespace SBR {
         }
         
         [Serializable]
-        public class StateInfo : PersistedDataBase {
+        public class StateInfo : PersistedData {
             public float TimeUntilRegen { get; set; }
             public float TimeUntilNotInvuln { get; set; }
             public float Health { get; set; }

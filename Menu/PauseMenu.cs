@@ -27,6 +27,7 @@ namespace SBR.Menu {
     public class PauseMenu : MonoBehaviour {
         public ShowHideUI target;
         public bool ungrabMouse = true;
+        public float pauseCooldown = 0.1f;
 
         public string pauseButton = "Cancel";
         public string resumeButton = "Cancel";
@@ -36,36 +37,47 @@ namespace SBR.Menu {
 
         private CursorLockMode cursorLockState;
         private bool cursorVisible;
+        private CooldownTimer pauseTimer;
 
         private void Reset() {
             target = GetComponentInChildren<ShowHideUI>();
         }
 
         private void Awake() {
+            if (pauseCooldown > 0) {
+                pauseTimer = new CooldownTimer(pauseCooldown) {unscaled = true};
+                pauseTimer.Clear();
+            }
             if (target) target.show = false;
         }
 
         private void Update() {
             if (!string.IsNullOrEmpty(pauseButton) &&
                 Input.GetButtonDown(pauseButton) && 
-                !SBR.Pause.Paused && (!target || !target.show)) {
+                !SBR.Pause.Paused && (!target || !target.show) &&
+                pauseTimer.canUse) {
 
                 Pause();
             } else if (!string.IsNullOrEmpty(resumeButton) &&
                 Input.GetButtonDown(resumeButton) && 
-                SBR.Pause.Paused && (!target || target.show)) {
+                SBR.Pause.Paused && (!target || target.show) &&
+                pauseTimer.canUse) {
 
                 Unpause();
             }
         }
 
         public void Pause() {
+            if (SBR.Pause.Paused) return;
             SBR.Pause.Paused = true;
+            pauseTimer.Reset();
             Paused();
         }
 
         public void Unpause() {
+            if (!SBR.Pause.Paused) return;
             SBR.Pause.Paused = false;
+            pauseTimer.Reset();
             Unpaused();
         }
 

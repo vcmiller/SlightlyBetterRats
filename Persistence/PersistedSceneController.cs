@@ -70,7 +70,7 @@ namespace SBR.Persistence {
 
                 string state = PersistenceManager.Instance.LoadedProfileData.MostRecentState;
                 if (string.IsNullOrEmpty(state)) state = "DefaultState";
-                LoadProfile(state);
+                LoadState(state);
             }
         }
     }

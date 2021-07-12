@@ -9,9 +9,9 @@ namespace SBR.Persistence {
     public class PersistedRegionRoot : RegionRoot {
         public RegionSaveData SaveData { get; private set; }
         
+        public bool ObjectsLoaded { get; private set; }
+        
         public override void Initialize() {
-            base.Initialize();
-
             var level = PersistedLevelRoot.Current;
             if (!level) {
                 Debug.LogError("Trying to initialize PersistedRegionRoot with no PersistedLevelRoot.");
@@ -19,7 +19,12 @@ namespace SBR.Persistence {
             }
 
             SaveData = level.GetOrLoadRegionData(ManifestEntry);
-            PersistedGameObject.CreateDynamicObjects(SaveData.Objects, gameObject.scene);
+            
+            base.Initialize();
+        }
+
+        public virtual void LoadDynamicObjects() {
+            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene);
         }
     }
 }

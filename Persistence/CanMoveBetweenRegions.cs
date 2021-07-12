@@ -28,9 +28,10 @@ namespace SBR.Persistence {
                 SceneManager.MoveGameObjectToScene(_pgo.gameObject, value.gameObject.scene);
             }
         }
+        
         public bool CanTransitionTo(RegionRoot region) {
             return region is PersistedRegionRoot persisted && _enableRegionTransition &&
-                   _pgo.Level == null && _pgo.Region != region && _pgo.DynamicPrefabID != 0;
+                   _pgo.Region != null && _pgo.Region != region && _pgo.DynamicPrefabID != 0;
         }
     }
 }

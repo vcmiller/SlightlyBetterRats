@@ -7,7 +7,6 @@ namespace SBR.Persistence {
         [SerializeField] private Rigidbody _rigidbody;
         [SerializeField] private bool _saveVelocity = true;
         [SerializeField] private bool _saveAngularVelocity = true;
-        [SerializeField] private bool _saveEveryFrame = true;
 
         public override void LoadState() {
             base.LoadState();
@@ -15,13 +14,14 @@ namespace SBR.Persistence {
             if (_saveAngularVelocity) _rigidbody.angularVelocity = State.AngularVelocity;
         }
 
-        public void SaveState() {
-            if (_saveVelocity) State.Velocity = _rigidbody.velocity;
-            if (_saveAngularVelocity) State.AngularVelocity = _rigidbody.angularVelocity;
+        public override void WillSaveState() {
+            base.WillSaveState();
+            SaveState();
         }
 
-        private void Update() {
-            if (_saveEveryFrame && State != null) SaveState();
+        private void SaveState() {
+            if (_saveVelocity) State.Velocity = _rigidbody.velocity;
+            if (_saveAngularVelocity) State.AngularVelocity = _rigidbody.angularVelocity;
         }
 
         private void Reset() {
@@ -29,7 +29,7 @@ namespace SBR.Persistence {
         }
 
         [Serializable]
-        public class StateInfo : PersistedDataBase {
+        public class StateInfo : PersistedData {
             private Vector3 _velocity;
             private Vector3 _angularVelocity;
 

@@ -9,7 +9,7 @@ using Random = System.Random;
 
 namespace SBR.Persistence {
     [Serializable]
-    public class PersistedDataBase {
+    public class PersistedData {
         private bool _initialized;
         public bool Initialized {
             get => _initialized;
@@ -62,7 +62,7 @@ namespace SBR.Persistence {
         protected virtual void Subscribe() {
             if (_customData == null) return;
             foreach (object obj in _customData.Values) {
-                if (!(obj is PersistedDataBase data)) continue;
+                if (!(obj is PersistedData data)) continue;
                 data.StateChanged += CustomData_StateChanged;
             }
         }
@@ -70,7 +70,7 @@ namespace SBR.Persistence {
         protected virtual void Unsubscribe() {
             if (_customData == null) return;
             foreach (object obj in _customData.Values) {
-                if (!(obj is PersistedDataBase data)) continue;
+                if (!(obj is PersistedData data)) continue;
                 data.StateChanged -= CustomData_StateChanged;
             }
         }
@@ -83,13 +83,13 @@ namespace SBR.Persistence {
         public void SetCustomData(string key, object value) {
             _customData ??= new Dictionary<string, object>();
 
-            if (_customData.TryGetValue(key, out object prevValue) && prevValue is PersistedDataBase prevData) {
+            if (_customData.TryGetValue(key, out object prevValue) && prevValue is PersistedData prevData) {
                 prevData.StateChanged -= CustomData_StateChanged;
             }
             
             _customData[key] = value;
             
-            if (value is PersistedDataBase data) {
+            if (value is PersistedData data) {
                 data.StateChanged += CustomData_StateChanged;
             }
         }
@@ -100,7 +100,7 @@ namespace SBR.Persistence {
     }
     
     [Serializable]
-    public class GlobalSaveData : PersistedDataBase {
+    public class GlobalSaveData : PersistedData {
         private string _mostRecentProfile;
 
         public string MostRecentProfile {
@@ -114,7 +114,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class ProfileSaveData : PersistedDataBase {
+    public class ProfileSaveData : PersistedData {
         private string _profileName;
         private string _mostRecentState;
 
@@ -138,7 +138,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class StateSaveData : PersistedDataBase {
+    public class StateSaveData : PersistedData {
         private string _stateName;
         private string _currentScene;
         private DateTime _saveTime;
@@ -172,7 +172,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class ObjectContainerSaveDataBase : PersistedDataBase {
+    public class ObjectContainerSaveData : PersistedData {
         private PersistedObjectCollection _objects = new PersistedObjectCollection();
         public PersistedObjectCollection Objects => _objects;
 
@@ -192,7 +192,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class LevelSaveData : ObjectContainerSaveDataBase {
+    public class LevelSaveData : ObjectContainerSaveData {
         private int _levelIndex;
 
         public int LevelIndex {
@@ -206,7 +206,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class RegionSaveData : ObjectContainerSaveDataBase {
+    public class RegionSaveData : ObjectContainerSaveData {
         private int _regionIndex;
         private bool _loaded;
         
@@ -230,7 +230,7 @@ namespace SBR.Persistence {
     }
     
     [Serializable]
-    public class PersistedObjectCollection : PersistedDataBase {
+    public class PersistedObjectCollection : PersistedData {
         private Dictionary<ulong, ObjectSaveData> _objects = new Dictionary<ulong, ObjectSaveData>();
 
         private static readonly Random LongRandomizer = new Random();
@@ -328,7 +328,7 @@ namespace SBR.Persistence {
     }
 
     [Serializable]
-    public class ObjectSaveData : PersistedDataBase {
+    public class ObjectSaveData : PersistedData {
         private ulong _instanceID;
         private bool _isDynamicInstance;
         private int _dynamicPrefabID;

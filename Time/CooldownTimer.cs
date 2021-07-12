@@ -42,7 +42,7 @@ namespace SBR {
         /// <summary>
         /// Whether to use unscaled time (so it works when the game is paused).
         /// </summary>
-        public bool unscaled { get; private set; }
+        public bool unscaled { get; set; }
 
         /// <summary>
         /// Returns Time.time if scaled, Time.unscaledTime if unscaled.

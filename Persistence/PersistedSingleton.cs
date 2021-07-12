@@ -3,7 +3,7 @@
 using UnityEngine;
 
 namespace SBR.Persistence {
-    public class PersistedSingleton<T, TS> : Singleton<T> where T : SingletonBase where TS : PersistedDataBase, new() {
+    public class PersistedSingleton<T, TS> : Singleton<T> where T : SingletonBase where TS : PersistedData, new() {
         [SerializeField] private PersistedSingletonScope _scope = PersistedSingletonScope.Profile;
 
         public TS State { get; private set; }
@@ -26,7 +26,7 @@ namespace SBR.Persistence {
         }
 
         protected virtual void UpdateState() {
-            PersistedDataBase data = _scope switch {
+            PersistedData data = _scope switch {
                 PersistedSingletonScope.Global => PersistenceManager.Instance.LoadedGlobalData,
                 PersistedSingletonScope.Profile => PersistenceManager.Instance.LoadedProfileData,
                 PersistedSingletonScope.State => PersistenceManager.Instance.LoadedStateData,
