@@ -65,7 +65,7 @@ namespace SBR {
             remove { _inputReceived.Remove(value); }
         }
 
-        /// <summary>
+        /// <summary>i
         /// Invoked each frame after InputReceived.
         /// </summary>
         public event Action<T> PostInputReceived {

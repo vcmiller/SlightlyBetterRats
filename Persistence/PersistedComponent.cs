@@ -36,4 +36,34 @@ namespace SBR.Persistence {
         public virtual void PostLoad() {}
         public virtual void WillSaveState() {}
     }
+
+    public abstract class PersistedController<TChannels, TState> : Controller<TChannels>, IPersistedComponent
+        where TState : PersistedData, new()
+        where TChannels : Channels, new() {
+        
+        protected TState State { get; private set; }
+        public bool Initialized => State != null;
+
+        public void Initialize(PersistedData parent, string id) {
+            if (PersistenceManager.Instance.GetCustomData(parent, id, out TState state)) {
+                State = state;
+                if (state.Initialized) LoadState();
+                else LoadDefaultState();
+                State.Initialized = true;
+            } else {
+                State = null;
+                Debug.LogError($"State {id} could not be loaded.");
+            }
+        }
+
+        protected void CreateFakeState() {
+            State = new TState();
+            LoadDefaultState();
+        }
+        
+        public virtual void LoadState() {}
+        public virtual void LoadDefaultState() {}
+        public virtual void PostLoad() {}
+        public virtual void WillSaveState() {}
+    }
 }
