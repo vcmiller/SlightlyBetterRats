@@ -36,7 +36,7 @@ namespace SBR {
         }
 
         public float Damage(Damage dmg) {
-            dmg.amount *= modifier;
+            dmg.Amount *= modifier;
             return parent.Damage(dmg);
         }
     }

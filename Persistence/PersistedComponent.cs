@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SBR.Persistence {
     public interface IPersistedComponent {
-        public void Initialize(PersistedData parent, string id);
+        public void Initialize(PersistedGameObject persistedGameObject, PersistedData parent, string id);
         public void PostLoad();
         public void WillSaveState();
     }
@@ -13,9 +13,11 @@ namespace SBR.Persistence {
     public class PersistedComponent<T> : MonoBehaviour, IPersistedComponent where T : PersistedData, new() {
         protected T State { get; private set; }
         public bool Initialized => State != null;
+        protected PersistedGameObject PersistedGameObject { get; private set; }
 
-        public void Initialize(PersistedData parent, string id) {
+        public void Initialize(PersistedGameObject persistedGameObject, PersistedData parent, string id) {
             if (PersistenceManager.Instance.GetCustomData(parent, id, out T state)) {
+                PersistedGameObject = persistedGameObject;
                 State = state;
                 if (state.Initialized) LoadState();
                 else LoadDefaultState();
@@ -43,9 +45,11 @@ namespace SBR.Persistence {
         
         protected TState State { get; private set; }
         public bool Initialized => State != null;
+        protected PersistedGameObject PersistedGameObject { get; private set; }
 
-        public void Initialize(PersistedData parent, string id) {
+        public void Initialize(PersistedGameObject persistedGameObject, PersistedData parent, string id) {
             if (PersistenceManager.Instance.GetCustomData(parent, id, out TState state)) {
+                PersistedGameObject = persistedGameObject;
                 State = state;
                 if (state.Initialized) LoadState();
                 else LoadDefaultState();

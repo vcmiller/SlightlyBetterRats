@@ -163,7 +163,7 @@ namespace SBR.Persistence {
 
         private void InitializeComponents() {
             foreach (IPersistedComponent component in _components) {
-                component.Initialize(SaveData, new ComponentID(transform, (Component) component).ToString());
+                component.Initialize(this, SaveData, new ComponentID(transform, (Component) component).ToString());
             }
         }
 

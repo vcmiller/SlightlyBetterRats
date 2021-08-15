@@ -85,7 +85,7 @@ namespace SBR {
                 if (_useAnimator) {
                     TransferAnimatorFromInstance();
                 } else {
-                    _meshAnimator = newMesh.GetComponent<Animator>();
+                    _meshAnimator = newMesh.GetComponentInChildren<Animator>();
                 }
             }
 

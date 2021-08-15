@@ -31,26 +31,30 @@ namespace SBR {
         /// <param name="point">Location of the damage.</param>
         /// <param name="direction">Direction of the damage.</param>
         /// <param name="force">Force applied by the bullet.</param>
-        public PointDamage(float amount, Vector3 point, Vector3 direction, float force) : base(amount) {
-            this.point = point;
-            this.direction = direction.normalized;
-            this.force = force;
+        /// <param name="hitObject"></param>
+        public PointDamage(float amount, Vector3 point, Vector3 direction, float force, GameObject hitObject) : base(amount) {
+            Point = point;
+            Direction = direction.normalized;
+            Force = force;
+            HitObject = hitObject;
         }
 
         /// <summary>
         /// Location at which the damage is applied.
         /// </summary>
-        public Vector3 point;
+        public Vector3 Point { get; }
 
         /// <summary>
         /// Direction of the damage (such as the normalized velocity of a bullet).
         /// </summary>
-        public Vector3 direction;
+        public Vector3 Direction { get; }
 
         /// <summary>
         /// Force that is applied by the bullet in the given direction.
         /// </summary>
-        public float force;
+        public float Force { get; }
+
+        public GameObject HitObject { get; }
     }
 
 }

@@ -215,12 +215,12 @@ namespace SBR {
         /// <param name="dmg">The damage to apply.</param>
         /// <returns>The actual damage amount dealt.</returns>
         public virtual float Damage(Damage dmg) {
-            if (enabled && dmg.amount > 0 && TimeUntilNotInvuln == 0) {
+            if (enabled && dmg.Amount > 0 && TimeUntilNotInvuln == 0) {
                 DamageModifier?.Invoke(ref dmg);
 
                 float prevHealth = CurrentHealth;
-                CurrentHealth -= dmg.amount;
-                dmg.amount = prevHealth - CurrentHealth;
+                CurrentHealth -= dmg.Amount;
+                dmg.Amount = prevHealth - CurrentHealth;
 
                 TimeUntilNotInvuln = hitInvuln;
                 TimeUntilRegen = healthRegenDelay;
@@ -231,10 +231,10 @@ namespace SBR {
                 }
 
             } else {
-                dmg.amount = 0;
+                dmg.Amount = 0;
             }
 
-            return dmg.amount;
+            return dmg.Amount;
         }
 
         /// <summary>

@@ -25,6 +25,7 @@ namespace SBR.Persistence {
 
         public virtual void LoadDynamicObjects() {
             PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene);
+            ObjectsLoaded = true;
         }
     }
 }

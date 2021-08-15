@@ -163,7 +163,8 @@ namespace SBR {
 
         protected virtual void OnHitObject(Transform col, Vector3 position) {
             Vector3 impact = velocity * impactForce;
-            col.Damage(new PointDamage(damage * damageMultiplier, position, velocity.normalized, velocity.magnitude * impactForce));
+            col.Damage(new PointDamage(damage * damageMultiplier, position, velocity.normalized, 
+                                       velocity.magnitude * impactForce, col.gameObject));
 
             if (impactForce > 0) {
                 var rb = col.GetComponentInParent<Rigidbody>();

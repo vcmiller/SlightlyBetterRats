@@ -11,7 +11,10 @@ namespace SBR.Persistence {
         
         public void ExecuteForward(ExecutionStepArguments arguments) {
             var level = PersistedLevelRoot.Current;
-            if (!level) return;
+            if (!level) {
+                IsFinished = true;
+                return;
+            }
 
             IsFinished = false;
             StartCoroutine(CRT_Execution(level));
