@@ -21,15 +21,15 @@ namespace SBR.Persistence {
         [SerializeField] private bool _immediatelyConvert = false;
 
         private bool _hasCheckedId;
-        
+
         public ObjectSaveData SaveData { get; private set; }
         public PersistedLevelRoot Level { get; private set; }
         public PersistedRegionRoot Region { get; private set; }
 
         public int DynamicPrefabID => _dynamicPrefabID;
-        
+
         public bool Initialized { get; private set; }
-        
+
         public bool IsDynamicInstance { get; private set; }
 
         public ulong InstanceID => _instanceID;
@@ -113,10 +113,10 @@ namespace SBR.Persistence {
         private void CheckDynamicRegister() {
             var level = PersistedLevelRoot.Current;
             if (level == null || !level.ObjectsLoaded) return;
-            
+
             SceneLoadingManager.Instance.GetSceneLoadedState(gameObject.scene.name, out _, out RegionRoot region);
             if (region is PersistedRegionRoot {ObjectsLoaded: false}) return;
-            
+
             Initialize();
             InitializeComponents();
             PostLoad();
@@ -134,18 +134,21 @@ namespace SBR.Persistence {
         private void Initialize() {
             if (!_needsToInitialize) return;
             _needsToInitialize = false;
-            
+
             Level = PersistedLevelRoot.Current;
-            Level.WillSave += LevelRoot_WillSave;
-            
+            if (Level) Level.WillSave += LevelRoot_WillSave;
+
             Scene scene = gameObject.scene;
             SceneLoadingManager.Instance.GetSceneLoadedState(scene.name, out _, out RegionRoot region);
-            
+
             if (region is PersistedRegionRoot pRegion) Region = pRegion;
-            
-            SaveData = _instanceID == 0
-                ? Container.RegisterNewDynamicObject(_dynamicPrefabID)
-                : Container.RegisterExistingObject(_instanceID, IsDynamicInstance);
+
+            PersistedObjectCollection container = Container;
+            SaveData = container != null
+                ? _instanceID == 0
+                    ? container.RegisterNewDynamicObject(_dynamicPrefabID)
+                    : container.RegisterExistingObject(_instanceID, IsDynamicInstance)
+                : new ObjectSaveData(_instanceID, false, -1);
             _instanceID = SaveData.InstanceID;
             if (_objects.ContainsKey(_instanceID)) {
                 Debug.LogError($"Object with instanceID already exists, trying to replace with {name}.", this);
@@ -181,7 +184,9 @@ namespace SBR.Persistence {
                 return;
             }
 
-            SaveData = Container.ConvertStaticObjectToDynamic(_instanceID, _dynamicPrefabID);
+            PersistedObjectCollection container = Container;
+            if (container == null) return;
+            SaveData = container.ConvertStaticObjectToDynamic(_instanceID, _dynamicPrefabID);
 
             _objects.Remove(_instanceID);
             _instanceID = SaveData.InstanceID;
@@ -189,7 +194,7 @@ namespace SBR.Persistence {
         }
 
         public void RegisterDestroyed() {
-            Container.RegisterObjectDestroyed(_instanceID);
+            Container?.RegisterObjectDestroyed(_instanceID);
         }
 
         public void TransitionToRegion(PersistedRegionRoot newRoot) {
@@ -197,15 +202,16 @@ namespace SBR.Persistence {
                 Debug.LogError($"Trying to transition object {name}, which doesn't have a dynamic prefab ID.");
                 return;
             }
-            
-            Container.RegisterObjectDestroyed(_instanceID);
+            PersistedObjectCollection container = Container;
+            if (container == null) return;
+            container.RegisterObjectDestroyed(_instanceID);
             Region = newRoot;
-            
-            var data = Container.RegisterNewDynamicObject(DynamicPrefabID, _instanceID);
+
+            var data = container.RegisterNewDynamicObject(DynamicPrefabID, _instanceID);
             data.CustomData = SaveData.CustomData;
             data.Destroyed = false;
             data.Initialized = true;
-            
+
             SaveData = data;
             IsDynamicInstance = true;
             if (SaveData.InstanceID != _instanceID) {
@@ -229,7 +235,7 @@ namespace SBR.Persistence {
         public static IEnumerable<PersistedGameObject> GetObjectsWithIDs(IEnumerable<ulong> ids) {
             return ids?.Select(GetObjectWithID).Where(obj => obj) ?? Enumerable.Empty<PersistedGameObject>();
         }
-        
+
         public static void LoadDynamicObjects(PersistedObjectCollection data, Scene scene) {
             foreach (var objectData in data.Objects.ToList()) {
                 if (!objectData.IsDynamicInstance) continue;
