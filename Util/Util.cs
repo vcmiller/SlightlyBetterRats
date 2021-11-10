@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -130,8 +130,24 @@ namespace SBR {
             Debug.DrawLine(new Vector3(bounds.min.x, bounds.max.y, bounds.min.z), new Vector3(bounds.min.x, bounds.max.y, bounds.max.z), color, duration, depthTest);
         }
 
+        public static void DebugBreakAfterFrames(this MonoBehaviour cmp, int frames) {
+            if (frames == 0) {
+                Debug.Break();
+                return;
+            }
+
+            cmp.StartCoroutine(CRT_DebugBreakAfterFrames(frames));
+        }
+
+        private static IEnumerator CRT_DebugBreakAfterFrames(int frames) {
+            for (int i = 0; i < frames; i++) {
+                yield return null;
+            }
+            Debug.Break();
+        }
+
         /// <summary>
-        /// Splits a camel-case string into words separated by spaces. 
+        /// Splits a camel-case string into words separated by spaces.
         /// Multiple consecutive capitals are considered the same word.
         /// </summary>
         /// <remarks>
@@ -180,7 +196,7 @@ namespace SBR {
 
         public static T DeepCopy<T>(this T obj) {
             using var ms = new MemoryStream();
-            
+
             var formatter = new BinaryFormatter();
             formatter.Serialize(ms, obj);
             ms.Position = 0;
@@ -193,7 +209,7 @@ namespace SBR {
 
             Transform current = to;
             bool first = true;
-            
+
             while (current && current != from) {
                 if (current) {
                     builder.Insert(0, first ? $"/{current.name}" : current.name);
@@ -234,7 +250,7 @@ namespace SBR {
 
             return (long)(ulongRand % uRange) + min;
         }
-        
+
         public static ulong NextUlong(this System.Random random) {
             random.NextBytes(_randBuf);
             return BitConverter.ToUInt64(_randBuf, 0);
@@ -247,7 +263,7 @@ namespace SBR {
                 if (selectionDelegate(item, out T2 value)) yield return value;
             }
         }
-        
+
         public static T2 FirstOrDefaultWhere<T1, T2>(this IEnumerable<T1> input,
                                                           SelectWhereDelegate<T1, T2> selectionDelegate) {
             foreach (T1 item in input) {

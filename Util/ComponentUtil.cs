@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -97,7 +97,7 @@ namespace SBR {
         /// <param name="parent"></param>
         /// <param name="inWorldSpace">Whether the given position, rotation, and scale should be considered global.</param>
         /// <param name="scene"></param>
-        public static void Initialize(this Transform transform, 
+        public static void Initialize(this Transform transform,
                                       Vector3? position = null, Quaternion? rotation = null, Vector3? scale = null,
                                       Transform parent = null, bool inWorldSpace = false, Scene? scene = null) {
 
@@ -152,8 +152,8 @@ namespace SBR {
         /// <summary>
         /// Like GetComponentInChildren, but more convenient if using in if statements and also using the component value.
         /// </summary>
-        public static bool TryGetComponentInChildren<T>(this GameObject obj, out T result) {
-            T cmp = obj.GetComponentInChildren<T>();
+        public static bool TryGetComponentInChildren<T>(this GameObject obj, out T result, bool includeInactive = false) {
+            T cmp = obj.GetComponentInChildren<T>(includeInactive);
             result = cmp;
             return cmp != null;
         }

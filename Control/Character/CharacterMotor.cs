@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,7 +29,7 @@ namespace SBR {
     /// Motor class for a humanoid character. Performs movement and collision using a Rigidbody.
     /// </summary>
     /// <remarks>
-    /// The Rigidbody should be set to NOT use gravity. 
+    /// The Rigidbody should be set to NOT use gravity.
     /// It will not respond to forces; to apply force, set the CharacterMotor's velocity directly.
     /// </remarks>
     [RequireComponent(typeof(CapsuleCollider), typeof(Rigidbody))]
@@ -77,7 +77,7 @@ namespace SBR {
         public Vector3 movementVelocity {
             get => GetVelocityMovementComponent(velocity);
         }
-        
+
         public bool IsMoving { get; private set; }
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace SBR {
         /// <summary>
         /// Current movement-based acceleration factoring in air control.
         /// </summary>
-        public float actualMovementAcceleration => 
+        public float actualMovementAcceleration =>
             grounded ? movementAcceleration : movementAcceleration * airAccelerationMultiplier;
 
         public float actualMovementDeceleration =>
@@ -130,6 +130,7 @@ namespace SBR {
         private Vector3 movementInput;
 
         private Quaternion targetRotation = Quaternion.identity;
+        private bool hasInitializedTargetRotation = false;
         private bool isRotating;
 
         /// <summary>
@@ -187,7 +188,7 @@ namespace SBR {
         [Tooltip("If angle between rotation and target is less than this, will stop rotating.")]
         [Conditional("rotateMode", RotateMode.None, false)]
         public float minTargetAngle = 0;
-        
+
         /// <summary>
         /// The max movement speed of the character.
         /// </summary>
@@ -426,6 +427,8 @@ namespace SBR {
             } else {
                 targetRotation = rotation;
             }
+
+            hasInitializedTargetRotation = true;
         }
 
         private void DoRotationOutput(CharacterChannels channels) {
@@ -503,7 +506,7 @@ namespace SBR {
                 if (activeInput && currentMovementVelocity.sqrMagnitude < speedLimit * speedLimit + 0.0001f) {
                     // Player is holding input in a direction, and is not moving faster than the speed limit.
                     if (inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
-                        currentMovementVelocity = 
+                        currentMovementVelocity =
                             Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, actualMovementAcceleration * dt);
                     } else if (inputAccelerationMode == InputAccelerationMode.Force) {
                         currentMovementVelocity += input.normalized * (actualMovementAcceleration * dt);
@@ -537,7 +540,7 @@ namespace SBR {
             if (movementVelocityDamping > 0) {
                 currentMovementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * dt);
             }
-            
+
             float minMoveSpeed = movementSpeed * 0.1f;
             minMoveSpeed = minMoveSpeed * minMoveSpeed;
 
@@ -554,8 +557,8 @@ namespace SBR {
             capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
 
             var lastGround = ground;
-            
-            bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up, 
+
+            bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up,
                                         out _groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !jumping;
 
             grounded = g && Vector3.Angle(groundHit.normal, transform.up) <= maxGroundAngle;
@@ -609,13 +612,13 @@ namespace SBR {
             if (!grounded) {
                 rigidbody.velocity += gravity * dt;
             }
-            
+
             Vector3 theGroundIsMoving = GetPlatformMovement();
             Vector3 rootMovement = GetRootMovement();
 
             rigidbody.MovePosition(rigidbody.position + theGroundIsMoving + rootMovement);
 
-            if (rotateMode != RotateMode.None && enableInput) {
+            if (rotateMode != RotateMode.None && enableInput && hasInitializedTargetRotation) {
                 RotateTowardsTarget();
             }
         }
@@ -643,7 +646,7 @@ namespace SBR {
             if (useRootMotionRotation) {
                 rigidbody.MoveRotation(rootMotionRotation * rigidbody.rotation);
             }
-            
+
             rootMotionRotation = Quaternion.identity;
             rootMotionMovement = Vector3.zero;
 
