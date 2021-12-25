@@ -11,7 +11,7 @@ using UnityEditor;
 
 namespace SBR.Sequencing {
     public class LevelManifest : SingletonAsset<LevelManifest> {
-        [SerializeField] [Expandable(false, typeof(LevelManifestLevelEntry))]
+        [SerializeField] [Expandable(false)]
         private LevelManifestLevelEntry[] _levels;
 
         public override string ResourceFolderPath => "SBR_Data/Resources";

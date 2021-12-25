@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@ using Object = UnityEngine.Object;
 namespace SBR.Editor {
     public static class EditorUtil {
         private const string ResourceFolder = "Resources/";
+        private const string AssetsFolder = "Assets";
         private static BuildTargetGroup[] buildTargetGroups = new BuildTargetGroup[] {
             BuildTargetGroup.Standalone,
             BuildTargetGroup.Android,
@@ -190,9 +191,25 @@ namespace SBR.Editor {
         public static string GetResourcePath(string path) {
             int index = path.LastIndexOf(ResourceFolder, StringComparison.Ordinal);
             if (index < 0) return null;
-            
+
             path = path.Substring(index + ResourceFolder.Length);
             path = Path.ChangeExtension(path, null);
+
+            return path;
+        }
+
+        public static string GetPathRelativeToAssetsFolder(string path) {
+            path = path.Replace('\\', '/');
+
+            if (path.StartsWith(Application.dataPath)) {
+                path = path.Substring(Application.dataPath.Length);
+            } else if (path.StartsWith(AssetsFolder)) {
+                path = path.Substring(AssetsFolder.Length);
+            }
+
+            if (path.StartsWith("/")) {
+                path = path.Substring(1);
+            }
 
             return path;
         }

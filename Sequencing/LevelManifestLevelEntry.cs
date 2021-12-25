@@ -9,7 +9,7 @@ namespace SBR.Sequencing {
         [SerializeField] private int _levelID;
         [SerializeField] private SceneRef _scene;
 
-        [SerializeField] [Expandable(false, typeof(LevelManifestRegionEntry))]
+        [SerializeField] [Expandable(false)]
         private LevelManifestRegionEntry[] _regions;
 
         public string DisplayName => _displayName;
