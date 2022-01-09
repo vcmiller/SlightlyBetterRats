@@ -47,9 +47,10 @@ namespace SBR {
             EditorGUI.indentLevel = 0;
 
             Rect propertyRect = position;
+            GUIContent labelCopy = new GUIContent(label);
             propertyRect.height = EditorGUI.GetPropertyHeight(property, label);
 
-            if (SaveAction != null || !string.IsNullOrEmpty(attr.SavePath)) {
+            if (attr.ShowNewButton) {
                 Rect newButtonRect = propertyRect;
                 propertyRect.xMax -= 70;
                 newButtonRect.xMin = propertyRect.xMax + EditorGUIUtility.standardVerticalSpacing;
@@ -59,7 +60,7 @@ namespace SBR {
                 }
             }
 
-            EditorGUI.PropertyField(propertyRect, property, new GUIContent(property.displayName));
+            EditorGUI.PropertyField(propertyRect, property, labelCopy);
 
             Object value = property.objectReferenceValue;
             if (value != null && !attr.AlwaysExpanded)
@@ -104,6 +105,19 @@ namespace SBR {
             string path = $"New{typeName}.asset";
             if (SaveAction == null) {
                 string folder = attr.SavePath;
+                bool empty = string.IsNullOrEmpty(folder);
+
+                if (!empty && folder[0] == '/') {
+                    folder = folder.Substring(1);
+                } else {
+                    string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(property.serializedObject.targetObject));
+                    folder ??= string.Empty;
+                    if (!string.IsNullOrEmpty(assetPath)) {
+                        assetPath = EditorUtil.GetPathRelativeToAssetsFolder(assetPath);
+                        folder = Path.Combine(assetPath, folder);
+                    }
+                }
+                
                 string folderWithAssets = Path.Combine("Assets", folder).Replace('\\', '/');
                 string fullFolder = Path.Combine(Application.dataPath, folder);
                 if (!Directory.Exists(fullFolder)) Directory.CreateDirectory(fullFolder);
