@@ -37,45 +37,45 @@ namespace SBR {
         /// <summary>
         /// Capsule collider used by the character.
         /// </summary>
-        public CapsuleCollider capsule { get; private set; }
+        public CapsuleCollider Capsule { get; private set; }
 
         /// <summary>
         /// Rigidbody collider used by the character.
         /// </summary>
-        public new Rigidbody rigidbody { get; private set; }
+        public new Rigidbody Rigidbody { get; private set; }
 
         /// <summary>
         /// Animator used for root motion.
         /// </summary>
-        public Animator animator { get; private set; }
+        public Animator Animator { get; private set; }
 
         /// <summary>
         /// Whether character is currently touching the ground.
         /// </summary>
-        public bool grounded { get; private set; }
+        public bool IsGrounded { get; private set; }
 
         /// <summary>
         /// Whether character is currently sliding down a steep slope.
         /// </summary>
-        public bool sliding { get; private set; }
+        public bool Sliding { get; private set; }
 
         /// <summary>
         /// Whether the character is currently jumping.
         /// </summary>
-        public bool jumping { get; private set; }
+        public bool Jumping { get; private set; }
 
         /// <summary>
         /// Rotation rates of the character as local euler angles.
         /// </summary>
-        public Vector3 rotationRates { get; private set; }
+        public Vector3 RotationRates { get; private set; }
 
-        public Vector3 velocity {
-            get => rigidbody.velocity;
-            set => rigidbody.velocity = value;
+        public Vector3 Velocity {
+            get => Rigidbody.velocity;
+            set => Rigidbody.velocity = value;
         }
 
-        public Vector3 movementVelocity {
-            get => GetVelocityMovementComponent(velocity);
+        public Vector3 MovementVelocity {
+            get => GetVelocityMovementComponent(Velocity);
         }
 
         public bool IsMoving { get; private set; }
@@ -109,10 +109,10 @@ namespace SBR {
         /// Current movement-based acceleration factoring in air control.
         /// </summary>
         public float actualMovementAcceleration =>
-            grounded ? movementAcceleration : movementAcceleration * airAccelerationMultiplier;
+            IsGrounded ? movementAcceleration : movementAcceleration * airAccelerationMultiplier;
 
         public float actualMovementDeceleration =>
-            grounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
+            IsGrounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
 
         public RaycastHit groundHit => _groundHit;
         private RaycastHit _groundHit;
@@ -350,11 +350,11 @@ namespace SBR {
         protected override void Awake() {
             base.Awake();
 
-            capsule = GetComponent<CapsuleCollider>();
-            rigidbody = GetComponent<Rigidbody>();
-            animator = GetComponent<Animator>();
+            Capsule = GetComponent<CapsuleCollider>();
+            Rigidbody = GetComponent<Rigidbody>();
+            Animator = GetComponent<Animator>();
 
-            rigidbody.useGravity = false;
+            Rigidbody.useGravity = false;
 
             frictionless = new PhysicMaterial("Frictionless") {
                 bounciness = 0,
@@ -363,7 +363,7 @@ namespace SBR {
                 dynamicFriction = 0,
                 frictionCombine = PhysicMaterialCombine.Minimum,
             };
-            capsule.sharedMaterial = frictionless;
+            Capsule.sharedMaterial = frictionless;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
 
@@ -399,15 +399,15 @@ namespace SBR {
         }
 
         private void OnAnimatorMove() {
-            if (animator) {
-                rootMotionMovement += animator.deltaPosition;
-                rootMotionRotation = animator.deltaRotation * rootMotionRotation;
+            if (Animator) {
+                rootMotionMovement += Animator.deltaPosition;
+                rootMotionRotation = Animator.deltaRotation * rootMotionRotation;
             }
         }
 
         private void UpdateJumping() {
-            if (jumping && transform.InverseTransformDirection(velocity).y <= 0) {
-                jumping = false;
+            if (Jumping && transform.InverseTransformDirection(Velocity).y <= 0) {
+                Jumping = false;
                 lastChannels.Jump = false;
             }
         }
@@ -444,11 +444,11 @@ namespace SBR {
         private Vector3 AlignMovementInput(Vector3 input) {
             Vector3 result = input;
             switch (projectMovement) {
-                case ProjectMovementMode.GroundNormal when grounded:
+                case ProjectMovementMode.GroundNormal when IsGrounded:
                     result = Vector3.ProjectOnPlane(input, groundNormal);
                     break;
                 case ProjectMovementMode.LocalY:
-                case ProjectMovementMode.GroundNormal when !grounded:
+                case ProjectMovementMode.GroundNormal when !IsGrounded:
                     result = Vector3.ProjectOnPlane(input, transform.up);
                     break;
                 case ProjectMovementMode.Gravity:
@@ -484,10 +484,10 @@ namespace SBR {
 
             movementInput = channels.Movement;
 
-            if (grounded && channels.Jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
+            if (IsGrounded && channels.Jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
                 Jumped?.Invoke();
-                jumping = true;
-                velocity = transform.TransformDirection(jumpVelocity);
+                Jumping = true;
+                Velocity = transform.TransformDirection(jumpVelocity);
             }
         }
 
@@ -499,7 +499,7 @@ namespace SBR {
             bool activeInput = input.sqrMagnitude > 0.0001f;
             float speedLimit = activeInput ? input.magnitude * movementSpeed : movementSpeed;
 
-            Vector3 currentMovementVelocity = movementVelocity;
+            Vector3 currentMovementVelocity = MovementVelocity;
             if (inputAccelerationMode == InputAccelerationMode.Instant) {
                 currentMovementVelocity = desiredVelocity;
             } else {
@@ -525,7 +525,7 @@ namespace SBR {
                 projectedVel = projectedVel.normalized * currentMovementVelocity.magnitude;
             }
 
-            if (sliding) {
+            if (Sliding) {
                 Vector3 n = Vector3.ProjectOnPlane(groundNormal, transform.up);
                 n = -n.normalized;
 
@@ -550,25 +550,25 @@ namespace SBR {
                 Moving?.Invoke(newIsMoving);
             }
 
-            velocity = currentMovementVelocity + GetVelocityJumpComponent(velocity);
+            Velocity = currentMovementVelocity + GetVelocityJumpComponent(Velocity);
         }
 
         public void UpdateGrounded() {
-            capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
+            Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
 
             var lastGround = ground;
 
             bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up,
-                                        out _groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !jumping;
+                                        out _groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !Jumping;
 
-            grounded = g && Vector3.Angle(groundHit.normal, transform.up) <= maxGroundAngle;
-            sliding = g && !grounded;
+            IsGrounded = g && Vector3.Angle(groundHit.normal, transform.up) <= maxGroundAngle;
+            Sliding = g && !IsGrounded;
 
             if (g) {
                 groundNormal = groundHit.normal;
             }
 
-            if (grounded) {
+            if (IsGrounded) {
                 ground = groundHit.collider;
 
                 if (lastGround != ground) {
@@ -586,22 +586,22 @@ namespace SBR {
 
         private void RotateTowardsTarget() {
             if (isRotating) {
-                Quaternion q = rigidbody.rotation;
+                Quaternion q = Rigidbody.rotation;
                 if (useSmoothRotation) {
-                    rigidbody.MoveRotation(Quaternion.Slerp(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                    Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 } else {
-                    rigidbody.MoveRotation(Quaternion.RotateTowards(rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                    Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 }
-                rotationRates = MathUtil.NormalizeInnerAngles((Quaternion.Inverse(q) * rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
+                RotationRates = MathUtil.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
-                if (Quaternion.Angle(rigidbody.rotation, targetRotation) < minTargetAngle) {
+                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) < minTargetAngle) {
                     isRotating = false;
                 }
             } else {
-                if (Quaternion.Angle(rigidbody.rotation, targetRotation) > maxTargetAngle) {
+                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) > maxTargetAngle) {
                     isRotating = true;
                 }
-                rotationRates = Vector3.zero;
+                RotationRates = Vector3.zero;
             }
         }
 
@@ -609,14 +609,14 @@ namespace SBR {
             float dt = Time.fixedDeltaTime;
             UpdateMovementVelocity(receivingInput ? movementInput : Vector3.zero, dt);
 
-            if (!grounded) {
-                rigidbody.velocity += gravity * dt;
+            if (!IsGrounded) {
+                Rigidbody.velocity += gravity * dt;
             }
 
             Vector3 theGroundIsMoving = GetPlatformMovement();
             Vector3 rootMovement = GetRootMovement();
 
-            rigidbody.MovePosition(rigidbody.position + theGroundIsMoving + rootMovement);
+            Rigidbody.MovePosition(Rigidbody.position + theGroundIsMoving + rootMovement);
 
             if (rotateMode != RotateMode.None && enableInput && hasInitializedTargetRotation) {
                 RotateTowardsTarget();
@@ -644,7 +644,7 @@ namespace SBR {
             rootMotionMovement = Vector3.zero;
 
             if (useRootMotionRotation) {
-                rigidbody.MoveRotation(rootMotionRotation * rigidbody.rotation);
+                Rigidbody.MoveRotation(rootMotionRotation * Rigidbody.rotation);
             }
 
             rootMotionRotation = Quaternion.identity;
@@ -663,9 +663,9 @@ namespace SBR {
                 groundLastPos = groundHit.point;
                 groundHitLocalPos = ground.transform.InverseTransformPoint(groundHit.point);
 
-                if (groundStickiness > 0 && !jumping) {
+                if (groundStickiness > 0 && !Jumping) {
                     float d = Mathf.Lerp(_groundHit.distance - groundDist, 0, groundStickiness);
-                    rigidbody.MovePosition(rigidbody.position - (rigidbody.rotation * Vector3.up) * (_groundHit.distance - d));
+                    Rigidbody.MovePosition(Rigidbody.position - (Rigidbody.rotation * Vector3.up) * (_groundHit.distance - d));
                     _groundHit.distance = d + groundDist;
                 }
             }
