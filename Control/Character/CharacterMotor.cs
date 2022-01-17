@@ -22,6 +22,7 @@
 
 using SBR.StateSystem;
 using System;
+using System.Net.NetworkInformation;
 using UnityEngine;
 
 namespace SBR {
@@ -132,6 +133,8 @@ namespace SBR {
         private Quaternion targetRotation = Quaternion.identity;
         private bool hasInitializedTargetRotation = false;
         private bool isRotating;
+
+        private RaycastHit[] groundHitBuffer;
 
         /// <summary>
         /// How the character rotates in relation to its movement.
@@ -275,6 +278,11 @@ namespace SBR {
         [Tooltip("Distance for ground checks. Should be about 0.05 * capsule height.")]
         public float groundDist = 0.1f;
 
+        public int groundHitBufferSize = 8;
+
+        [Range(0, 1)]
+        public float groundCheckRadiusShell = 0.05f;
+
         /// <summary>
         /// Layers that are considered ground.
         /// </summary>
@@ -366,6 +374,7 @@ namespace SBR {
             Capsule.sharedMaterial = frictionless;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
+            groundHitBuffer = new RaycastHit[groundHitBufferSize];
 
             SetupStates();
         }
@@ -554,17 +563,44 @@ namespace SBR {
         }
 
         public void UpdateGrounded() {
-            Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
-
             var lastGround = ground;
+            if (Jumping) {
+                IsGrounded = false;
+                ground = null;
+                if (lastGround) Grounded?.Invoke(false);
+                return;
+            }
 
-            bool g = Physics.SphereCast(pnt2 + transform.up * groundDist, radius, -transform.up,
-                                        out _groundHit, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore) && !Jumping;
+            
+            Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
+            
+            int hits = Physics.SphereCastNonAlloc(pnt2 + transform.up * groundDist, radius, -transform.up,
+                groundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
 
-            IsGrounded = g && Vector3.Angle(groundHit.normal, transform.up) <= maxGroundAngle;
-            Sliding = g && !IsGrounded;
+            bool anyHit = false;
+            IsGrounded = false;
+            float maxPointDist = radius * (1 - groundCheckRadiusShell);
+            maxPointDist *= maxPointDist;
+            float maxGroundAngleDot = Mathf.Cos(maxGroundAngle);
+            for (int i = 0; i < hits; i++) {
+                RaycastHit hit = groundHitBuffer[i];
 
-            if (g) {
+                Vector2 h = transform.InverseTransformPoint(hit.point).ToXZ();
+                if (h.sqrMagnitude > maxPointDist) continue;
+                
+                bool angle = Vector3.Dot(hit.normal, transform.up) >= maxGroundAngleDot;
+                if (IsGrounded && !angle) continue;
+                if ((IsGrounded || !angle) && anyHit && hit.distance >= _groundHit.distance) continue;
+
+                _groundHit = hit;
+                IsGrounded = angle;
+                anyHit = true;
+            }
+
+            _groundHit.distance -= groundDist;
+            Sliding = anyHit && !IsGrounded;
+            
+            if (anyHit) {
                 groundNormal = groundHit.normal;
             }
 
