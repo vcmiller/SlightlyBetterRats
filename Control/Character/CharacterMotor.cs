@@ -66,6 +66,16 @@ namespace SBR {
         public bool Jumping { get; private set; }
 
         /// <summary>
+        /// Whether a jump is being charged.
+        /// </summary>
+        public bool jumpCharging { get; private set; }
+
+        /// <summary>
+        /// Timer until jump is fully charged.
+        /// </summary>
+        public ExpirationTimer jumpChargeTimer { get; private set; }
+
+        /// <summary>
         /// Rotation rates of the character as local euler angles.
         /// </summary>
         public Vector3 RotationRates { get; private set; }
@@ -261,6 +271,26 @@ namespace SBR {
         public Vector3 jumpVelocity = Vector3.up * 4;
 
         /// <summary>
+        /// How jumping works in regards to press vs hold.
+        /// </summary>
+        [Tooltip("How jumping works in regards to press vs hold.")]
+        public JumpMode jumpMode = JumpMode.Press;
+
+        /// <summary>
+        /// How long the jump button must be held for max charge.
+        /// </summary>
+        [Tooltip("How long the jump button must be held for max charge.")]
+        [Conditional(nameof(jumpMode), JumpMode.Charge)]
+        public float jumpChargeTime = 0.5f;
+
+        /// <summary>
+        /// What fraction of the jump speed is used if the jump is not charged.
+        /// </summary>
+        [Tooltip("What fraction of the jump speed is used if the jump is not charged.")]
+        [Conditional(nameof(jumpMode), JumpMode.Charge)]
+        public float jumpChargeMinMultiplier = 0.2f;
+
+        /// <summary>
         /// The value to multiply Physics.Gravity by.
         /// </summary>
         [Tooltip("The value to multiply Physics.Gravity by.")]
@@ -347,6 +377,10 @@ namespace SBR {
             None, Movement, Control,
         }
 
+        public enum JumpMode {
+            Press, Charge
+        }
+
         public enum ProjectMovementMode {
             None, LocalY, GroundNormal, Gravity,
         }
@@ -375,6 +409,10 @@ namespace SBR {
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
             groundHitBuffer = new RaycastHit[groundHitBufferSize];
+
+            if (jumpMode == JumpMode.Charge) {
+                jumpChargeTimer = new ExpirationTimer(jumpChargeTime);
+            }
 
             SetupStates();
         }
@@ -487,17 +525,35 @@ namespace SBR {
 
         protected override void DoOutput(CharacterChannels channels) {
             DoRotationOutput(channels);
-
-            float minMoveSpeed = movementSpeed * 0.01f;
-            minMoveSpeed = minMoveSpeed * minMoveSpeed;
-
             movementInput = channels.Movement;
+            DoJumpOutput(channels);
+        }
 
-            if (IsGrounded && channels.Jump && enableInput && jumpVelocity.sqrMagnitude > 0) {
-                Jumped?.Invoke();
-                Jumping = true;
-                Velocity = transform.TransformDirection(jumpVelocity);
+
+        private void DoJumpOutput(CharacterChannels channels) {
+            if (IsGrounded && enableInput && jumpVelocity.sqrMagnitude > 0) {
+                if (channels.Jump) {
+                    if (jumpMode == JumpMode.Press) {
+                        DoJump(1);
+                    } else if (jumpMode == JumpMode.Charge && !jumpCharging) {
+                        jumpCharging = true;
+                        jumpChargeTimer.Set();
+                    }
+                } else if (jumpCharging) {
+                    float charge = 1.0f - jumpChargeTimer.remainingRatio;
+                    DoJump(charge);
+                }
             }
+
+            if (!channels.Jump) {
+                jumpCharging = false;
+            }
+        }
+
+        private void DoJump(float charge) {
+            Jumped?.Invoke();
+            Jumping = true;
+            Velocity = transform.TransformDirection(jumpVelocity) * Mathf.Lerp(jumpChargeMinMultiplier, 1, charge);
         }
 
         private void UpdateMovementVelocity(Vector3 input, float dt) {
@@ -571,9 +627,9 @@ namespace SBR {
                 return;
             }
 
-            
+
             Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
-            
+
             int hits = Physics.SphereCastNonAlloc(pnt2 + transform.up * groundDist, radius, -transform.up,
                 groundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
 
@@ -587,7 +643,7 @@ namespace SBR {
 
                 Vector2 h = transform.InverseTransformPoint(hit.point).ToXZ();
                 if (h.sqrMagnitude > maxPointDist) continue;
-                
+
                 bool angle = Vector3.Dot(hit.normal, transform.up) >= maxGroundAngleDot;
                 if (IsGrounded && !angle) continue;
                 if ((IsGrounded || !angle) && anyHit && hit.distance >= _groundHit.distance) continue;
@@ -599,7 +655,7 @@ namespace SBR {
 
             _groundHit.distance -= groundDist;
             Sliding = anyHit && !IsGrounded;
-            
+
             if (anyHit) {
                 groundNormal = groundHit.normal;
             }
@@ -630,7 +686,7 @@ namespace SBR {
                 }
                 RotationRates = MathUtil.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
-                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) < minTargetAngle) {
+                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) <= minTargetAngle) {
                     isRotating = false;
                 }
             } else {
