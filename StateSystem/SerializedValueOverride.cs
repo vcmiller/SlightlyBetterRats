@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -87,7 +87,7 @@ namespace SBR.StateSystem {
     public class SerializedValueOverride {
         [FormerlySerializedAs("path")] [SerializeField]
         private string _path;
-        
+
         [FormerlySerializedAs("type")] [SerializeField]
         private SerializableType _type;
 
@@ -151,7 +151,6 @@ namespace SBR.StateSystem {
 
         public int AncestryLength => FieldChain.Count - 1;
         public string FieldName { get; private set; }
-        public string DisplayName { get; private set; }
 
         public object Value {
             get {
@@ -297,7 +296,6 @@ namespace SBR.StateSystem {
             IsEnumFlags = (_type == SerializableType.Enum) &&
                 Attribute.GetCustomAttribute(ValueType, typeof(FlagsAttribute)) != null;
             FieldName = FieldChain[FieldChain.Count - 1].Name;
-            DisplayName = FieldName.SplitCamelCase(true);
 
             Valid = true;
         }

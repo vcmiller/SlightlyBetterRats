@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,7 +38,7 @@ namespace SBR.Editor {
             Rigidbody rb = charObj.AddComponent<Rigidbody>();
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
-            
+
             var arrow = CreateArrow(true);
             arrow.transform.parent = charObj.transform;
             arrow.transform.localPosition = new Vector3(0, 0, 0);
@@ -62,7 +62,7 @@ namespace SBR.Editor {
             camObj.AddComponent<FlareLayer>();
             camObj.AddComponent<AudioListener>();
             camObj.AddComponent<ViewTarget>();
-    
+
             Selection.activeGameObject = charObj;
             Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
         }
@@ -123,10 +123,10 @@ namespace SBR.Editor {
             rb.constraints |= RigidbodyConstraints2D.FreezeRotation;
 
             charObj.AddComponent<StateManager>();
-            charObj.AddComponent<BasicCharacterController2D>().grabMouse = false;
+            charObj.AddComponent<BasicCharacterController2D>().GrabMouse = false;
 
             charObj.AddComponent<CharacterMotor2D>();
-            
+
             GameObject camObj = new GameObject("Camera");
             camObj.tag = "MainCamera";
             camObj.transform.parent = charObj.transform;
@@ -155,7 +155,7 @@ namespace SBR.Editor {
             mats[0] = arrowShaftMat;
             mats[1] = arrowHeadMat;
             mr.sharedMaterials = mats;
-            
+
             arrow.name = "Arrow";
 
             return arrow;

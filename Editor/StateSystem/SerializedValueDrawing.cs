@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -38,7 +38,7 @@ namespace SBR.Editor {
 
         private static void InitResources() {
             if (_loaded) return;
-            
+
             _iconProperty = Resources.Load<Texture2D>("IconProperty");
             _iconField = Resources.Load<Texture2D>("IconField");
             _iconMissing = Resources.Load<Texture2D>("IconMissing");
@@ -65,7 +65,8 @@ namespace SBR.Editor {
                 string name = propPath[current.Count];
                 string newName = name;
                 current.Add(newName);
-                var label = new GUIContent(newName.SplitCamelCase(true),
+
+                var label = new GUIContent(ObjectNames.NicifyVariableName(newName),
                                            field != null
                                                ? field is PropertyGetSet ? _iconProperty : _iconField
                                                : _iconMissing);
@@ -78,7 +79,7 @@ namespace SBR.Editor {
 
         public static void DrawLayout(Object reference, SerializedValueOverride property) {
             InitResources();
-            GUIContent label = new GUIContent(property.DisplayName);
+            GUIContent label = new GUIContent(ObjectNames.NicifyVariableName(property.FieldName));
             if (property.Valid) {
                 label.image = property.IsProperty ? _iconProperty : _iconField;
             } else {
@@ -149,7 +150,7 @@ namespace SBR.Editor {
                     break;
                 case SerializableType.LayerMask:
                     LayerMask tempMask = EditorGUILayout.MaskField(label,
-                        InternalEditorUtility.LayerMaskToConcatenatedLayersMask((LayerMask)value), 
+                        InternalEditorUtility.LayerMaskToConcatenatedLayersMask((LayerMask)value),
                         InternalEditorUtility.layers);
                     newValue = InternalEditorUtility.ConcatenatedLayersMaskToLayerMask(tempMask);
                     break;

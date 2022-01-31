@@ -33,7 +33,7 @@ namespace SBR {
     /// <summary>
     /// A default PlayerController for the CharacterMotor2D.
     /// </summary>
-    public class BasicCharacterController2D<T> : PlayerController<T> where T : CharacterChannels, new() {
+    public class BasicCharacterController2D<T> : LegacyInputPlayerController<T> where T : CharacterChannels, new() {
         protected override void Awake() {
             base.Awake();
             AddAxisListener("Horizontal", Axis_Horizontal);
@@ -42,7 +42,7 @@ namespace SBR {
         }
 
         private void Axis_Horizontal(float value) {
-            Vector3 right = viewTarget ? viewTarget.flatRight : Vector3.right;
+            Vector3 right = ViewTarget ? ViewTarget.flatRight : Vector3.right;
             channels.Movement += right * value;
         }
 

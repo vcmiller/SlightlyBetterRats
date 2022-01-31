@@ -1,17 +1,17 @@
 ﻿// MIT License
-// 
+//
 // Copyright (c) 2020 Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,48 +32,48 @@ namespace SBR {
     /// <summary>
     /// A default PlayerController for the CharacterMotor.
     /// </summary>
-    public class BasicCharacterController<T> : PlayerController<T> where T : CharacterChannels, new() {
+    public class BasicCharacterController<T> : LegacyInputPlayerController<T> where T : CharacterChannels, new() {
         /// <summary>
         /// Minimum pitch value for channels.rotation.
         /// </summary>
-        public float pitchMin = -80;
+        [SerializeField] private float _pitchMin = -80;
 
         /// <summary>
         /// Maximum pitch value for channels.rotation.
         /// </summary>
-        public float pitchMax = 80;
+        [SerializeField] private float _pitchMax = 80;
 
         /// <summary>
         /// If true, input will be flattened on the world Y axis.
         /// </summary>
-        public bool alignInput = true;
+        [SerializeField] private bool _alignInput = true;
 
         [Header("Input Names")]
-        [NoOverrides, SerializeField] protected string horizontalAxisName = "Horizontal";
-        [NoOverrides, SerializeField] protected string verticalAxisName = "Vertical";
-        [NoOverrides, SerializeField] protected string mouseXAxisName = "Mouse X";
-        [NoOverrides, SerializeField] protected string mouseYAxisName = "Mouse Y";
-        [NoOverrides, SerializeField] protected string jumpButtonName = "Jump";
+        [NoOverrides, SerializeField] private string _horizontalAxisName = "Horizontal";
+        [NoOverrides, SerializeField] private string _verticalAxisName = "Vertical";
+        [NoOverrides, SerializeField] private string _mouseXAxisName = "Mouse X";
+        [NoOverrides, SerializeField] private string _mouseYAxisName = "Mouse Y";
+        [NoOverrides, SerializeField] private string _jumpButtonName = "Jump";
 
-        private Vector3 angles;
+        private Vector3 _angles;
 
         protected override void Awake() {
             base.Awake();
-            AddAxisListener(horizontalAxisName, Axis_Horizontal);
-            AddAxisListener(verticalAxisName, Axis_Vertical);
-            AddAxisListener(mouseXAxisName, Axis_MouseX);
-            AddAxisListener(mouseYAxisName, Axis_MouseY);
-            AddButtonDownListener(jumpButtonName, ButtonDown_Jump);
-            AddButtonUpListener(jumpButtonName, ButtonUp_Jump);
+            AddAxisListener(_horizontalAxisName, Axis_Horizontal);
+            AddAxisListener(_verticalAxisName, Axis_Vertical);
+            AddAxisListener(_mouseXAxisName, Axis_MouseX);
+            AddAxisListener(_mouseYAxisName, Axis_MouseY);
+            AddButtonDownListener(_jumpButtonName, ButtonDown_Jump);
+            AddButtonUpListener(_jumpButtonName, ButtonUp_Jump);
         }
 
         protected virtual void Axis_Horizontal(float value) {
-            Vector3 right = viewTarget ? (alignInput ? viewTarget.flatRight : viewTarget.transform.right) : Vector3.right;
+            Vector3 right = ViewTarget ? (_alignInput ? ViewTarget.flatRight : ViewTarget.transform.right) : Vector3.right;
             channels.Movement += right * value;
         }
 
         protected virtual void Axis_Vertical(float value) {
-            Vector3 fwd = viewTarget ? (alignInput ? viewTarget.flatForward : viewTarget.transform.forward) : Vector3.forward;
+            Vector3 fwd = ViewTarget ? (_alignInput ? ViewTarget.flatForward : ViewTarget.transform.forward) : Vector3.forward;
             channels.Movement += fwd * value;
         }
 
@@ -86,21 +86,21 @@ namespace SBR {
         }
 
         protected virtual void Axis_MouseX(float value) {
-            angles.y += value;
+            _angles.y += value;
 
-            channels.Rotation = Quaternion.Euler(angles);
+            channels.Rotation = Quaternion.Euler(_angles);
         }
 
         protected virtual void Axis_MouseY(float value) {
-            angles.x -= value;
+            _angles.x -= value;
 
-            if (angles.x < pitchMin) {
-                angles.x = pitchMin;
-            } else if (angles.x > pitchMax) {
-                angles.x = pitchMax;
+            if (_angles.x < _pitchMin) {
+                _angles.x = _pitchMin;
+            } else if (_angles.x > _pitchMax) {
+                _angles.x = _pitchMax;
             }
 
-            channels.Rotation = Quaternion.Euler(angles);
+            channels.Rotation = Quaternion.Euler(_angles);
         }
     }
 }
