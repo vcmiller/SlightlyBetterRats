@@ -29,12 +29,21 @@ namespace SBR {
     /// </summary>
     public class ColliderProjectile : Projectile {
         private Rigidbody _rigidbody;
-        
-        public override void Fire() {
-            base.Fire();
-            if (TryGetComponent(out _rigidbody)) {
-                _rigidbody.velocity = velocity;
+
+        [SerializeField] private bool _kinematicOnHit;
+
+        public override Vector3 velocity {
+            get => base.velocity;
+            set {
+                base.velocity = value;
+                if (_rigidbody) _rigidbody.velocity = value;
             }
+        }
+
+        public override void Fire(Vector3 direction, bool align = true) {
+            _rigidbody = GetComponent<Rigidbody>();
+            if (_rigidbody) _rigidbody.isKinematic = false;
+            base.Fire(direction, align);
         }
 
         protected virtual void Update() {
@@ -52,6 +61,13 @@ namespace SBR {
 
         private void OnTriggerEnter(Collider other) {
             OnHitCollider(other, transform.position);
+        }
+
+        protected override void OnHitObject(Transform col, Vector3 position) {
+            base.OnHitObject(col, position);
+            if (_kinematicOnHit && _rigidbody) {
+                _rigidbody.isKinematic = true;
+            }
         }
     }
 }

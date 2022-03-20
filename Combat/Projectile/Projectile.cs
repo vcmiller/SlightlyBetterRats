@@ -102,10 +102,15 @@ namespace SBR {
         [Tooltip("Sound to play on impact.")]
         public AudioParameters impactSound;
 
+        private Vector3 _velocity;
+
         /// <summary>
         /// Current velocity of the projectile.
         /// </summary>
-        public Vector3 velocity { get; set; }
+        public virtual Vector3 velocity {
+            get => _velocity;
+            set => _velocity = value;
+        }
 
         /// <summary>
         /// Whether the projectile has been fired.
@@ -145,6 +150,7 @@ namespace SBR {
         }
 
         protected virtual void OnSpawned() {
+            velocity = Vector3.zero;
             fired = false;
         }
 
@@ -165,13 +171,6 @@ namespace SBR {
             Vector3 impact = velocity * impactForce;
             col.Damage(new PointDamage(damage * damageMultiplier, position, velocity.normalized, 
                                        velocity.magnitude * impactForce, col.gameObject));
-
-            if (impactForce > 0) {
-                var rb = col.GetComponentInParent<Rigidbody>();
-                if (rb) rb.AddForce(impact, ForceMode.Impulse);
-                var rb2d = col.GetComponentInParent<Rigidbody2D>();
-                if (rb2d) rb2d.AddForce(impact, ForceMode2D.Impulse);
-            }
 
             HitObject?.Invoke(col.gameObject, position);
 

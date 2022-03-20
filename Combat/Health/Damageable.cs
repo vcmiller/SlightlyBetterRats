@@ -52,6 +52,15 @@ namespace SBR {
         /// <param name="dmg">The damage object.</param>
         /// <returns>The actual damage amount dealt.</returns>
         public static float Damage(this GameObject obj, Damage dmg) {
+            if (dmg is PointDamage pointDamage && pointDamage.Force > 0) {
+                Vector3 impulse = pointDamage.Direction * pointDamage.Amount;
+                
+                var rb = obj.GetComponentInParent<Rigidbody>();
+                if (rb) rb.AddForce(impulse, ForceMode.Impulse);
+                var rb2d = obj.GetComponentInParent<Rigidbody2D>();
+                if (rb2d) rb2d.AddForce(impulse, ForceMode2D.Impulse);
+            } 
+            
             if (obj.TryGetComponent(out IDamageable d1)) {
                 return d1.Damage(dmg);
             } else if (obj.TryGetComponentInParent(out IParentDamageable d2)) {
