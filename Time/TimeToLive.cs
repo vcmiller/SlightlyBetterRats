@@ -44,7 +44,7 @@ namespace SBR {
             initialTimeToLive = timeToLive;
         }
 
-        private void OnSpawned() {
+        private void OnEnable() {
             timeToLive = initialTimeToLive;
         }
 

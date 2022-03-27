@@ -103,11 +103,18 @@ namespace SBR {
             if (!property.type.StartsWith(PPtrText)) return;
             string typeName = property.type.Substring(PPtrText.Length, property.type.Length - PPtrText.Length - 1);
             string path = $"New{typeName}.asset";
+
+            ScriptableObject currentValue = property.objectReferenceValue as ScriptableObject;
+            if (currentValue) path = Path.GetFileNameWithoutExtension(currentValue.name) + "_Copy.asset";
+            
             if (SaveAction == null) {
                 string folder = attr.SavePath;
                 bool empty = string.IsNullOrEmpty(folder);
 
-                if (!empty && folder[0] == '/') {
+                string currentPath = currentValue != null ? AssetDatabase.GetAssetPath(currentValue) : null;
+                if (!string.IsNullOrEmpty(currentPath)) {
+                    folder = EditorUtil.GetPathRelativeToAssetsFolder(Path.GetDirectoryName(currentPath));
+                } else if (!empty && folder[0] == '/') {
                     folder = folder.Substring(1);
                 } else {
                     string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(property.serializedObject.targetObject));
@@ -126,7 +133,10 @@ namespace SBR {
                 if (string.IsNullOrEmpty(path)) return;
             }
 
-            ScriptableObject asset = ScriptableObject.CreateInstance(typeName);
+            ScriptableObject asset = currentValue == null
+                ? ScriptableObject.CreateInstance(typeName)
+                : Object.Instantiate(currentValue);
+            
             if (asset == null) return;
             asset.name = Path.GetFileNameWithoutExtension(path);
             Save(asset, path);

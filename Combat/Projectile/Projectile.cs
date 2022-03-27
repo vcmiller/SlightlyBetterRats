@@ -102,6 +102,12 @@ namespace SBR {
         [Tooltip("Sound to play on impact.")]
         public AudioParameters impactSound;
 
+        /// <summary>
+        /// Filters on hit objects.
+        /// </summary>
+        [Tooltip("Filters on hit objects.")]
+        public HitFilter[] hitFilters;
+
         private Vector3 _velocity;
 
         /// <summary>
@@ -164,7 +170,13 @@ namespace SBR {
         }
 
         protected virtual bool ShouldHitObject(Transform col, Vector3 position) {
-            return fired || hitsIfNotFired;
+            if (!fired && !hitsIfNotFired) return false;
+
+            foreach (HitFilter filter in hitFilters) {
+                if (filter && !filter.ShouldHitObject(col, position)) return false;
+            }
+
+            return true;
         }
 
         protected virtual void OnHitObject(Transform col, Vector3 position) {
@@ -190,6 +202,11 @@ namespace SBR {
             if (impactPrefab) {
                 Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, true, scene:gameObject.scene);
             }
+        }
+
+        [ContextMenu("Add Hit Filters")]
+        private void AddHitFilters() {
+            hitFilters = GetComponentsInChildren<HitFilter>();
         }
     }
 }
