@@ -22,7 +22,6 @@
 
 using System;
 using UnityEngine;
-
 using Complex = System.Numerics.Complex;
 
 namespace SBR {
@@ -60,8 +59,8 @@ namespace SBR {
             double theta = complex.Phase / 3.0;
             const double shift = Math.PI * 2.0 / 3.0;
             return (Complex.FromPolarCoordinates(r, theta),
-                    Complex.FromPolarCoordinates(r, theta + shift),
-                    Complex.FromPolarCoordinates(r, theta - shift));
+                Complex.FromPolarCoordinates(r, theta + shift),
+                Complex.FromPolarCoordinates(r, theta - shift));
         }
 
         /// <summary>
@@ -103,12 +102,14 @@ namespace SBR {
         /// Solve a quartic equation of the form ax^4 + bx^3 + cx^2 + dx + e = 0.
         /// </summary>
         /// <returns>The four roots of the quartic, which may be complex.</returns>
-        public static (Complex r1, Complex r2, Complex r3, Complex r4) SolveQuartic(Complex a, Complex b, Complex c, Complex d, Complex e) {
+        public static (Complex r1, Complex r2, Complex r3, Complex r4) SolveQuartic(
+            Complex a, Complex b, Complex c, Complex d, Complex e) {
             // https://math.stackexchange.com/a/57688
 
             Complex A = (c / a) - ((3 * b * b) / (8 * a * a));
             Complex B = (d / a) - ((b * c) / (2 * a * a)) + ((b * b * b) / (8 * a * a * a));
-            Complex C = (e / a) - ((b * d) / (4 * a * a)) + ((b * b * c) / (16 * a * a * a)) - ((3 * b * b * b * b) / (256 * a * a * a * a));
+            Complex C = (e / a) - ((b * d) / (4 * a * a)) + ((b * b * c) / (16 * a * a * a)) -
+                        ((3 * b * b * b * b) / (256 * a * a * a * a));
 
             var (s1, s2, s3) = SolveCubic(8.0, -4.0 * A, -8.0 * C, (4.0 * A * C) - (B * B));
 
@@ -158,6 +159,7 @@ namespace SBR {
             if (result > 180) {
                 result -= 360;
             }
+
             return result;
         }
 
@@ -237,7 +239,7 @@ namespace SBR {
                 RoundToNearest(vector.x, factor),
                 RoundToNearest(vector.y, factor),
                 RoundToNearest(vector.z, factor)
-                );
+            );
         }
 
         public static bool GetNearestPointOnLines(Ray line1, Ray line2, out float t1, out float t2) {
@@ -304,6 +306,55 @@ namespace SBR {
 
         #endregion
 
+        #region Bounds Operations
+
+        public static readonly Vector3[] BoundsCornerArray = new Vector3[8]; 
+        public static void GetCorners(this Bounds bounds, Vector3[] corners) {
+            Vector3 c = bounds.center;
+            Vector3 e = bounds.extents;
+            
+            corners[0] = new Vector3(c.x + e.x, c.y + e.y, c.z + e.z);
+            corners[1] = new Vector3(c.x + e.x, c.y + e.y, c.z - e.z);
+            corners[2] = new Vector3(c.x + e.x, c.y - e.y, c.z + e.z);
+            corners[3] = new Vector3(c.x + e.x, c.y - e.y, c.z - e.z);
+            corners[4] = new Vector3(c.x - e.x, c.y + e.y, c.z + e.z);
+            corners[5] = new Vector3(c.x - e.x, c.y + e.y, c.z - e.z);
+            corners[6] = new Vector3(c.x - e.x, c.y - e.y, c.z + e.z);
+            corners[7] = new Vector3(c.x - e.x, c.y - e.y, c.z - e.z);
+        }
+        
+        public static bool BoundsToScreenRect(Transform transform, Bounds bounds, Func<Vector3, Vector3> worldToScreen, out Rect rect) {
+            GetCorners(bounds, BoundsCornerArray);
+
+            Vector2 min = Vector2.zero;
+            Vector2 max = Vector2.zero;
+            bool found = false;
+            
+            for (int i = 0; i < BoundsCornerArray.Length; i++) {
+                Vector3 point = transform.TransformPoint(BoundsCornerArray[i]);
+                Vector3 screenPoint = worldToScreen(point);
+                
+                if (screenPoint.z < 0) continue;
+
+                if (!found) {
+                    min = max = screenPoint.ToXY();
+                    found = true;
+                } else {
+                    min.x = Mathf.Min(min.x, screenPoint.x);
+                    min.y = Mathf.Min(min.y, screenPoint.y);
+
+                    max.x = Mathf.Max(max.x, screenPoint.x);
+                    max.y = Mathf.Max(max.y, screenPoint.y);
+                }
+            }
+
+            rect = found ? Rect.MinMaxRect(min.x, min.y, max.x, max.y) : default;
+
+            return found;
+        }
+
+        #endregion
+
         #region Rect Operations
 
         /// <summary>
@@ -330,7 +381,8 @@ namespace SBR {
         /// <param name="out3"></param>
         /// <param name="div1"></param>
         /// <param name="div2"></param>
-        public static void SplitHorizontal(Rect rect, float gap, out Rect out1, out Rect out2, out Rect out3, float div1 = 1.0f / 3.0f, float div2 = 2.0f / 3.0f) {
+        public static void SplitHorizontal(Rect rect, float gap, out Rect out1, out Rect out2, out Rect out3,
+                                           float div1 = 1.0f / 3.0f, float div2 = 2.0f / 3.0f) {
             gap /= 2;
             out1 = new Rect(rect.x, rect.y, rect.width * div1 - gap, rect.height);
             out2 = new Rect(out1.xMax + gap * 2, rect.y, rect.width * (div2 - div1) - gap, rect.height);
