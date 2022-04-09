@@ -46,7 +46,9 @@ namespace SBR {
             base.Fire(direction, align);
         }
 
-        protected virtual void Update() {
+        protected override void Update() {
+            base.Update();
+            
             if (_rigidbody) {
                 velocity = _rigidbody.velocity;
             } else {

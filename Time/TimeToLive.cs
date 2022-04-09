@@ -36,26 +36,32 @@ namespace SBR {
         [Tooltip("How much time remains before the GameObject is destroyed.")]
         public float timeToLive = 5;
 
+        [SerializeField] private float _linger = 0;
+
         public GameObject spawnOnDeath;
 
-        private float initialTimeToLive;
+        private float _initialTimeToLive;
+        private bool _destroyed;
 
         private void Awake() {
-            initialTimeToLive = timeToLive;
+            _initialTimeToLive = timeToLive;
         }
 
         private void OnEnable() {
-            timeToLive = initialTimeToLive;
+            timeToLive = _initialTimeToLive;
+            _destroyed = false;
         }
 
         private void Update() {
+            if (_destroyed) return;
             timeToLive -= Time.deltaTime;
 
             if (timeToLive <= 0) {
+                _destroyed = true;
                 if (spawnOnDeath) {
                     Spawnable.Spawn(spawnOnDeath, transform.position, transform.rotation, scene:gameObject.scene);
                 }
-                Spawnable.Despawn(gameObject);
+                Spawnable.Despawn(gameObject, _linger);
             }
         }
     }

@@ -28,7 +28,8 @@ namespace SBR {
     /// Should have a kinematic Rigidbody2D in order to work properly.
     /// </summary>
     public class ColliderProjectile2D : Projectile2D {
-        protected virtual void Update() {
+        protected override void Update() {
+            base.Update();
             transform.position += velocity * Time.deltaTime;
         }
 

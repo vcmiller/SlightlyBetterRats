@@ -59,7 +59,8 @@ namespace SBR {
             hitArray = new RaycastHit[maxHits];
         }
 
-        protected virtual void Update() {
+        protected override void Update() {
+            base.Update();
             Vector3 dir = velocity.normalized;
             if (velocity.sqrMagnitude > 0) {
                 Vector3 position = transform.position - dir * offset;

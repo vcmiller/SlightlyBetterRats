@@ -41,7 +41,8 @@ namespace SBR {
         [Tooltip("Extra length to raycast each frame, to compensate for other objects' velocity.")]
         public float offset = 0;
 
-        private void Update() {
+        protected override void Update() {
+            base.Update();
             if (velocity.sqrMagnitude > 0) {
                 Vector3 oldPosition = transform.position;
                 transform.position += velocity * Time.deltaTime;

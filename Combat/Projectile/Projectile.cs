@@ -78,6 +78,10 @@ namespace SBR {
         [Tooltip("Whether the projectile should destroy its GameObject on impact.")]
         public bool destroyOnHit = true;
 
+        public float destroyAfterTime;
+
+        public bool playDestroyEffectsAfterTime;
+
         /// <summary>
         /// Whether the projectile should stop moving when it hits an object.
         /// </summary>
@@ -109,6 +113,8 @@ namespace SBR {
         public HitFilter[] hitFilters;
 
         private Vector3 _velocity;
+        private float _lifetime;
+        private bool _hasLifetime;
 
         /// <summary>
         /// Current velocity of the projectile.
@@ -153,11 +159,45 @@ namespace SBR {
                 transform.forward = direction;
             }
             fired = true;
+            _hasLifetime = destroyAfterTime > 0;
+            _lifetime = destroyAfterTime;
         }
 
         protected virtual void OnSpawned() {
             velocity = Vector3.zero;
             fired = false;
+        }
+
+        protected virtual void OnDespawned() {
+            _hasLifetime = false;
+        }
+
+        protected virtual void Update() {
+            if (!fired || !_hasLifetime) return;
+            _lifetime -= Time.deltaTime;
+            if (_lifetime <= 0) {
+                DestroyFromTimeout();
+            }
+        }
+
+        private void DestroyFromTimeout() {
+            if (stopOnHit) {
+                velocity = Vector3.zero;
+            }
+
+            Spawnable.Despawn(gameObject, linger);
+            fired = false;
+
+            if (!playDestroyEffectsAfterTime) return;
+            
+            Transform t = transform;
+            if (impactSound) {
+                impactSound.PlayAtPoint(t.position);
+            }
+
+            if (impactPrefab) {
+                Spawnable.Spawn(impactPrefab, t.position, t.rotation, null, true, scene: gameObject.scene);
+            }
         }
 
         protected virtual bool OnHitCollider(Collider col, Vector3 position) {
