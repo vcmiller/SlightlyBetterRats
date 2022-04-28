@@ -26,28 +26,33 @@ using UnityEngine;
 
 namespace SBR.Menu {
     public class SettingsSubMenu : MonoBehaviour {
-        private Setting[] settings;
-
-        public bool modified => settings.Any(s => s.modified);
+        [SerializeField] private bool _saveOnDisable;
+        
+        private Setting[] _settings;
+        public bool Modified => _settings.Any(s => s.modified);
 
         private void Awake() {
-            settings = GetComponentsInChildren<SettingControl>().Select(t => t.setting).ToArray();
+            _settings = GetComponentsInChildren<SettingControl>().Select(t => t.setting).ToArray();
+        }
+
+        private void OnDisable() {
+            if (_saveOnDisable) Save();
         }
 
         public void Defaults() {
-            foreach (var setting in settings) {
+            foreach (var setting in _settings) {
                 SettingsManager.GetSetting(setting.key).Default();
             }
         }
 
         public void Revert() {
-            foreach (var setting in settings) {
+            foreach (var setting in _settings) {
                 SettingsManager.GetSetting(setting.key).Load();
             }
         }
 
         public void Save() {
-            foreach (var setting in settings) {
+            foreach (var setting in _settings) {
                 SettingsManager.GetSetting(setting.key).Save();
             }
         }

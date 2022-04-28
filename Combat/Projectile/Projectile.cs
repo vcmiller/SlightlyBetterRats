@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SBR {
+    public delegate void ProjectileHitCallback(GameObject hitObject, Vector3 position, float damageDealt);
+    
     /// <summary>
     /// Base class for Projectiles.
     /// </summary>
@@ -134,7 +136,7 @@ namespace SBR {
         /// <summary>
         /// Invoked when the projectile collides with an object.
         /// </summary>
-        public event Action<GameObject, Vector3> HitObject;
+        public event ProjectileHitCallback HitObject;
         
         protected virtual bool hitsTriggers => triggerInteraction == QueryTriggerInteraction.Collide ||
                     (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
@@ -220,11 +222,13 @@ namespace SBR {
         }
 
         protected virtual void OnHitObject(Transform col, Vector3 position) {
-            Vector3 impact = velocity * impactForce;
-            col.Damage(new PointDamage(damage * damageMultiplier, position, velocity.normalized, 
-                                       velocity.magnitude * impactForce, col.gameObject));
+            float damageDealt = col.Damage(new PointDamage(damage * damageMultiplier,
+                                                           position,
+                                                           velocity.normalized,
+                                                           velocity.magnitude * impactForce,
+                                                           col.gameObject));
 
-            HitObject?.Invoke(col.gameObject, position);
+            HitObject?.Invoke(col.gameObject, position, damageDealt);
 
             if (stopOnHit) {
                 velocity = Vector3.zero;

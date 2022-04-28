@@ -20,12 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SBR.Menu {
     public abstract class SettingControl : MonoBehaviour {
-        public Text label;
+        public TMP_Text label;
         
         [SettingReference]
         public string settingKey;

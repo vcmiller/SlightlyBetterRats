@@ -68,12 +68,12 @@ namespace SBR {
         /// <summary>
         /// Whether a jump is being charged.
         /// </summary>
-        public bool jumpCharging { get; private set; }
+        public bool JumpCharging { get; private set; }
 
         /// <summary>
         /// Timer until jump is fully charged.
         /// </summary>
-        public ExpirationTimer jumpChargeTimer { get; private set; }
+        public ExpirationTimer JumpChargeTimer { get; private set; }
 
         /// <summary>
         /// Rotation rates of the character as local euler angles.
@@ -90,6 +90,8 @@ namespace SBR {
         }
 
         public bool IsMoving { get; private set; }
+        
+        public ExpirationTimer SnapPositionTimer { get; private set; }
 
         /// <summary>
         /// Called when the character jumps.
@@ -145,6 +147,9 @@ namespace SBR {
         private bool isRotating;
 
         private RaycastHit[] groundHitBuffer;
+        private AnimationCurve _snapPositionCurve;
+        private Vector3 _snapStartPosition, _snapEndPosition;
+        private Quaternion _snapStartRotation, _snapEndRotation;
 
         /// <summary>
         /// How the character rotates in relation to its movement.
@@ -411,7 +416,7 @@ namespace SBR {
             groundHitBuffer = new RaycastHit[groundHitBufferSize];
 
             if (jumpMode == JumpMode.Charge) {
-                jumpChargeTimer = new ExpirationTimer(jumpChargeTime);
+                JumpChargeTimer = new ExpirationTimer(jumpChargeTime);
             }
 
             SetupStates();
@@ -523,30 +528,43 @@ namespace SBR {
             return Vector3.Project(vector, projectPlane);
         }
 
+        public void SnapToLocationAndRotation(Vector3 position, Quaternion rotation, float time, AnimationCurve curve) {
+            _snapPositionCurve = curve;
+
+            _snapStartPosition = Rigidbody.position;
+            _snapStartRotation = Rigidbody.rotation;
+            _snapEndPosition = position;
+            _snapEndRotation = rotation;
+
+            if (SnapPositionTimer == null) SnapPositionTimer = new ExpirationTimer(time);
+            else SnapPositionTimer.expiration = time;
+            
+            SnapPositionTimer.Set();
+        }
+
         protected override void DoOutput(CharacterChannels channels) {
             DoRotationOutput(channels);
             movementInput = channels.Movement;
             DoJumpOutput(channels);
         }
-
-
+        
         private void DoJumpOutput(CharacterChannels channels) {
             if (IsGrounded && enableInput && jumpVelocity.sqrMagnitude > 0) {
                 if (channels.Jump) {
                     if (jumpMode == JumpMode.Press) {
                         DoJump(1);
-                    } else if (jumpMode == JumpMode.Charge && !jumpCharging) {
-                        jumpCharging = true;
-                        jumpChargeTimer.Set();
+                    } else if (jumpMode == JumpMode.Charge && !JumpCharging) {
+                        JumpCharging = true;
+                        JumpChargeTimer.Set();
                     }
-                } else if (jumpCharging) {
-                    float charge = 1.0f - jumpChargeTimer.remainingRatio;
+                } else if (JumpCharging) {
+                    float charge = 1.0f - JumpChargeTimer.remainingRatio;
                     DoJump(charge);
                 }
             }
 
             if (!channels.Jump) {
-                jumpCharging = false;
+                JumpCharging = false;
             }
         }
 
@@ -699,6 +717,16 @@ namespace SBR {
 
         private void FixedUpdate() {
             float dt = Time.fixedDeltaTime;
+
+            if (SnapPositionTimer?.expired == false) {
+                Rigidbody.velocity = Vector3.zero;
+
+                float t = _snapPositionCurve.Evaluate(1 - SnapPositionTimer.remainingRatio);
+                Rigidbody.position = Vector3.Lerp(_snapStartPosition, _snapEndPosition, t);
+                Rigidbody.rotation = Quaternion.Slerp(_snapStartRotation, _snapEndRotation, t);
+                return;
+            }
+            
             UpdateMovementVelocity(receivingInput ? movementInput : Vector3.zero, dt);
 
             if (!IsGrounded) {
