@@ -81,7 +81,7 @@ namespace SBR {
         /// <param name="transform"></param>
         /// <param name="parent"></param>
         public static void SetParentAndReset(this Transform transform, Transform parent) {
-            transform.parent = parent;
+            transform.SetParent(parent, false);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
