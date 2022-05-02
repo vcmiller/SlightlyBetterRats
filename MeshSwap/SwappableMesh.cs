@@ -26,6 +26,7 @@ using UnityEngine;
 using SBR.StateSystem;
 using System.Linq;
 using System;
+using UnityEditor;
 
 namespace SBR {
     [ExecuteAlways]
@@ -147,12 +148,17 @@ namespace SBR {
 
         private void Update() {
             if (Application.isPlaying) return;
-            if (_lastMeshPrefab == _meshPrefab) return;
-            
-            GameObject newPrefab = _meshPrefab;
-            _meshPrefab = _lastMeshPrefab;
-            UpdateMeshPrefab(newPrefab);
-            _lastMeshPrefab = _meshPrefab;
+            if (_lastMeshPrefab != _meshPrefab) {
+                GameObject newPrefab = _meshPrefab;
+                _meshPrefab = _lastMeshPrefab;
+                UpdateMeshPrefab(newPrefab);
+                _lastMeshPrefab = _meshPrefab;
+            }
+
+            GameObject sel = Selection.activeGameObject;
+            if (sel != null && sel != gameObject && sel.transform.IsChildOf(transform)) {
+                Selection.activeGameObject = gameObject;
+            }
         }
 #endif
     }
