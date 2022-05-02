@@ -18,6 +18,7 @@ namespace SBR.Editor.Persistence {
         private static readonly string[] ExcludeProps = {"m_Script", "_dynamicPrefabID", "_instanceID"};
         
         public override void OnInspectorGUI() {
+            serializedObject.Update();
             
             var prefabIDProp = serializedObject.FindProperty("_dynamicPrefabID");
             var instanceIDProp = serializedObject.FindProperty("_instanceID");
@@ -44,8 +45,6 @@ namespace SBR.Editor.Persistence {
                 anyPrefabs = true;
                 allIncluded &= DynamicObjectManifest.Instance.GetEntry(targetObj.DynamicPrefabID) != null;
             }
-            
-            serializedObject.Update();
 
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.PropertyField(instanceIDProp);
