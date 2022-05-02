@@ -43,15 +43,42 @@ namespace SBR.Editor {
                     for (int i = 0; i < obj.transform.childCount; i++) {
                         obj.transform.GetChild(i).position = childPositions[i];
                     }
-
-                    foreach (var col in obj.GetComponents<Collider>()) {
-                        SetColliderOffset(col, GetColliderOffset(col) + offset);
-                    }
-
-                    foreach (var col in obj.GetComponents<Collider2D>()) {
-                        col.offset += (Vector2)offset;
-                    }
+                    
+                    OffsetAllColliders(obj, offset);
                 }
+            }
+        }
+        
+        [MenuItem("GameObject/Apply Transform/Local Position")]
+        public static void ApplyLocalPosition() {
+            foreach (var obj in Selection.gameObjects) {
+                if (obj && obj.transform.localPosition != Vector3.zero) {
+                    RecordUndo(obj, "Apply Local Position");
+                    Vector3[] childPositions = new Vector3[obj.transform.childCount];
+                    for (int i = 0; i < obj.transform.childCount; i++) {
+                        var child = obj.transform.GetChild(i);
+                        childPositions[i] = child.position;
+                    }
+
+                    Vector3 offset = Quaternion.Inverse(obj.transform.localRotation) * obj.transform.localPosition;
+                    obj.transform.localPosition = Vector3.zero;
+
+                    for (int i = 0; i < obj.transform.childCount; i++) {
+                        obj.transform.GetChild(i).position = childPositions[i];
+                    }
+                    
+                    OffsetAllColliders(obj, offset);
+                }
+            }
+        }
+
+        private static void OffsetAllColliders(GameObject obj, Vector3 offset) {
+            foreach (var col in obj.GetComponents<Collider>()) {
+                SetColliderOffset(col, GetColliderOffset(col) + offset);
+            }
+
+            foreach (var col in obj.GetComponents<Collider2D>()) {
+                col.offset += (Vector2)offset;
             }
         }
 
