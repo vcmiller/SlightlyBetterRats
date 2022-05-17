@@ -76,16 +76,12 @@ namespace SBR.Editor {
         }
 
         private static void CreateBrush(Brush.Type type) {
-            GameObject brushGeom = GameObject.Find("BrushGeometry");
-
-            if (!brushGeom) {
-                brushGeom = new GameObject("BrushGeometry");
-                brushGeom.isStatic = true;
-            }
-
             GameObject brushObj = new GameObject(type + " Brush");
             brushObj.isStatic = true;
-            brushObj.transform.parent = brushGeom.transform;
+
+            if (Selection.activeGameObject) {
+                brushObj.transform.SetParentAndReset(Selection.activeGameObject.transform);
+            }
 
             Brush brush = brushObj.AddComponent<Brush>();
             brush.type = type;
