@@ -29,10 +29,10 @@ namespace SBR.Menu {
         [SerializeField] private bool _saveOnDisable;
         
         private Setting[] _settings;
-        public bool Modified => _settings.Any(s => s.modified);
+        public bool Modified => _settings.Any(s => s.Modified);
 
         private void Awake() {
-            _settings = GetComponentsInChildren<SettingControl>().Select(t => t.setting).ToArray();
+            _settings = GetComponentsInChildren<SettingControl>().Select(t => t.Setting).ToArray();
         }
 
         private void OnDisable() {
@@ -41,19 +41,19 @@ namespace SBR.Menu {
 
         public void Defaults() {
             foreach (var setting in _settings) {
-                SettingsManager.GetSetting(setting.key).Default();
+                SettingsManager.GetSetting(setting.Key).Default();
             }
         }
 
         public void Revert() {
             foreach (var setting in _settings) {
-                SettingsManager.GetSetting(setting.key).Load();
+                SettingsManager.GetSetting(setting.Key).Load();
             }
         }
 
         public void Save() {
             foreach (var setting in _settings) {
-                SettingsManager.GetSetting(setting.key).Save();
+                SettingsManager.GetSetting(setting.Key).Save();
             }
         }
     }

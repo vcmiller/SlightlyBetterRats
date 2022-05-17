@@ -38,14 +38,14 @@ namespace SBR.Editor {
         private static string[] GetCachedSettings(Type[] types) {
             if (types == null) {
                 if (allSettings == null) {
-                    allSettings = SettingsManager.allSettings.Select(s => s.key).Prepend("None").ToArray();
+                    allSettings = SettingsManager.allSettings.Select(s => s.Key).Prepend("None").ToArray();
                 }
                 return allSettings;
             } else {
                 if (!settingsByType.ContainsKey(types)) {
                     settingsByType[types] = types
                         .SelectMany(t => SettingsManager.GetSettings(t))
-                        .Select(s => s.key)
+                        .Select(s => s.Key)
                         .Prepend("None")
                         .ToArray();
                 }

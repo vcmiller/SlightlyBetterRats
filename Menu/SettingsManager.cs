@@ -31,7 +31,7 @@ namespace SBR.Menu {
 
         public static IEnumerable<Setting> allSettings => settingsByName.Values;
         public static IEnumerable<Setting<T>> GetSettings<T>() => settingsByName.Values.OfType<Setting<T>>();
-        public static IEnumerable<Setting> GetSettings(Type t) => settingsByName.Values.Where(s => s.settingType == t);
+        public static IEnumerable<Setting> GetSettings(Type t) => settingsByName.Values.Where(s => s.SettingType == t);
         public static Setting<T> GetSetting<T>(string key) => (Setting<T>)GetSetting(key);
         public static Setting GetSetting(string key) => 
             !string.IsNullOrEmpty(key) && settingsByName.ContainsKey(key) ? settingsByName[key] : null;
@@ -52,9 +52,9 @@ namespace SBR.Menu {
                 foreach (var field in t.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)) {
                     if (typeof(Setting).IsAssignableFrom(field.FieldType)) {
                         var setting = (Setting)field.GetValue(null);
-                        if (!settingsByName.ContainsKey(setting.key)) {
+                        if (!settingsByName.ContainsKey(setting.Key)) {
                             settingsByOwner[t] = new List<Setting>();
-                            settingsByName[setting.key] = setting;
+                            settingsByName[setting.Key] = setting;
                             setting.Load();
                         }
                     }

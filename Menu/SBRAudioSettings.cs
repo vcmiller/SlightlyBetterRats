@@ -28,10 +28,20 @@ using UnityEngine;
 
 namespace SBR.Menu {
     public static class SBRAudioSettings {
-        private const string masterVolumeKey = "Audio/MasterVolume";
-        private const string effectsVolumeKey = "Audio/EffectsVolume";
-        private const string musicVolumeKey = "Audio/MusicVolume";
-        private const string voiceVolumeKey = "Audio/VoiceVolume";
+        private const string MasterVolumeKey = "Audio/MasterVolume";
+        private const string EffectsVolumeKey = "Audio/EffectsVolume";
+        private const string MusicVolumeKey = "Audio/MusicVolume";
+        private const string VoiceVolumeKey = "Audio/VoiceVolume";
+
+        private const string MasterVolumeName = "Master Volume";
+        private const string EffectsVolumeName = "Effects Volume";
+        private const string MusicVolumeName = "Music Volume";
+        private const string VoiceVolumeName = "Voice Volume";
+
+        private const string MasterVolumeDesc = "Controls the volume of all sounds and music.";
+        private const string EffectsVolumeDesc = "Controls the volume of sound effects.";
+        private const string MusicVolumeDesc = "Controls the volume of music.";
+        private const string VoiceVolumeDesc = "Controls the volume of character voices.";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #if UNITY_EDITOR
@@ -43,19 +53,19 @@ namespace SBR.Menu {
 
         #region Settings Definitions
 
-        public static readonly Setting<float> masterVolume =
-            new FloatSetting(masterVolumeKey, 1.0f, true,
+        public static readonly Setting<float> MasterVolume =
+            new FloatSetting(MasterVolumeKey, MasterVolumeName, MasterVolumeDesc, 1.0f, true,
                 v => AudioListener.volume = v,
                 values: new[] { 0.0f, 1.0f });
 
-        public static readonly Setting<float> effectsVolume =
-            new FloatSetting(effectsVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
+        public static readonly Setting<float> EffectsVolume =
+            new FloatSetting(EffectsVolumeKey, EffectsVolumeName, EffectsVolumeDesc, 1.0f, values: new[] { 0.0f, 1.0f });
 
-        public static readonly Setting<float> musicVolume =
-            new FloatSetting(musicVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
+        public static readonly Setting<float> MusicVolume =
+            new FloatSetting(MusicVolumeKey, MusicVolumeName, MusicVolumeDesc, 1.0f, values: new[] { 0.0f, 1.0f });
 
-        public static readonly Setting<float> voiceVolume =
-            new FloatSetting(voiceVolumeKey, 1.0f, values: new[] { 0.0f, 1.0f });
+        public static readonly Setting<float> VoiceVolume =
+            new FloatSetting(VoiceVolumeKey, VoiceVolumeName, VoiceVolumeDesc, 1.0f, values: new[] { 0.0f, 1.0f });
 
 #endregion
     }

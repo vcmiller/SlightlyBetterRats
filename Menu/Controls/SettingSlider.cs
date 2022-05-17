@@ -20,49 +20,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace SBR.Menu {
     public class SettingSlider : SettingControl {
-        public Slider slider;
+        [SerializeField] private Slider _slider;
 
         private void Reset() {
-            slider = GetComponentInChildren<Slider>();
+            _slider = GetComponentInChildren<Slider>();
         }
 
         public override void UpdateUIElement() {
             base.UpdateUIElement();
-            if (!slider) return;
-            switch (setting) {
+            if (!_slider) return;
+            switch (Setting) {
                 case null: break;
                 case Setting<int> i:
-                    slider.minValue = i.possibleValues[0];
-                    slider.maxValue = i.possibleValues[1];
-                    slider.value = i.value;
-                    slider.wholeNumbers = true;
+                    _slider.minValue = i.PossibleValues[0];
+                    _slider.maxValue = i.PossibleValues[1];
+                    _slider.value = i.Value;
+                    _slider.wholeNumbers = true;
                     break;
                 case Setting<float> f:
-                    slider.minValue = f.possibleValues[0];
-                    slider.maxValue = f.possibleValues[1];
-                    slider.value = f.value;
-                    slider.wholeNumbers = false;
+                    _slider.minValue = f.PossibleValues[0];
+                    _slider.maxValue = f.PossibleValues[1];
+                    _slider.value = f.Value;
+                    _slider.wholeNumbers = false;
                     break;
             }
         }
 
         protected override void Awake() {
             base.Awake();
-            slider.onValueChanged.AddListener(Slider_ValueChanged);
+            _slider.onValueChanged.AddListener(Slider_ValueChanged);
         }
 
         private void Slider_ValueChanged(float value) {
-            switch (setting) {
+            switch (Setting) {
                 case null: break;
                 case Setting<int> i:
-                    i.value = (int)slider.value;
+                    i.Value = (int)_slider.value;
                     break;
                 case Setting<float> f:
-                    f.value = slider.value;
+                    f.Value = _slider.value;
                     break;
             }
         }

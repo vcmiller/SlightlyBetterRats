@@ -29,51 +29,49 @@ namespace SBR.Menu {
         [Serializable]
         public class Info {
             [SettingReference(typeof(float))]
-            public string setting;
-            public AudioMixer mixer;
-            public string nameOverride;
+            [SerializeField] private string _setting;
+            [SerializeField] private AudioMixer _mixer;
+            [SerializeField] private string _paramName;
 
-            [NonSerialized]
-            public Action<float> listener;
+            public Action<float> Listener { get; set; }
+
+            public string Setting => _setting;
+            public AudioMixer Mixer => _mixer;
+            public string ParamName => _paramName;
         }
 
-        public Info[] settings;
+        [SerializeField] private Info[] _settings;
 
-        private void OnEnable() {
-            foreach (var item in settings) {
-                var setting = SettingsManager.GetSetting<float>(item.setting);
+        private void Awake() {
+            foreach (var item in _settings) {
+                var setting = SettingsManager.GetSetting<float>(item.Setting);
                 if (setting == null) continue;
-                item.listener = v => UpdateSettings(item, setting, v);
-                setting.ValueChanged += item.listener;
-                UpdateSettings(item, setting, setting.value);
+                item.Listener = v => UpdateSettings(item, setting, v);
+                setting.ValueChanged += item.Listener;
+                UpdateSettings(item, setting, setting.Value);
             }
         }
 
         private void Start() {
-            foreach (var item in settings) {
-                var setting = SettingsManager.GetSetting<float>(item.setting);
+            foreach (var item in _settings) {
+                var setting = SettingsManager.GetSetting<float>(item.Setting);
                 if (setting == null) continue;
-                UpdateSettings(item, setting, setting.value);
+                UpdateSettings(item, setting, setting.Value);
             }
         }
 
-        private void OnDisable() {
-            foreach (var item in settings) {
-                var setting = SettingsManager.GetSetting<float>(item.setting);
+        private void OnDestroy() {
+            foreach (var item in _settings) {
+                var setting = SettingsManager.GetSetting<float>(item.Setting);
                 if (setting == null) continue;
-                setting.ValueChanged -= item.listener;
+                setting.ValueChanged -= item.Listener;
             }
         }
 
         private void UpdateSettings(Info item, Setting setting, float val) {
             float log = Mathf.Log(Mathf.Clamp(val, 0.001f, 1.0f)) * 20;
 
-            string name = item.nameOverride;
-            if (string.IsNullOrEmpty(name)) {
-                name = setting.name;
-            }
-
-            item.mixer.SetFloat(name, log);
+            item.Mixer.SetFloat(item.ParamName, log);
         }
     }
 }

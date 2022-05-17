@@ -26,23 +26,29 @@ using UnityEngine.UI;
 
 namespace SBR.Menu {
     public abstract class SettingControl : MonoBehaviour {
-        public TMP_Text label;
-        
-        [SettingReference]
-        public string settingKey;
-        public Setting setting => SettingsManager.GetSetting(settingKey);
+        [SerializeField] private TMP_Text _label;
+        [SerializeField] private TMP_Text _descriptionLabel;
+        [SettingReference, SerializeField] private string _settingKey;
 
-        private Selectable selectable;
+        public string SettingKey => _settingKey;
+        public Setting Setting => SettingsManager.GetSetting(_settingKey);
+        private Selectable _selectable;
 
-        public virtual bool interactible {
-            get => selectable.interactable;
-            set => selectable.interactable = value;
+        public virtual bool Interactable {
+            get => _selectable.interactable;
+            set => _selectable.interactable = value;
         }
 
         public virtual void UpdateUIElement() {
-            var s = setting;
-            if (label && s != null) {
-                label.text = s.displayName;
+            Setting s = Setting;
+            if (s == null) return;
+            
+            if (_label != null) {
+                _label.text = s.DisplayName;
+            }
+
+            if (_descriptionLabel != null) {
+                _descriptionLabel.text = s.Description;
             }
         }
 
@@ -51,13 +57,13 @@ namespace SBR.Menu {
         }
 
         protected virtual void Awake() {
-            selectable = GetComponentInChildren<Selectable>();
+            _selectable = GetComponentInChildren<Selectable>();
             UpdateUIElement();
-            setting.ObjValueChanged += SettingValueChanged;
+            Setting.ObjValueChanged += SettingValueChanged;
         }
 
         private void OnDestroy() {
-            setting.ObjValueChanged -= SettingValueChanged;
+            Setting.ObjValueChanged -= SettingValueChanged;
         }
 
         private void SettingValueChanged(object value) {

@@ -27,123 +27,123 @@ using UnityEngine;
 
 namespace SBR.Menu {
     public abstract class Setting {
-        public Setting(string key, Type settingType) {
-            this.key = key;
-            this.settingType = settingType;
+        public Setting(string key, Type settingType, string displayName, string description) {
+            Key = key;
+            SettingType = settingType;
+            DisplayName = displayName;
+            Description = description;
         }
 
-        public readonly string key;
-        public readonly Type settingType;
-        
-        public string name {
-            get {
-                int i = key.LastIndexOf('/');
-                if (i > 0 && i < key.Length - 2) {
-                    return key.Substring(i + 1);
-                } else {
-                    return null;
-                }
-            }
-        }
+        public string Key { get; }
+        public Type SettingType { get; }
+        public string DisplayName { get; }
+        public string Description { get; }
 
-        public bool modified { get; protected set; }
-        public string displayName => name?.SplitCamelCase();
+        public bool Modified { get; protected set; }
 
         public event Action<object> ObjValueChanged;
         protected void OnObjValueChanged(object value) => ObjValueChanged?.Invoke(value);
 
         public abstract void Default();
-        public virtual void Save() => modified = false;
-        public virtual void Load() => modified = false;
-        public abstract object objValue { get; set; }
-        public abstract IEnumerable<object> objPossibleValues { get; }
+        public virtual void Save() => Modified = false;
+        public virtual void Load() => Modified = false;
+        public abstract object ObjValue { get; set; }
+        public abstract IEnumerable<object> ObjPossibleValues { get; }
         public abstract string ObjValueToString(object value);
     }
 
     public abstract class Setting<T> : Setting {
-        private Func<T, string> toString;
-        private T[] values;
-        private bool hasDefault;
-        protected readonly T defaultValue;
-        protected T currentValue;
+        private readonly Func<T, string> _toString;
+        private readonly T[] _values;
+        private readonly bool _hasDefault;
+        protected T DefaultValue { get; }
+        protected T CurrentValue { get; set; }
         public event Action<T> ValueChanged;
 
-        public Setting(
-            string key, 
-            T defaultValue = default, 
-            bool hasDefault = true,
-            Action<T> setter = null, 
-            Func<T, string> toString = null, 
-            T[] values = null) : 
-            base(key, typeof(T)) {
-            
-            this.defaultValue = defaultValue;
-            this.hasDefault = hasDefault;
-            this.ValueChanged = setter;
-            this.ValueChanged += v => OnObjValueChanged(v);
-            this.toString = toString;
-            this.values = values;
+        public Setting(string key,
+                       string displayName,
+                       string description,
+                       T defaultValue = default,
+                       bool hasDefault = true,
+                       Action<T> setter = null,
+                       Func<T, string> toString = null,
+                       T[] values = null) :
+            base(key, typeof(T), displayName, description) {
+            DefaultValue = defaultValue;
+            _hasDefault = hasDefault;
+            ValueChanged = setter;
+            ValueChanged += v => OnObjValueChanged(v);
+            _toString = toString;
+            _values = values;
 
-            currentValue = defaultValue;
+            CurrentValue = defaultValue;
         }
 
-        public override object objValue { get => value; set => this.value = (T)value; }
-        public T value {
-            get => currentValue;
+        public override object ObjValue {
+            get => Value;
+            set => this.Value = (T) value;
+        }
+
+        public T Value {
+            get => CurrentValue;
             set {
-                //Debug.Log(key + ": " + value);
-                if (!Equals(value, currentValue)) {
-                    currentValue = value;
-                    modified = true;
-                    ValueChanged?.Invoke(value);
-                }
+                if (Equals(value, CurrentValue)) return;
+                CurrentValue = value;
+                Modified = true;
+                ValueChanged?.Invoke(value);
             }
         }
 
-        public override IEnumerable<object> objPossibleValues => values?.Cast<object>() ?? null;
-        public virtual T[] possibleValues => values;
-        public override string ObjValueToString(object value) => ValueToString((T)value);
-        public virtual string ValueToString(T v) => toString?.Invoke(v) ?? v.ToString();
+        public override IEnumerable<object> ObjPossibleValues => _values?.Cast<object>() ?? null;
+        public virtual T[] PossibleValues => _values;
+        public override string ObjValueToString(object value) => ValueToString((T) value);
+        public virtual string ValueToString(T v) => _toString?.Invoke(v) ?? v.ToString();
+
         public override void Default() {
-            if (hasDefault) value = defaultValue;
+            if (_hasDefault) Value = DefaultValue;
         }
     }
 
     public class IntSetting : Setting<int> {
-        public IntSetting(string key, 
-            int defaultValue = 0,
-            bool hasDefault = true,
-            Action<int> setter = null, 
-            Func<int, string> toString = null, 
-            int[] values = null) : 
-            base(key, defaultValue, hasDefault, setter, toString, values) { }
+        public IntSetting(string key,
+                          string displayName,
+                          string description,
+                          int defaultValue = 0,
+                          bool hasDefault = true,
+                          Action<int> setter = null,
+                          Func<int, string> toString = null,
+                          int[] values = null) :
+            base(key, displayName, description, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            value = PlayerPrefs.GetInt(key, defaultValue);
+            Value = PlayerPrefs.GetInt(Key, DefaultValue);
             base.Load();
         }
+
         public override void Save() {
-            PlayerPrefs.SetInt(key, value);
+            PlayerPrefs.SetInt(Key, Value);
             base.Save();
         }
     }
 
     public class EnumSetting<T> : Setting<T> where T : Enum {
-        public EnumSetting(string key, 
-            T defaultValue = default,
-            bool hasDefault = true,
-            Action<T> setter = null, 
-            Func<T, string> toString = null) : 
-            base(key, defaultValue, hasDefault, setter, toString ?? CamelCaseToSplit, 
-                Enum.GetValues(typeof(T)).Cast<T>().ToArray()) {}
+        public EnumSetting(string key,
+                           string displayName,
+                           string description,
+                           T defaultValue = default,
+                           bool hasDefault = true,
+                           Action<T> setter = null,
+                           Func<T, string> toString = null) :
+            base(key, displayName, description, defaultValue, hasDefault, setter, toString ?? CamelCaseToSplit,
+                 Enum.GetValues(typeof(T)).Cast<T>().ToArray()) { }
 
         public override void Load() {
-            value = (T)Enum.ToObject(typeof(T), PlayerPrefs.GetInt(key, Convert.ToInt32(defaultValue)));
+            Value = (T) Enum.ToObject(typeof(T), PlayerPrefs.GetInt(Key, Convert.ToInt32(DefaultValue)));
             base.Load();
         }
 
         public override void Save() {
-            PlayerPrefs.SetInt(key, Convert.ToInt32(value));
+            PlayerPrefs.SetInt(Key, Convert.ToInt32(Value));
             base.Save();
         }
 
@@ -151,40 +151,44 @@ namespace SBR.Menu {
     }
 
     public class FloatSetting : Setting<float> {
-        public FloatSetting(string key, 
-            float defaultValue = 0,
-            bool hasDefault = true,
-            Action<float> setter = null, 
-            Func<float, string> toString = null, 
-            float[] values = null) : 
-            base(key, defaultValue, hasDefault, setter, toString, values) { }
+        public FloatSetting(string key,
+                            string displayName,
+                            string description,
+                            float defaultValue = 0,
+                            bool hasDefault = true,
+                            Action<float> setter = null,
+                            Func<float, string> toString = null,
+                            float[] values = null) :
+            base(key, displayName, description, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            value = PlayerPrefs.GetFloat(key, defaultValue);
+            Value = PlayerPrefs.GetFloat(Key, DefaultValue);
             base.Load();
         }
 
         public override void Save() {
-            PlayerPrefs.SetFloat(key, value);
+            PlayerPrefs.SetFloat(Key, Value);
             base.Save();
         }
     }
 
     public class BoolSetting : Setting<bool> {
         public BoolSetting(string key,
-            bool defaultValue = false,
-            bool hasDefault = true,
-            Action<bool> setter = null,
-            Func<bool, string> toString = null) :
-            base(key, defaultValue, hasDefault, setter, toString ?? EnabledDisabled, null) { }
+                           string displayName,
+                           string description,
+                           bool defaultValue = false,
+                           bool hasDefault = true,
+                           Action<bool> setter = null,
+                           Func<bool, string> toString = null) :
+            base(key, displayName, description, defaultValue, hasDefault, setter, toString ?? EnabledDisabled, null) { }
 
         public override void Load() {
-            value = PlayerPrefs.GetInt(key, defaultValue ? 1 : 0) == 1;
+            Value = PlayerPrefs.GetInt(Key, DefaultValue ? 1 : 0) == 1;
             base.Load();
         }
 
         public override void Save() {
-            PlayerPrefs.SetInt(key, value ? 1 : 0);
+            PlayerPrefs.SetInt(Key, Value ? 1 : 0);
             base.Save();
         }
 
@@ -193,22 +197,23 @@ namespace SBR.Menu {
 
     public class StringSetting : Setting<string> {
         public StringSetting(string key,
-            string defaultValue = "",
-            bool hasDefault = true,
-            Action<string> setter = null,
-            Func<string, string> toString = null,
-            string[] values = null) :
-            base(key, defaultValue, hasDefault, setter, toString, values) { }
+                             string displayName,
+                             string description,
+                             string defaultValue = "",
+                             bool hasDefault = true,
+                             Action<string> setter = null,
+                             Func<string, string> toString = null,
+                             string[] values = null) :
+            base(key, displayName, description, defaultValue, hasDefault, setter, toString, values) { }
 
         public override void Load() {
-            value = PlayerPrefs.GetString(key, defaultValue);
+            Value = PlayerPrefs.GetString(Key, DefaultValue);
             base.Load();
         }
 
         public override void Save() {
-            PlayerPrefs.SetString(key, value);
+            PlayerPrefs.SetString(Key, Value);
             base.Save();
         }
     }
 }
-
