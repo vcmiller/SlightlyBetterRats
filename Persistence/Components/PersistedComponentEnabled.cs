@@ -11,8 +11,8 @@ namespace SBR.Persistence {
             if (_target) _target.enabled = State.Enabled;
         }
 
-        public override void WillSaveState() {
-            base.WillSaveState();
+        public override void WriteState() {
+            base.WriteState();
             if (_target) State.Enabled = _target.enabled;
         }
 

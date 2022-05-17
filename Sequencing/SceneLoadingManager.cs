@@ -13,6 +13,8 @@ namespace SBR.Sequencing {
 
         [SerializeField] private SceneGroup _defaultGroup;
 
+        public event Action AllScenesFinishedLoading;
+
         public bool IsUnloadingAnyScenes => _sceneGroups.Values.Any(g => g.UnloadingScenes.Count > 0);
 
         public bool IsLoadingAnyScenes(SceneLoadingType type = SceneLoadingType.All) =>
@@ -181,6 +183,7 @@ namespace SBR.Sequencing {
         }
 
         private void Update() {
+            bool anyLoadFinished = false;
             foreach (SceneGroupInfo groupInfo in _sceneGroups.Values) {
                 foreach (SceneLoadingOperation operation in groupInfo.LoadingScenes) {
                     if (!operation.Operation.isDone) continue;
@@ -219,6 +222,7 @@ namespace SBR.Sequencing {
                     };
                     
                     groupInfo.LoadedScenes.Add(sceneInfo);
+                    anyLoadFinished = true;
                     
                     _sceneLoadingStates[scene.name] = new SceneState {
                         Type = SceneStateType.Loaded,
@@ -241,6 +245,10 @@ namespace SBR.Sequencing {
 
                 groupInfo.LoadingScenes.RemoveAll(op => op.Operation.isDone);
                 groupInfo.UnloadingScenes.RemoveAll(op => op.Operation.isDone);
+            }
+
+            if (anyLoadFinished && !_sceneGroups.Any(pair => pair.Value.LoadingScenes.Count > 0)) {
+                AllScenesFinishedLoading?.Invoke();
             }
         }
 

@@ -31,8 +31,8 @@ namespace SBR.Persistence {
             if (_saveScale) transform.localScale = _transform.localScale;
         }
 
-        public override void WillSaveState() {
-            base.WillSaveState();
+        public override void WriteState() {
+            base.WriteState();
             SaveState();
         }
 

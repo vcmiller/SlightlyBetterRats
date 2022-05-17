@@ -11,23 +11,29 @@ namespace SBR.Sequencing {
         public static LevelRoot Current { get; private set; }
         
         [SerializeField] private LevelManifestLevelEntry _manifestEntry;
+        [SerializeField] private Transform _dynamicObjectRoot;
         
-        private List<RegionRoot> _loadedRegions = new List<RegionRoot>();
+        private Dictionary<int, RegionRoot> _loadedRegions = new Dictionary<int, RegionRoot>();
         
         public int LevelIndex => _manifestEntry.LevelID;
         public LevelManifestLevelEntry ManifestEntry => _manifestEntry;
-        public IReadOnlyList<RegionRoot> LoadedRegions => _loadedRegions;
+        public Transform DynamicObjectRoot => _dynamicObjectRoot;
+        public IReadOnlyDictionary<int, RegionRoot> LoadedRegions => _loadedRegions;
         public bool Initialized { get; private set; }
 
+        public Action Unloading;
+
         internal virtual void RegisterRegion(RegionRoot region) {
-            _loadedRegions.Add(region);
+            _loadedRegions.Add(region.RegionIndex, region);
         }
 
         internal virtual void DeregisterRegion(RegionRoot region) {
-            _loadedRegions.Remove(region);
+            _loadedRegions.Remove(region.RegionIndex);
         }
 
         public virtual void Initialize() {
+            Unloading?.Invoke();
+            
             if (Current) {
                 Debug.LogError("Trying to initialize a LevelRoot when one is already active!");
                 return;

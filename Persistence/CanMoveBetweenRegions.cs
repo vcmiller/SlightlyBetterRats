@@ -25,7 +25,12 @@ namespace SBR.Persistence {
                 if (_pgo.Initialized) {
                     _pgo.TransitionToRegion((PersistedRegionRoot)value);
                 }
+
+                Transform t = _pgo.transform;
+                
+                t.parent = null;
                 SceneManager.MoveGameObjectToScene(_pgo.gameObject, value.gameObject.scene);
+                t.parent = value.DynamicObjectRoot;
             }
         }
         

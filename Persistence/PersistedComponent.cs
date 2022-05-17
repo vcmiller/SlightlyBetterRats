@@ -7,7 +7,7 @@ namespace SBR.Persistence {
     public interface IPersistedComponent {
         public void Initialize(PersistedGameObject persistedGameObject, PersistedData parent, string id);
         public void PostLoad();
-        public void WillSaveState();
+        public void WriteState();
     }
     
     public class PersistedComponent<T> : MonoBehaviour, IPersistedComponent where T : PersistedData, new() {
@@ -36,7 +36,7 @@ namespace SBR.Persistence {
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
         public virtual void PostLoad() {}
-        public virtual void WillSaveState() {}
+        public virtual void WriteState() {}
     }
 
     public abstract class PersistedController<TChannels, TState> : Controller<TChannels>, IPersistedComponent
@@ -68,6 +68,6 @@ namespace SBR.Persistence {
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
         public virtual void PostLoad() {}
-        public virtual void WillSaveState() {}
+        public virtual void WriteState() {}
     }
 }

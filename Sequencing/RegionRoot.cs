@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,12 +6,17 @@ using UnityEngine;
 namespace SBR.Sequencing {
     public class RegionRoot : MonoBehaviour {
         [SerializeField] private LevelManifestRegionEntry _manifestEntry;
+        [SerializeField] private Transform _dynamicObjectRoot;
 
         public LevelManifestRegionEntry ManifestEntry => _manifestEntry;
+        
+        public Transform DynamicObjectRoot => _dynamicObjectRoot;
 
         public int RegionIndex => _manifestEntry.RegionID;
         
         public bool Initialized { get; private set; }
+
+        public event Action Unloading;
         
         public virtual void Initialize() {
             LevelRoot.Current.RegisterRegion(this);
@@ -18,6 +24,7 @@ namespace SBR.Sequencing {
         }
 
         public virtual void Cleanup() {
+            Unloading?.Invoke();
             Initialized = false;
             // It's ok if the level is unloaded before its regions (as long as it's in the same frame)
             if (LevelRoot.Current) {

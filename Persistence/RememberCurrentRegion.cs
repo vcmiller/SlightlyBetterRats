@@ -6,7 +6,7 @@ using SBR.Sequencing;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace SlightlyBetterRats.Persistence {
+namespace SBR.Persistence {
     public class RememberCurrentRegion : MonoBehaviour, IRegionAwareObject {
         [SerializeField] private bool _onlyPersistedRegions = false;
 

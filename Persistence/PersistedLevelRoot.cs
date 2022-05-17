@@ -5,7 +5,7 @@ using System.Linq;
 
 using SBR.Sequencing;
 
-using SlightlyBetterRats.Persistence;
+using SBR.Persistence;
 
 using UnityEngine;
 
@@ -28,11 +28,11 @@ namespace SBR.Persistence {
         }
 
         public virtual void LoadObjects() {
-            List<PersistedRegionRoot> persistedRegions = LoadedRegions.OfType<PersistedRegionRoot>().ToList();
+            List<PersistedRegionRoot> persistedRegions = LoadedRegions.Values.OfType<PersistedRegionRoot>().ToList();
 
             List<PersistedGameObject> gameObjects = new List<PersistedGameObject>();
             
-            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene);
+            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene, DynamicObjectRoot);
             PersistedGameObject.CollectGameObjects(gameObject.scene, gameObjects);
             
             foreach (PersistedRegionRoot regionRoot in persistedRegions) {

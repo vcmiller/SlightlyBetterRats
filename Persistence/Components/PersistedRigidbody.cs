@@ -14,8 +14,8 @@ namespace SBR.Persistence {
             if (_saveAngularVelocity) _rigidbody.angularVelocity = State.AngularVelocity;
         }
 
-        public override void WillSaveState() {
-            base.WillSaveState();
+        public override void WriteState() {
+            base.WriteState();
             SaveState();
         }
 

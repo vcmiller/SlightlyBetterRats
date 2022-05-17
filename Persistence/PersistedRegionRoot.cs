@@ -7,10 +7,11 @@ using UnityEngine;
 
 namespace SBR.Persistence {
     public class PersistedRegionRoot : RegionRoot {
+        
         public RegionSaveData SaveData { get; private set; }
         
         public bool ObjectsLoaded { get; private set; }
-        
+
         public override void Initialize() {
             var level = PersistedLevelRoot.Current;
             if (!level) {
@@ -24,7 +25,7 @@ namespace SBR.Persistence {
         }
 
         public virtual void LoadDynamicObjects() {
-            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene);
+            PersistedGameObject.LoadDynamicObjects(SaveData.Objects, gameObject.scene, DynamicObjectRoot);
             ObjectsLoaded = true;
         }
     }
