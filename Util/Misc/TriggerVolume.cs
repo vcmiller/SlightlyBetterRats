@@ -48,7 +48,18 @@ namespace SBR {
 
         private HashSet<GameObject> _objects = new HashSet<GameObject>();
 
-        private void Start() { }
+        private List<GameObject> _objectsToRemove = new List<GameObject>();
+        private void Update() {
+            _objects.RemoveWhere(obj => !obj);
+            
+            foreach (GameObject obj in _objects) {
+                if (!obj.activeInHierarchy) _objectsToRemove.Add(obj);
+            }
+
+            foreach (GameObject obj in _objectsToRemove) {
+                HandleExit(obj);
+            }
+        }
 
         private void HandleEnter(GameObject other) {
             if (!enabled) return;
