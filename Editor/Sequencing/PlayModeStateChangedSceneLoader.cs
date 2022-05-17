@@ -20,13 +20,13 @@ namespace SBR.Editor.Sequencing {
         private static void EditorApplication_PlayModeStateChanged(PlayModeStateChange mode) {
             if (!SBRProjectSettings.inst.autoLoadScene0InEditor) return;
             if (mode == PlayModeStateChange.ExitingEditMode) {
-                LoadFromInitialScene();
+                LoadFromInitialScene(true);
             } else if (mode == PlayModeStateChange.EnteredEditMode) {
                 ReloadEditingScenes();
             }
         }
 
-        public static void LoadFromInitialScene() {
+        public static void LoadFromInitialScene(bool loadAllOpenRegions) {
             EditorSceneManager.SaveOpenScenes();
             EditorPrefs.SetString("ActiveScene", SceneManager.GetActiveScene().path);
             EditorPrefs.SetInt("OpenSceneCount", SceneManager.sceneCount);
@@ -41,7 +41,7 @@ namespace SBR.Editor.Sequencing {
                 bool isLoaded = SceneManager.GetSceneByPath(level.Scene.Path).isLoaded;
                 foreach (LevelManifestRegionEntry region in level.Regions) {
                     bool isRegionLoaded = SceneManager.GetSceneByPath(region.Scene.Path).isLoaded;
-                    EditorPrefs.SetBool($"OpenLevelRegions[{region.RegionID}].loaded", isRegionLoaded);
+                    EditorPrefs.SetBool($"OpenLevelRegions[{region.RegionID}].loaded", isRegionLoaded && loadAllOpenRegions);
                     if (isRegionLoaded) isLoaded = true;
                 }
 
