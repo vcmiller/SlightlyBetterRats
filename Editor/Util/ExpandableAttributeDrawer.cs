@@ -87,7 +87,12 @@ namespace SBR {
                     GUIContent propLabel = new GUIContent(iter.displayName);
                     float propHeight = EditorGUI.GetPropertyHeight(iter, propLabel, iter.isExpanded);
                     propsRect.height = propHeight;
-                    EditorGUI.PropertyField(propsRect, iter, propLabel, iter.isExpanded);
+
+                    if (iter.isArray && !iter.isExpanded && iter.propertyType != SerializedPropertyType.String) {
+                        iter.isExpanded = EditorGUI.Foldout(propsRect, iter.isExpanded, propLabel);
+                    } else {
+                        EditorGUI.PropertyField(propsRect, iter, propLabel, iter.isExpanded);
+                    }
                     propsRect.y = propsRect.yMax + EditorGUIUtility.standardVerticalSpacing;
                 }
 
