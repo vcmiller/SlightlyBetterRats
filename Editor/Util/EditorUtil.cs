@@ -27,7 +27,7 @@ using UnityEditor;
 using System.Reflection;
 using System;
 using System.IO;
-
+using Action = BehaviorDesigner.Runtime.Tasks.Action;
 using Object = UnityEngine.Object;
 
 namespace SBR.Editor {
@@ -212,6 +212,46 @@ namespace SBR.Editor {
             }
 
             return path;
+        }
+
+        public static void DoLazyDropdown<T>(Rect position, GUIContent content, Func<T[]> optionsFunc, Func<T, string> stringifier, Action<T> setter) {
+            if (!EditorGUI.DropdownButton(position, content, FocusType.Passive)) return;
+            
+            GenericMenu menu = new GenericMenu();
+            T[] options = optionsFunc();
+            foreach (T option in options) {
+                menu.AddItem(new GUIContent(stringifier(option)), false, () => setter(option));
+            }
+                
+            menu.DropDown(position);
+        }
+
+        public static IEnumerable<T> GetAssetsOfType<T>() where T : Object {
+            string[] guids = AssetDatabase.FindAssets($"t:{typeof(T)}");
+            for (int i = 0; i < guids.Length; i++) {
+                string guid = guids[i];
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                T asset = AssetDatabase.LoadAssetAtPath<T>(path);
+                if (asset) yield return asset;
+            }
+        }
+
+        public static IEnumerable<Object> GetAssetsOfType(string type) {
+            string[] guids = AssetDatabase.FindAssets($"t:{type}");
+            for (int i = 0; i < guids.Length; i++) {
+                string guid = guids[i];
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                Object asset = AssetDatabase.LoadMainAssetAtPath(path);
+                if (asset) yield return asset;
+            }
+        }
+        
+        private const string PPtrText = "PPtr<$";
+
+        public static string GetTypeName(this SerializedProperty property) {
+            string type = property.type;
+            if (!type.StartsWith(PPtrText)) return type;
+            return property.type.Substring(PPtrText.Length, type.Length - PPtrText.Length - 1);
         }
     }
 }

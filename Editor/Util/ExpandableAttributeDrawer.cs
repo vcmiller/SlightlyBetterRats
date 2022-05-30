@@ -15,7 +15,6 @@ namespace SBR {
     public class ExpandableAttributeDrawer : PropertyDrawer {
         public static Action<ScriptableObject, string> SaveAction { get; set; } = null;
         private ExpandableAttribute Attribute => (ExpandableAttribute) attribute;
-        private const string PPtrText = "PPtr<$";
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label) {
             ExpandableAttribute attr = Attribute;
@@ -105,8 +104,7 @@ namespace SBR {
         private void CreateNew(SerializedProperty property) {
             ExpandableAttribute attr = Attribute;
 
-            if (!property.type.StartsWith(PPtrText)) return;
-            string typeName = property.type.Substring(PPtrText.Length, property.type.Length - PPtrText.Length - 1);
+            string typeName = property.GetTypeName();
             string path = $"New{typeName}.asset";
 
             ScriptableObject currentValue = property.objectReferenceValue as ScriptableObject;

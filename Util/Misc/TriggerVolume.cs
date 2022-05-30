@@ -50,8 +50,13 @@ namespace SBR {
 
         private List<GameObject> _objectsToRemove = new List<GameObject>();
         private void Update() {
+            CheckForDeactivatedObjects();
+        }
+
+        private void CheckForDeactivatedObjects() {
             _objects.RemoveWhere(obj => !obj);
-            
+            _objectsToRemove.Clear();
+
             foreach (GameObject obj in _objects) {
                 if (!obj.activeInHierarchy) _objectsToRemove.Add(obj);
             }

@@ -157,7 +157,7 @@ namespace SBR {
 
             GameObject sel = Selection.activeGameObject;
             if (sel != null && sel != gameObject && sel.transform.IsChildOf(transform)) {
-                Selection.activeGameObject = gameObject;
+                Selection.activeGameObject = transform.parent? transform.parent.gameObject : gameObject;
             }
         }
 #endif

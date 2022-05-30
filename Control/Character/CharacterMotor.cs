@@ -450,11 +450,9 @@ namespace SBR {
             stateManager = GetComponent<StateManager>();
         }
 
-        private void OnAnimatorMove() {
-            if (Animator) {
-                rootMotionMovement += Animator.deltaPosition;
-                rootMotionRotation = Animator.deltaRotation * rootMotionRotation;
-            }
+        public void ApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation) {
+            rootMotionMovement += deltaPosition;
+            rootMotionRotation = deltaRotation * rootMotionRotation;
         }
 
         private void UpdateJumping() {
