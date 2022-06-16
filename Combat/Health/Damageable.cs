@@ -75,9 +75,10 @@ namespace SBR {
         /// </summary>
         /// <param name="obj">The GameObject to damage.</param>
         /// <param name="amount">The amount of damage.</param>
+        /// <param name="dealer">The GameObject responsible.</param>
         /// <returns>The actual damage amount dealt.</returns>
-        public static float Damage(this GameObject obj, float amount) {
-            return obj.Damage(new Damage(amount));
+        public static float Damage(this GameObject obj, float amount, GameObject dealer = null) {
+            return obj.Damage(new Damage(amount, dealer));
         }
 
         /// <summary>

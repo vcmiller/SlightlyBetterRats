@@ -40,10 +40,10 @@ namespace SBR {
             }
         }
 
-        public override void Fire(Vector3 direction, bool align = true) {
+        public override void Fire(GameObject creator, Vector3 direction, bool align = true) {
             _rigidbody = GetComponent<Rigidbody>();
             if (_rigidbody) _rigidbody.isKinematic = false;
-            base.Fire(direction, align);
+            base.Fire(creator, direction, align);
         }
 
         protected override void Update() {

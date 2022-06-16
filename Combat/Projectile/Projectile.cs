@@ -31,7 +31,7 @@ namespace SBR {
     /// <summary>
     /// Base class for Projectiles.
     /// </summary>
-    public class Projectile : MonoBehaviour {
+    public class Projectile : MonoBehaviour, IHasCreator {
         /// <summary>
         /// Speed that the projectile is fired at.
         /// </summary>
@@ -142,20 +142,24 @@ namespace SBR {
                     (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
         
         protected virtual Vector3 gravityVector => gravity * Physics.gravity;
+        
+        public GameObject Creator { get; set; }
 
         /// <summary>
         /// Fire the projectile in the direction it is currently facing.
         /// </summary>
-        public virtual void Fire() {
-            Fire(transform.forward, false);
+        public virtual void Fire(GameObject creator) {
+            Fire(creator, transform.forward, false);
         }
 
         /// <summary>
         /// Fire the projectile in a given direction.
         /// </summary>
+        /// <param name="creator"></param>
         /// <param name="direction">Direction in which to fire.</param>
         /// <param name="align">Whether to orient the projectile to the given direction.</param>
-        public virtual void Fire(Vector3 direction, bool align = true) {
+        public virtual void Fire(GameObject creator, Vector3 direction, bool align = true) {
+            Creator = creator;
             velocity = direction.normalized * launchSpeed;
             if (align) {
                 transform.forward = direction;
@@ -198,7 +202,10 @@ namespace SBR {
             }
 
             if (impactPrefab) {
-                Spawnable.Spawn(impactPrefab, t.position, t.rotation, null, true, scene: gameObject.scene);
+                GameObject obj = Spawnable.Spawn(impactPrefab, t.position, t.rotation, null, true, scene: gameObject.scene);
+                if (obj.TryGetComponent(out IHasCreator ihc)) {
+                    ihc.Creator = Creator;
+                }
             }
         }
 
@@ -223,6 +230,7 @@ namespace SBR {
 
         protected virtual void OnHitObject(Transform col, Vector3 position) {
             float damageDealt = col.Damage(new PointDamage(damage * damageMultiplier,
+                                                           Creator ? Creator : gameObject,
                                                            position,
                                                            velocity.normalized,
                                                            velocity.magnitude * impactForce,
@@ -244,7 +252,11 @@ namespace SBR {
             }
 
             if (impactPrefab) {
-                Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, true, scene:gameObject.scene);
+                GameObject obj = Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, 
+                                                 true, scene:gameObject.scene);
+                if (obj.TryGetComponent(out IHasCreator ihc)) {
+                    ihc.Creator = Creator;
+                }
             }
         }
 

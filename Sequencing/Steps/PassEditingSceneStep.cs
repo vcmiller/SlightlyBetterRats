@@ -25,11 +25,11 @@ namespace SBR.Sequencing {
             var regionsParam = LoadInitialRegionsStep.ParamRegionsToLoad;
 
             int level = EditorPrefs.GetInt("OpenLevel", -1);
-            var levels = LevelManifest.Instance.Levels;
-            if (level >= 0 && level < levels.Count) {
-                sceneParam.Set(arguments, levels[level].Scene.Name);
+            LevelManifestLevelEntry levelEntry = LevelManifest.Instance.GetLevelWithID(level);
+            if (levelEntry != null) {
+                sceneParam.Set(arguments, levelEntry.Scene.Name);
                 List<int> openRegions = new List<int>();
-                foreach (LevelManifestRegionEntry region in levels[level].Regions) {
+                foreach (LevelManifestRegionEntry region in levelEntry.Regions) {
                     if (EditorPrefs.GetBool($"OpenLevelRegions[{region.RegionID}].loaded", false)) {
                         openRegions.Add(region.RegionID);
                     }

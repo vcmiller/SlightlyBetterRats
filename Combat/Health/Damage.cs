@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using UnityEngine;
+
 namespace SBR {
     /// <summary>
     /// Used to store information about Damage being applied.
@@ -31,13 +33,20 @@ namespace SBR {
         /// Create a new Damage instance.
         /// </summary>
         /// <param name="amount">Amount of damage.</param>
-        public Damage(float amount) {
+        /// <param name="dealer">GameObject that caused the damage</param>
+        public Damage(float amount, GameObject dealer) {
             Amount = amount;
+            Dealer = dealer;
         }
 
         /// <summary>
         /// Amount of damage that is applied.
         /// </summary>
         public float Amount { get; set; }
+        
+        /// <summary>
+        /// GameObject that caused the damage.
+        /// </summary>
+        public GameObject Dealer { get; set; }
     }
 }

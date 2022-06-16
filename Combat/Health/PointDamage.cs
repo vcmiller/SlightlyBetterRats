@@ -28,11 +28,12 @@ namespace SBR {
         /// Create a new PointDamage instance.
         /// </summary>
         /// <param name="amount">Amount of damage.</param>
+        /// <param name="dealer">The GameObject responsible.</param>
         /// <param name="point">Location of the damage.</param>
         /// <param name="direction">Direction of the damage.</param>
         /// <param name="force">Force applied by the bullet.</param>
         /// <param name="hitObject"></param>
-        public PointDamage(float amount, Vector3 point, Vector3 direction, float force, GameObject hitObject) : base(amount) {
+        public PointDamage(float amount, GameObject dealer, Vector3 point, Vector3 direction, float force, GameObject hitObject) : base(amount, dealer) {
             Point = point;
             Direction = direction.normalized;
             Force = force;

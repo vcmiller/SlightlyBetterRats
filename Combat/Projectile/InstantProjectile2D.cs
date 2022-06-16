@@ -39,8 +39,8 @@ namespace SBR {
         [Tooltip("Range of the projectile.")]
         public float range = Mathf.Infinity;
 
-        public override void Fire(Vector3 direction, bool align = true) {
-            base.Fire(direction, align);
+        public override void Fire(GameObject creator, Vector3 direction, bool align = true) {
+            base.Fire(creator, direction, align);
             RaycastHit2D hit;
 
             bool trig = Physics2D.queriesHitTriggers;

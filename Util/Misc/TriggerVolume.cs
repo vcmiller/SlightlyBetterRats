@@ -37,10 +37,10 @@ namespace SBR {
         public event Action<GameObject> AllExited;
 
         [SerializeField]
-        private Events events = default;
+        private TriggerEvents events = default;
 
         [Serializable]
-        public struct Events {
+        public struct TriggerEvents {
             public UnityEvent OnTriggerEnter;
             public UnityEvent OnTriggerExit;
             public UnityEvent OnAllExit;
@@ -49,6 +49,9 @@ namespace SBR {
         private HashSet<GameObject> _objects = new HashSet<GameObject>();
 
         private List<GameObject> _objectsToRemove = new List<GameObject>();
+
+        public TriggerEvents Events => events;
+        
         private void Update() {
             CheckForDeactivatedObjects();
         }
