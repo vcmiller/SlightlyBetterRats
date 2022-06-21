@@ -22,6 +22,7 @@
 
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 
 namespace SBR.Menu {
     public class PauseMenu : MonoBehaviour {
@@ -29,11 +30,13 @@ namespace SBR.Menu {
         public bool ungrabMouse = true;
         public float pauseCooldown = 0.1f;
 
-        public string pauseButton = "Cancel";
-        public string resumeButton = "Cancel";
+        public InputActionReference pauseAction;
+        public InputActionReference resumeAction;
 
         public UnityEvent onOpen;
         public UnityEvent onClose;
+        
+        public bool IsOpen { get; private set; }
 
         private CursorLockMode cursorLockState;
         private bool cursorVisible;
@@ -49,17 +52,20 @@ namespace SBR.Menu {
                 pauseTimer.Clear();
             }
             if (target) target.show = false;
+            if (pauseAction) pauseAction.action.Enable();
+            if (resumeAction) resumeAction.action.Enable();
+            IsOpen = false;
         }
 
         private void Update() {
-            if (!string.IsNullOrEmpty(pauseButton) &&
-                Input.GetButtonDown(pauseButton) && 
+            if (pauseAction != null &&
+                pauseAction.action.WasPerformedThisFrame() &&
                 !SBR.Pause.Paused && (!target || !target.show) &&
                 pauseTimer.canUse) {
 
                 Pause();
-            } else if (!string.IsNullOrEmpty(resumeButton) &&
-                Input.GetButtonDown(resumeButton) && 
+            } else if (resumeAction != null &&
+                resumeAction.action.WasPerformedThisFrame() &&
                 SBR.Pause.Paused && (!target || target.show) &&
                 pauseTimer.canUse) {
 
@@ -68,6 +74,8 @@ namespace SBR.Menu {
         }
 
         public void Pause() {
+            if (IsOpen) return;
+            IsOpen = true;
             if (SBR.Pause.Paused) return;
             SBR.Pause.Paused = true;
             pauseTimer.Reset();
@@ -75,6 +83,8 @@ namespace SBR.Menu {
         }
 
         public void Unpause() {
+            if (!IsOpen) return;
+            IsOpen = false;
             if (!SBR.Pause.Paused) return;
             SBR.Pause.Paused = false;
             pauseTimer.Reset();
