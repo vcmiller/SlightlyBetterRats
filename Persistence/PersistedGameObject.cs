@@ -246,6 +246,10 @@ namespace SBR.Persistence {
             }
         }
 
+        public static bool TryGetObjectWithID(ulong id, out PersistedGameObject obj) {
+            return _objects.TryGetValue(id, out obj);
+        }
+
         public static PersistedGameObject GetObjectWithID(ulong id) {
             return _objects.TryGetValue(id, out PersistedGameObject obj) ? obj : null;
         }
