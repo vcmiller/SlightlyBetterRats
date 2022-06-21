@@ -26,6 +26,10 @@ namespace SBR.Sequencing {
         public LevelManifestLevelEntry GetLevelWithSceneName(string sceneName) {
             return _levels.FirstOrDefault(l => l.Scene.Name == sceneName);
         }
+
+        public LevelManifestLevelEntry GetLevelWithName(string levelName) {
+            return _levels.FirstOrDefault(l => l.name == levelName);
+        }
         
 #if UNITY_EDITOR
         [MenuItem("Assets/Level Manifest")]
