@@ -12,6 +12,7 @@ namespace SBR.Sequencing {
         
         [SerializeField] private LevelManifestLevelEntry _manifestEntry;
         [SerializeField] private Transform _dynamicObjectRoot;
+        [SerializeField] private DebugTeleportPoint[] _debugTeleportPoints;
         
         private Dictionary<int, RegionRoot> _loadedRegions = new Dictionary<int, RegionRoot>();
         
@@ -19,6 +20,7 @@ namespace SBR.Sequencing {
         public LevelManifestLevelEntry ManifestEntry => _manifestEntry;
         public Transform DynamicObjectRoot => _dynamicObjectRoot;
         public IReadOnlyDictionary<int, RegionRoot> LoadedRegions => _loadedRegions;
+        public IReadOnlyList<DebugTeleportPoint> TeleportPoints => _debugTeleportPoints;
         public bool Initialized { get; private set; }
 
         public Action Unloading;
