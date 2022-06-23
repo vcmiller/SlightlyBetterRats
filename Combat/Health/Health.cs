@@ -247,13 +247,14 @@ namespace SBR {
                 HealingModifier?.Invoke(ref amount);
 
                 float prevHealth = CurrentHealth;
+                bool prevDead = Dead;
                 CurrentHealth += amount;
                 CurrentHealth = Mathf.Min(CurrentHealth, maxHealth);
                 amount = CurrentHealth - prevHealth;
                 SendMessage("OnHeal", amount, SendMessageOptions.DontRequireReceiver);
                 Healed?.Invoke(amount);
 
-                if (Dead) {
+                if (prevDead) {
                     SendMessage("OnRevive", SendMessageOptions.DontRequireReceiver);
                     Revived?.Invoke();
                 }
