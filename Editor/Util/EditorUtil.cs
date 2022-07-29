@@ -27,7 +27,6 @@ using UnityEditor;
 using System.Reflection;
 using System;
 using System.IO;
-using Action = BehaviorDesigner.Runtime.Tasks.Action;
 using Object = UnityEngine.Object;
 
 namespace SBR.Editor {

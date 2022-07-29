@@ -281,6 +281,10 @@ namespace SBR {
             return (canvas.GetComponent<RectTransform>().rect.size * vp.ToXY()).WithZ(vp.z);
         }
 
+        public static int Dot(Vector3Int v1, Vector3Int v2) {
+            return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+        }
+
         #endregion
 
         #region Vector Component Swizzling
