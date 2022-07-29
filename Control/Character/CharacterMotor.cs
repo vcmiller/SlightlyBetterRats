@@ -126,6 +126,8 @@ namespace SBR {
 
         public float actualMovementDeceleration =>
             IsGrounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
+        
+        public RaycastHit[] GroundHitBuffer { get; private set; }
 
         public RaycastHit groundHit => _groundHit;
         private RaycastHit _groundHit;
@@ -146,7 +148,6 @@ namespace SBR {
         private bool hasInitializedTargetRotation = false;
         private bool isRotating;
 
-        private RaycastHit[] groundHitBuffer;
         private AnimationCurve _snapPositionCurve;
         private Vector3 _snapStartPosition, _snapEndPosition;
         private Quaternion _snapStartRotation, _snapEndRotation;
@@ -413,7 +414,7 @@ namespace SBR {
             Capsule.sharedMaterial = frictionless;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
-            groundHitBuffer = new RaycastHit[groundHitBufferSize];
+            GroundHitBuffer = new RaycastHit[groundHitBufferSize];
 
             if (jumpMode == JumpMode.Charge) {
                 JumpChargeTimer = new ExpirationTimer(jumpChargeTime);
@@ -642,12 +643,11 @@ namespace SBR {
                 if (lastGround) Grounded?.Invoke(false);
                 return;
             }
-
-
+            
             Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
 
             int hits = Physics.SphereCastNonAlloc(pnt2 + transform.up * groundDist, radius, -transform.up,
-                groundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
+                GroundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
 
             bool anyHit = false;
             IsGrounded = false;
@@ -655,7 +655,7 @@ namespace SBR {
             maxPointDist *= maxPointDist;
             float maxGroundAngleDot = Mathf.Cos(maxGroundAngle);
             for (int i = 0; i < hits; i++) {
-                RaycastHit hit = groundHitBuffer[i];
+                RaycastHit hit = GroundHitBuffer[i];
 
                 Vector2 h = transform.InverseTransformPoint(hit.point).ToXZ();
                 if (h.sqrMagnitude > maxPointDist) continue;
