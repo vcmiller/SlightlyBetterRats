@@ -1,11 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-
-using SBR.Sequencing;
-
+using Infohazard.Core.Runtime;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SBR.Sequencing {
     [RequireComponent(typeof(TriggerVolume))]

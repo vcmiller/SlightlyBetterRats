@@ -1,8 +1,6 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
+using Infohazard.Core.Runtime;
 using SBR.Sequencing;
 
 using UnityEngine;
@@ -15,7 +13,7 @@ using UnityEditor.SceneManagement;
 
 namespace SBR.Persistence {
     [ExecuteAlways]
-    public class PersistedGameObject : MonoBehaviour {
+    public class PersistedGameObject : MonoBehaviour, IPersistedInstance {
         [SerializeField] private int _dynamicPrefabID;
         [SerializeField] private ulong _instanceID;
         [SerializeField] private bool _immediatelyConvert = false;

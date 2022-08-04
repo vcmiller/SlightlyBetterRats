@@ -60,13 +60,13 @@ namespace SBR.Menu {
         private void Update() {
             if (pauseAction != null &&
                 pauseAction.action.WasPerformedThisFrame() &&
-                !SBR.Pause.Paused && (!target || !target.show) &&
+                !Infohazard.Core.Runtime.Pause.Paused && (!target || !target.show) &&
                 pauseTimer.canUse) {
 
                 Pause();
             } else if (resumeAction != null &&
                 resumeAction.action.WasPerformedThisFrame() &&
-                SBR.Pause.Paused && (!target || target.show) &&
+                Infohazard.Core.Runtime.Pause.Paused && (!target || target.show) &&
                 pauseTimer.canUse) {
 
                 Unpause();
@@ -76,8 +76,8 @@ namespace SBR.Menu {
         public void Pause() {
             if (IsOpen) return;
             IsOpen = true;
-            if (SBR.Pause.Paused) return;
-            SBR.Pause.Paused = true;
+            if (Infohazard.Core.Runtime.Pause.Paused) return;
+            Infohazard.Core.Runtime.Pause.Paused = true;
             pauseTimer.Reset();
             Paused();
         }
@@ -85,8 +85,8 @@ namespace SBR.Menu {
         public void Unpause() {
             if (!IsOpen) return;
             IsOpen = false;
-            if (!SBR.Pause.Paused) return;
-            SBR.Pause.Paused = false;
+            if (!Infohazard.Core.Runtime.Pause.Paused) return;
+            Infohazard.Core.Runtime.Pause.Paused = false;
             pauseTimer.Reset();
             Unpaused();
         }

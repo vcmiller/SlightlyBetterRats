@@ -27,6 +27,8 @@ using UnityEditor;
 using UnityEditorInternal;
 using System;
 using System.Reflection;
+using Infohazard.Core.Editor;
+using Infohazard.Core.Runtime;
 
 namespace SBR.Editor {
     // From Unify Community Wiki

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace SBR.Sequencing {
     public class ActivateLoadingScenesStep : MonoBehaviour, IExecutionStep {

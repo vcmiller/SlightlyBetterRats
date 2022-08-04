@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-
+using Infohazard.Core.Editor;
 using SBR.Persistence;
 
 using UnityEditor;
@@ -28,7 +28,7 @@ namespace SBR.Editor.Persistence {
             PersistedGameObject newObject = (PersistedGameObject)EditorGUI.ObjectField(position, label, curObject, typeof(PersistedGameObject), false);
             if (EditorGUI.EndChangeCheck()) {
                 if (newObject != null) {
-                    string path = EditorUtil.GetResourcePath(newObject);
+                    string path = CoreEditorUtility.GetResourcePath(newObject);
                     if (!string.IsNullOrEmpty(path)) {
                         resourcePathProp.stringValue = path;
                         prefabIDProp.intValue = newObject.DynamicPrefabID;

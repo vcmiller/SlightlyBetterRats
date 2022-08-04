@@ -1,10 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SBR.Sequencing {
     public class LoadInitialRegionsStep : MonoBehaviour, IExecutionStep {

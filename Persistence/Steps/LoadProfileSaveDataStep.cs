@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using SBR.Sequencing;
+﻿using SBR.Sequencing;
 
 using UnityEngine;
 

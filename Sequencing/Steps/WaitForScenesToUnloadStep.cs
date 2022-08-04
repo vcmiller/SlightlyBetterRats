@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SBR.Sequencing {
     public class WaitForScenesToUnloadStep : MonoBehaviour, IExecutionStep {

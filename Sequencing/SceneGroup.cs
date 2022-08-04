@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 namespace SBR.Sequencing {
     [CreateAssetMenu(menuName = "SBR/Scene Group")]

@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace SBR.Menu {
     public class TabList : MonoBehaviour {

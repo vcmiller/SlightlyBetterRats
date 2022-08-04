@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
+using Infohazard.Core.Editor;
 using SBR.Persistence;
 
 using UnityEditor;
@@ -62,7 +62,9 @@ namespace SBR.Editor.Persistence {
                         PrefabStage stage = PrefabStageUtility.GetPrefabStage(targetObj.gameObject);
                         if (newIsIncluded) {
                             if (DynamicObjectManifest.Instance.GetEntry(targetObj.DynamicPrefabID) != null) continue;
-                            string path = stage != null ? EditorUtil.GetResourcePath(stage.assetPath) : EditorUtil.GetResourcePath(targetObj);
+                            string path = stage != null
+                                ? CoreEditorUtility.GetResourcePath(stage.assetPath)
+                                : CoreEditorUtility.GetResourcePath(targetObj);
                             DynamicObjectManifest.Instance.AddObject(targetObj.DynamicPrefabID, path);
                         } else {
                             DynamicObjectManifest.Instance.RemoveObject(targetObj.DynamicPrefabID);

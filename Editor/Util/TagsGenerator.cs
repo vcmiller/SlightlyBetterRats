@@ -24,6 +24,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Infohazard.Core.Editor;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -129,7 +130,7 @@ namespace SBR {{
                 AssetDatabase.Refresh();
             }
 
-            EditorUtil.SetSymbolDefined("TagsGenerated", true);
+            CoreEditorUtility.SetSymbolDefined("TagsGenerated", true);
         }
 
         private static void DoRemove() {
@@ -139,7 +140,7 @@ namespace SBR {{
                 AssetDatabase.DeleteAsset(defPath);
                 AssetDatabase.Refresh();
             }
-            EditorUtil.SetSymbolDefined("TagsGenerated", false);
+            CoreEditorUtility.SetSymbolDefined("TagsGenerated", false);
         }
     }
 }

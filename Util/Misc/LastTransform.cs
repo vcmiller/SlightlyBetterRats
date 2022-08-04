@@ -20,9 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using SBR;
-using System.Collections;
-using System.Collections.Generic;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 
 public struct LastTransform {
@@ -47,8 +45,8 @@ public struct LastTransform {
     public Vector3 PositionOffset => Transform.position - LastPosition;
     public Quaternion LocalRotationOffset => Quaternion.Inverse(LastLocalRotation) * Transform.localRotation;
     public Quaternion RotationOffset => Quaternion.Inverse(LastRotation) * Transform.rotation;
-    public Vector3 LocalScaleRatio => MathUtil.Divide(Transform.localScale, LastLocalScale);
-    public Vector3 ScaleRatio => MathUtil.Divide(Transform.lossyScale, LastScale);
+    public Vector3 LocalScaleRatio => MathUtility.Divide(Transform.localScale, LastLocalScale);
+    public Vector3 ScaleRatio => MathUtility.Divide(Transform.lossyScale, LastScale);
 
     public LastTransform(Transform transform) : this() {
         Transform = transform;

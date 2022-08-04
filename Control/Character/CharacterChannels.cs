@@ -1,5 +1,4 @@
 using UnityEngine;
-using SBR;
 
 public class CharacterChannels : SBR.Channels {
 

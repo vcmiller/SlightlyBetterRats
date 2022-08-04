@@ -97,7 +97,6 @@ namespace SBR {
             /// How the mesh is stretched along the spline in order to perfectly reach the end.
             /// </summary>
             [Tooltip("How the mesh is stretched along the spline in order to perfectly reach the end.")]
-            [MultiEnum]
             public StretchMode stretchMode = StretchMode.Nothing;
 
             /// <summary>

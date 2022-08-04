@@ -28,7 +28,6 @@ using UnityEngine.Events;
 
 namespace SBR {
     public class TriggerVolume : MonoBehaviour {
-        [MultiEnum]
         public Tag tagFilter = Tag.Player;
         public bool hideOnPlay = true;
 

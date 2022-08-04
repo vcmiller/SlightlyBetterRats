@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
 using System.Collections.Generic;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -79,7 +79,7 @@ namespace SBR {
         /// ID to use for cooldowns. Instances with the same ID share the same cooldown. If empty, cooldown is specific to this instance.
         /// </summary>
         [Tooltip("ID to use for cooldowns. Instances with the same ID share the same cooldown. If empty, cooldown is specific to this instance.")]
-        [Conditional("playCooldown", 0.0f, false)]
+        [ConditionalDraw("playCooldown", 0.0f, false)]
         public string cooldownId;
 
         private CooldownTimer playTimer;

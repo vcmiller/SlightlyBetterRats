@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Infohazard.Core.Runtime;
+using UnityEngine;
 
 namespace SBR.Sequencing {
     public class PassSceneStep : MonoBehaviour, IExecutionStep {

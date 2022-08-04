@@ -22,7 +22,8 @@
 
 using SBR.StateSystem;
 using System;
-using System.Net.NetworkInformation;
+using System.Diagnostics;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 
 namespace SBR {
@@ -163,49 +164,49 @@ namespace SBR {
         /// Whether to rotate faster when further from target rotation.
         /// </summary>
         [Tooltip("Whether to rotate faster when further from target rotation.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public bool useSmoothRotation = true;
 
         /// <summary>
         /// Speed at which the character rotates. Only used if rotate mode is set to Movement.
         /// </summary>
         [Tooltip("Speed at which the character rotates. Only used if rotate mode is set to Movement.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public float rotationSpeed = 15;
 
         /// <summary>
         /// Whether to rotate on the local X axis.
         /// </summary>
         [Tooltip("Whether to rotate on the local X axis.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public bool rotateX = false;
 
         /// <summary>
         /// Whether to rotate on the local Y axis.
         /// </summary>
         [Tooltip("Whether to rotate on the local Y axis.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public bool rotateY = true;
 
         /// <summary>
         /// Whether to rotate on the local Z axis.
         /// </summary>
         [Tooltip("Whether to rotate on the local Z axis.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public bool rotateZ = false;
 
         /// <summary>
         /// If angle between rotation and target is greater than this, will start rotating.
         /// </summary>
         [Tooltip("If angle between rotation and target is greater than this, will start rotating.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public float maxTargetAngle = 0;
 
         /// <summary>
         /// If angle between rotation and target is less than this, will stop rotating.
         /// </summary>
         [Tooltip("If angle between rotation and target is less than this, will stop rotating.")]
-        [Conditional("rotateMode", RotateMode.None, false)]
+        [ConditionalDraw("rotateMode", RotateMode.None, false)]
         public float minTargetAngle = 0;
 
         /// <summary>
@@ -286,14 +287,14 @@ namespace SBR {
         /// How long the jump button must be held for max charge.
         /// </summary>
         [Tooltip("How long the jump button must be held for max charge.")]
-        [Conditional(nameof(jumpMode), JumpMode.Charge)]
+        [ConditionalDraw(nameof(jumpMode), JumpMode.Charge)]
         public float jumpChargeTime = 0.5f;
 
         /// <summary>
         /// What fraction of the jump speed is used if the jump is not charged.
         /// </summary>
         [Tooltip("What fraction of the jump speed is used if the jump is not charged.")]
-        [Conditional(nameof(jumpMode), JumpMode.Charge)]
+        [ConditionalDraw(nameof(jumpMode), JumpMode.Charge)]
         public float jumpChargeMinMultiplier = 0.2f;
 
         /// <summary>
@@ -700,7 +701,7 @@ namespace SBR {
                 } else {
                     Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 }
-                RotationRates = MathUtil.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
+                RotationRates = MathUtility.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
                 if (Quaternion.Angle(Rigidbody.rotation, targetRotation) <= minTargetAngle) {
                     isRotating = false;

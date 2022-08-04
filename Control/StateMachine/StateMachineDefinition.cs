@@ -20,11 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
+using Infohazard.Core.Runtime;
 
 namespace SBR {
     [CreateAssetMenu(menuName = "SBR/State Machine")]
@@ -159,14 +160,14 @@ namespace SBR {
             /// <summary>
             /// Time after which the transition is exited.
             /// </summary>
-            [Conditional("mode", TransitionMode.Condition, false)]
+            [ConditionalDraw("mode", TransitionMode.Condition, false)]
             [Tooltip("Time after which the transition is exited.")]
             public float exitTime = 0.0f;
 
             /// <summary>
             /// Message function name that will trigger the transition.
             /// </summary>
-            [Conditional("mode", TransitionMode.Message)]
+            [ConditionalDraw("mode", TransitionMode.Message)]
             [Tooltip("Message function name that will trigger the transition.")]
             public string message = "Message";
 

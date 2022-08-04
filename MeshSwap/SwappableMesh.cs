@@ -20,12 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using SBR.StateSystem;
-using System.Linq;
 using System;
+using Infohazard.Core.Runtime;
 using UnityEditor;
 
 namespace SBR {

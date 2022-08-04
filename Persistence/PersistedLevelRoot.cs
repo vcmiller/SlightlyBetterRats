@@ -1,13 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 using SBR.Sequencing;
-
-using SBR.Persistence;
-
-using UnityEngine;
 
 namespace SBR.Persistence {
     public class PersistedLevelRoot : LevelRoot {

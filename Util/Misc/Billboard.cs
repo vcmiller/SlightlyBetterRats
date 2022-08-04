@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
-using System.Collections.Generic;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 
 namespace SBR {
@@ -52,7 +51,7 @@ namespace SBR {
         /// Curve to follow when scaling with distance.
         /// </summary>
         [Tooltip("Curve to follow when scaling with distance.")]
-        [Conditional(nameof(scaleWithDistance))]
+        [ConditionalDraw(nameof(scaleWithDistance))]
         public AnimationCurve scaleOverDistanceCurve = AnimationCurve.Constant(0, 1, 1);
 
         /// <summary>
@@ -65,7 +64,7 @@ namespace SBR {
         /// The other object to face, if using TargetMode.TargetObject.
         /// </summary>
         [Tooltip("The other object to face.")]
-        [Conditional(nameof(targetMode), TargetMode.TargetObject, true)]
+        [ConditionalDraw(nameof(targetMode), TargetMode.TargetObject, true)]
         public Transform targetObject;
 
         private void OnEnable() {

@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System.IO;
+using Infohazard.Core.Editor;
 using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
@@ -82,11 +83,11 @@ namespace SBR.Editor {
         private void OnValidate() {
             if (includeAudioSettings != _includeAudioSettings) {
                 _includeAudioSettings = includeAudioSettings;
-                EditorUtil.SetSymbolDefined("SBRAudioSettings", includeAudioSettings);
+                CoreEditorUtility.SetSymbolDefined("SBRAudioSettings", includeAudioSettings);
             }
             if (includeGraphicsSettings != _includeGraphicsSettings) {
                 _includeGraphicsSettings = includeGraphicsSettings;
-                EditorUtil.SetSymbolDefined("SBRGraphicsSettings", includeGraphicsSettings);
+                CoreEditorUtility.SetSymbolDefined("SBRGraphicsSettings", includeGraphicsSettings);
             }
         }
     }

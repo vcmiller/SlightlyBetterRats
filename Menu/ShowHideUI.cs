@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Diagnostics;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,13 +33,13 @@ namespace SBR.Menu {
         
         public Mode mode;
 
-        [Conditional("mode", Mode.SetActive)]
+        [ConditionalDraw("mode", Mode.SetActive)]
         public GameObject targetObject;
-        [Conditional("mode", Mode.AnimationBool)]
+        [ConditionalDraw("mode", Mode.AnimationBool)]
         public Animator targetAnimator;
-        [Conditional("mode", Mode.AnimationBool)]
+        [ConditionalDraw("mode", Mode.AnimationBool)]
         public string boolParameter = "Paused";
-        [Conditional("mode", Mode.CanvasGroup)]
+        [ConditionalDraw("mode", Mode.CanvasGroup)]
         public CanvasGroup canvasGroup;
 
         public Selectable initialSelection;

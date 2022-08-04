@@ -23,6 +23,7 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 
 namespace SBR.Geometry {
@@ -948,7 +949,7 @@ namespace SBR.Geometry {
 
                 if (plane.Raycast(ray, out camDist) && camDist - bump < minDist) {
                     Vector3 hitPos = ray.GetPoint(camDist);
-                    Vector3 hitProj = MathUtil.ProjectPointOnLineSegment(v1, v2, hitPos);
+                    Vector3 hitProj = Math3D.ProjectPointOnLineSegment(v1, v2, hitPos);
 
                     Vector3 projScreen = camera.WorldToScreenPoint(transform.TransformPoint(hitProj));
                     if (projScreen.z > 0 && Vector2.Distance(projScreen, mousePos) < radius * 0.6f) {

@@ -20,9 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using UnityEngine;
-using System.Collections;
-
 namespace SBR {
     /// <summary>
     /// Used to create an action that can only happen a set number of times before it must recharge,

@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Diagnostics;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,7 +55,7 @@ namespace SBR {
         /// How to display the amount text.
         /// </summary>
         [Tooltip("How to display the amount text.")]
-        [Conditional("amountText", null, false)]
+        [ConditionalDraw("amountText", null, false)]
         public AmountTextType amountTextType;
 
         /// <summary>
@@ -71,21 +73,21 @@ namespace SBR {
         /// <summary>
         /// Camera to use for tracking on screen. Leave empty to use Camera.main.
         /// </summary>
-        [Conditional("trackOnScreen")]
+        [ConditionalDraw("trackOnScreen")]
         [Tooltip("Camera to use for tracking on screen. Leave empty to use Camera.main.")]
         public Camera trackingCamera;
 
         /// <summary>
         /// World space offset to apply when tracking the target.
         /// </summary>
-        [Conditional("trackOnScreen")]
+        [ConditionalDraw("trackOnScreen")]
         [Tooltip("World space offset to apply when tracking the target.")]
         public Vector3 trackWorldOffset = Vector3.up;
 
         /// <summary>
         /// Screen space offset to apply when tracking the target.
         /// </summary>
-        [Conditional("trackOnScreen")]
+        [ConditionalDraw("trackOnScreen")]
         [Tooltip("Screen space offset to apply when tracking the target.")]
         public Vector2 trackScreenOffset;
 
@@ -98,7 +100,7 @@ namespace SBR {
         /// <summary>
         /// When using DisplayMode.OnDamage, how long to show the Healthbar when it is damaged.
         /// </summary>
-        [Conditional("displayMode", DisplayMode.OnDamage, true)]
+        [ConditionalDraw("displayMode", DisplayMode.OnDamage, true)]
         [Tooltip("How long to show the Healthbar when it is damaged.")]
         public float displayDuration = 3;
         

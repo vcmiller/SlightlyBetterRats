@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Infohazard.Core.Runtime;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -54,7 +55,7 @@ namespace SBR.StateSystem {
         public Type Type {
             get {
                 if (_type == null) {
-                    _type = Util.GetType(_typeName);
+                    _type = TypeUtility.GetType(_typeName);
                 }
                 return _type;
             }

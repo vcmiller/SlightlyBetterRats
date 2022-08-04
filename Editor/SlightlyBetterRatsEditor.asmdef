@@ -1,7 +1,10 @@
 {
     "name": "SlightlyBetterRatsEditor",
+    "rootNamespace": "",
     "references": [
-        "GUID:0d6a2d6f843e0c54a90c8abd193e6629"
+        "GUID:0d6a2d6f843e0c54a90c8abd193e6629",
+        "GUID:6e6eabb6dbfd0c64296bf63916880825",
+        "GUID:41b3be209e3cc074c9bab47ec8148e91"
     ],
     "includePlatforms": [
         "Editor"
@@ -12,5 +15,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }
