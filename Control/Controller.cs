@@ -25,6 +25,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Infohazard.Core.Runtime;
+using Infohazard.Sequencing.Runtime;
+using SBR.Persistence;
 using UnityEngine;
 
 namespace SBR {
@@ -102,6 +104,38 @@ namespace SBR {
         }
 
         protected abstract void DoInput();
+    }
+    
+    public abstract class PersistedController<TChannels, TState> : Controller<TChannels>, IPersistedComponent
+        where TState : PersistedData, new()
+        where TChannels : Channels, new() {
+        
+        protected TState State { get; private set; }
+        public bool Initialized => State != null;
+        protected PersistedGameObject PersistedGameObject { get; private set; }
+
+        public void Initialize(PersistedGameObject persistedGameObject, PersistedData parent, string id) {
+            if (PersistenceManager.Instance.GetCustomData(parent, id, out TState state)) {
+                PersistedGameObject = persistedGameObject;
+                State = state;
+                if (state.Initialized) LoadState();
+                else LoadDefaultState();
+                State.Initialized = true;
+            } else {
+                State = null;
+                Debug.LogError($"State {id} could not be loaded.");
+            }
+        }
+
+        protected void CreateFakeState() {
+            State = new TState();
+            LoadDefaultState();
+        }
+        
+        public virtual void LoadState() {}
+        public virtual void LoadDefaultState() {}
+        public virtual void PostLoad() {}
+        public virtual void WriteState() {}
     }
 
     public static class ControllerExtensions {

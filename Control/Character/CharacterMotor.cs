@@ -44,7 +44,7 @@ namespace SBR {
         /// <summary>
         /// Rigidbody collider used by the character.
         /// </summary>
-        public new Rigidbody Rigidbody { get; private set; }
+        public Rigidbody Rigidbody { get; private set; }
 
         /// <summary>
         /// Animator used for root motion.

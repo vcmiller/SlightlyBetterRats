@@ -22,6 +22,7 @@
 
 using System;
 using Infohazard.Core.Runtime;
+using Infohazard.Sequencing.Runtime;
 using SBR.Persistence;
 
 using UnityEngine;

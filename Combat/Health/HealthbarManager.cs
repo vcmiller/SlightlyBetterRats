@@ -41,8 +41,7 @@ namespace SBR {
         /// Tags which this HealthbarManager applies to.
         /// </summary>
         [Tooltip("Tags which this HealthbarManager applies to.")]
-        [MultiEnum]
-        public Tag shownTags;
+        public TagMask shownTags;
 
         private void Awake() {
             Health.Created += HealthCreated;
@@ -83,7 +82,7 @@ namespace SBR {
         }
 
         private bool ShouldCreate(Health health) {
-            return healthbarPrefab && health.CompareTag(shownTags) && !healthbars.ContainsKey(health);
+            return healthbarPrefab && health.gameObject.CompareTag(shownTags) && !healthbars.ContainsKey(health);
         }
 
         private void HealthCreated(Health health) {
