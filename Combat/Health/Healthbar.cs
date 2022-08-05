@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Diagnostics;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 using UnityEngine;
 using UnityEngine.UI;
 

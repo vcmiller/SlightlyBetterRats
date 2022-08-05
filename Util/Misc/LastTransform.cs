@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 using UnityEngine;
 
 public struct LastTransform {

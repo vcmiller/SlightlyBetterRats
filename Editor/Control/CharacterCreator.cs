@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using SBR.StateSystem;
+using Infohazard.StateSystem;
 using UnityEditor;
 using UnityEngine;
 

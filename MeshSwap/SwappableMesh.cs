@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 using UnityEngine;
-using SBR.StateSystem;
 using System;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
+using Infohazard.StateSystem;
 using UnityEditor;
 
 namespace SBR {

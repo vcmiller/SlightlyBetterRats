@@ -20,11 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.IO;
 using Infohazard.Core.Editor;
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 
 namespace SBR.Editor {
     public class SBRProjectSettings : ScriptableObject {

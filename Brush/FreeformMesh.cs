@@ -23,7 +23,7 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 using UnityEngine;
 
 namespace SBR.Geometry {

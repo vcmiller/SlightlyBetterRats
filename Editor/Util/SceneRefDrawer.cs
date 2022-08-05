@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 using UnityEditor;
 
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SBR.Editor {
     [CustomPropertyDrawer(typeof(SceneRef))]

@@ -24,7 +24,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 
 namespace SBR {
     /// <summary>

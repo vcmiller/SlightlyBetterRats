@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 using UnityEngine;
-using System.Collections;
 using UnityEditor;
 
 namespace SBR.Editor {

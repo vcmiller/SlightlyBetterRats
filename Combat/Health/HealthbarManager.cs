@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 using System.Collections.Generic;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
 using UnityEngine;
 
 namespace SBR {

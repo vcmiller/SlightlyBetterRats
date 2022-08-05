@@ -21,11 +21,11 @@
 // SOFTWARE.
 
 using SBR.Internal;
-using SBR.StateSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
+using Infohazard.StateSystem;
 using UnityEngine;
 
 namespace SBR {

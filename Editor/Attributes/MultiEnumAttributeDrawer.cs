@@ -20,15 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using UnityEditorInternal;
 using System;
-using System.Reflection;
 using Infohazard.Core.Editor;
-using Infohazard.Core.Runtime;
 
 namespace SBR.Editor {
     // From Unify Community Wiki

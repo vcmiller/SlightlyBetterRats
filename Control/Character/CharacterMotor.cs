@@ -20,10 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using SBR.StateSystem;
 using System;
-using System.Diagnostics;
-using Infohazard.Core.Runtime;
+using Infohazard.Core;
+using Infohazard.StateSystem;
 using UnityEngine;
 
 namespace SBR {
