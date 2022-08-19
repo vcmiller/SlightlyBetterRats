@@ -32,7 +32,7 @@ namespace SBR {
     /// <remarks>
     /// Channels classes can also be created manually, but that should be unnecessary in most cases.
     /// </remarks>
-    [CreateAssetMenu(menuName = "SBR/Channels Definition")]
+    [CreateAssetMenu(menuName = "Infohazard/Channels Definition")]
     public class ChannelsDefinition : ScriptableObject {
         [Serializable]
         public class Channel {

@@ -25,6 +25,7 @@ using UnityEngine;
 
 namespace SBR.Editor {
     public static class SplineCreator {
+        [MenuItem("Infohazard/Create/Spline/Empty")]
         [MenuItem("GameObject/3D Object/Spline/Empty")]
         public static Spline CreateEmptySpline() {
             GameObject splineObj = new GameObject("Spline");
@@ -36,6 +37,7 @@ namespace SBR.Editor {
             return spline;
         }
 
+        [MenuItem("Infohazard/Create/Spline/Line")]
         [MenuItem("GameObject/3D Object/Spline/Line")]
         public static Spline CreateLineSpline() {
             var spline = CreateEmptySpline();
@@ -48,6 +50,7 @@ namespace SBR.Editor {
             return spline;
         }
 
+        [MenuItem("Infohazard/Create/Spline/Circle")]
         [MenuItem("GameObject/3D Object/Spline/Circle")]
         public static Spline CreateCircleSpline() {
             var spline = CreateEmptySpline();
@@ -63,6 +66,7 @@ namespace SBR.Editor {
             return spline;
         }
 
+        [MenuItem("Infohazard/Create/Spline/Mesh")]
         [MenuItem("GameObject/3D Object/Spline/Mesh")]
         public static SplineMesh CreateSplineMesh() {
             var spline = CreateLineSpline();

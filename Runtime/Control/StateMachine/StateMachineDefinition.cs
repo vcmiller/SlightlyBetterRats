@@ -27,7 +27,7 @@ using System.Text.RegularExpressions;
 using Infohazard.Core;
 
 namespace SBR {
-    [CreateAssetMenu(menuName = "SBR/State Machine")]
+    [CreateAssetMenu(menuName = "Infohazard/State Machine")]
     public class StateMachineDefinition : ScriptableObject {
         [Serializable]
         public class State {

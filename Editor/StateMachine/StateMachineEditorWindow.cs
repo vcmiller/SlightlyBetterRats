@@ -82,7 +82,7 @@ namespace SBR.Editor {
             zoom = 1.0f;
         }
 
-        [MenuItem("Window/State Machine Editor")]
+        [MenuItem("Infohazard/State Machine Editor")]
         public static void ShowWindow() {
             GetWindow(typeof(StateMachineEditorWindow));
         }

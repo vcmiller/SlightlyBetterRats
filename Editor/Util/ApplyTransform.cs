@@ -26,6 +26,7 @@ using UnityEngine;
 
 namespace SBR.Editor {
     public static class ApplyTransform {
+        [MenuItem("Infohazard/Apply Transform/Position")]
         [MenuItem("GameObject/Apply Transform/Position")]
         public static void ApplyPosition() {
             foreach (var obj in Selection.gameObjects) {
@@ -49,6 +50,7 @@ namespace SBR.Editor {
             }
         }
         
+        [MenuItem("Infohazard/Apply Transform/Local Position")]
         [MenuItem("GameObject/Apply Transform/Local Position")]
         public static void ApplyLocalPosition() {
             foreach (var obj in Selection.gameObjects) {
@@ -109,6 +111,7 @@ namespace SBR.Editor {
             }
         }
 
+        [MenuItem("Infohazard/Apply Transform/Rotation")]
         [MenuItem("GameObject/Apply Transform/Rotation")]
         public static void ApplyRotation() {
             foreach (var obj in Selection.gameObjects) {
@@ -219,6 +222,7 @@ namespace SBR.Editor {
             return points;
         }
 
+        [MenuItem("Infohazard/Apply Transform/Scale")]
         [MenuItem("GameObject/Apply Transform/Scale")]
         public static void ApplyScale() {
             foreach (var obj in Selection.gameObjects) {
@@ -347,6 +351,7 @@ namespace SBR.Editor {
             return m;
         }
 
+        [MenuItem("Infohazard/Apply Transform/All")]
         [MenuItem("GameObject/Apply Transform/All")]
         public static void ApplyAll() {
             ApplyPosition();

@@ -27,6 +27,7 @@ using UnityEngine.EventSystems;
 
 namespace SBR.Editor {
     public static class CreateHealthbar {
+        [MenuItem("Infohazard/Create/UI/Healthbar")]
         [MenuItem("GameObject/UI/Healthbar")]
         public static void Create() {
             Canvas canvas = Object.FindObjectOfType<Canvas>();

@@ -39,36 +39,43 @@ namespace SBR.Editor {
             }
         }
 
+        [MenuItem("Infohazard/Create/Brush/Box")]
         [MenuItem("GameObject/3D Object/Brush/Box")]
         public static void CreateBoxBrush() {
             CreateBrush(Brush.Type.Box);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Slant")]
         [MenuItem("GameObject/3D Object/Brush/Slant")]
         public static void CreateSlantBrush() {
             CreateBrush(Brush.Type.Slant);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Cyllinder")]
         [MenuItem("GameObject/3D Object/Brush/Cyllinder")]
         public static void CreateCyllinderBrush() {
             CreateBrush(Brush.Type.Cyllinder);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Block Stair")]
         [MenuItem("GameObject/3D Object/Brush/Block Stair")]
         public static void CreateBlockStairBrush() {
             CreateBrush(Brush.Type.BlockStair);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Slant Stair")]
         [MenuItem("GameObject/3D Object/Brush/Slant Stair")]
         public static void CreateSlantStairBrush() {
             CreateBrush(Brush.Type.SlantStair);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Separate Stair")]
         [MenuItem("GameObject/3D Object/Brush/Separate Stair")]
         public static void CreateSeparateStairBrush() {
             CreateBrush(Brush.Type.SeparateStair);
         }
 
+        [MenuItem("Infohazard/Create/Brush/Freeform")]
         [MenuItem("GameObject/3D Object/Brush/Freeform")]
         public static void CreateFreeformBrush() {
             CreateBrush(Brush.Type.Freeform);

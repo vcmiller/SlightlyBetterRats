@@ -26,6 +26,7 @@ using UnityEngine;
 
 namespace SBR.Editor {
     public static class CharacterCreator {
+        [MenuItem("Infohazard/Create/Character/Third Person")]
         [MenuItem("GameObject/Character/Third Person")]
         public static void CreateThirdPerson() {
             GameObject charObj = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -67,6 +68,7 @@ namespace SBR.Editor {
             Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
         }
 
+        [MenuItem("Infohazard/Create/Character/First Person")]
         [MenuItem("GameObject/Character/First Person")]
         public static void CreateFirstPerson() {
             GameObject charObj = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -110,6 +112,7 @@ namespace SBR.Editor {
             Undo.RegisterCreatedObjectUndo(charObj, "Create Character");
         }
 
+        [MenuItem("Infohazard/Create/Character/2D (Sprite)")]
         [MenuItem("GameObject/Character/2D (Sprite)")]
         public static void Create2D() {
             GameObject charObj = new GameObject("2D Character");
