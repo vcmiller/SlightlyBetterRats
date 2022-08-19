@@ -82,7 +82,7 @@ namespace SBR {
         }
 
         private bool ShouldCreate(Health health) {
-            return healthbarPrefab && health.gameObject.CompareTag(shownTags) && !healthbars.ContainsKey(health);
+            return healthbarPrefab && health.gameObject.CompareTagMask(shownTags) && !healthbars.ContainsKey(health);
         }
 
         private void HealthCreated(Health health) {
