@@ -65,11 +65,11 @@ namespace SBR.Editor {
         private void OnValidate() {
             if (includeAudioSettings != _includeAudioSettings) {
                 _includeAudioSettings = includeAudioSettings;
-                CoreEditorUtility.SetSymbolDefined("SBRAudioSettings", includeAudioSettings);
+                SBREditorUtility.SetSymbolDefined("SBRAudioSettings", includeAudioSettings);
             }
             if (includeGraphicsSettings != _includeGraphicsSettings) {
                 _includeGraphicsSettings = includeGraphicsSettings;
-                CoreEditorUtility.SetSymbolDefined("SBRGraphicsSettings", includeGraphicsSettings);
+                SBREditorUtility.SetSymbolDefined("SBRGraphicsSettings", includeGraphicsSettings);
             }
         }
     }
