@@ -34,7 +34,7 @@ namespace SBR.Editor {
             var temp = inst;
         }
 
-        [MenuItem("Infohazard/Select/SBR Settings...")]
+        [MenuItem("Tools/Infohazard/Select/SBR Settings...")]
         public static void SelectSettings() {
             Selection.activeObject = inst;
         }

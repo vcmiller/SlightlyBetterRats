@@ -31,7 +31,7 @@ namespace SBR.Editor {
 
         private PatrolNode nodeTarget => target as PatrolNode;
 
-        [MenuItem("Infohazard/Create/Patrol Node")]
+        [MenuItem("Tools/Infohazard/Create/Patrol Node", priority = 100)]
         [MenuItem("GameObject/3D Object/Patrol Node")]
         public static void CreatePatrolNode() {
             GameObject node = new GameObject("Patrol Node");
