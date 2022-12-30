@@ -28,8 +28,9 @@ using System.Linq;
 namespace SBR.Editor {
     public static class ChannelsClassGenerator {
 
-        private static string classTemplate = @"using UnityEngine;
+        private const string ClassTemplate = @"using UnityEngine;
 using SBR;
+using System.Collections.Generic;
 
 public class {0} : {1} {{
 {2}
@@ -38,10 +39,15 @@ public class {0} : {1} {{
         base.ClearInput(force);
 {3}
     }}
+
+    public override void AddFields(Dictionary<string, object> values) {{
+        base.AddFields(values);
+{4}
+    }}
 }}
 ";
 
-        private static string propertyTemplate = @"
+        private const string PropertyTemplate = @"
     private {0} _{1};
     public {0} {1} {{
         get {{ return _{1}; }}
@@ -51,13 +57,17 @@ public class {0} : {1} {{
     }}
 ";
 
-        private static string clearTemplate = @"        _{0} = {1};
+        private const string ClearTemplate = @"        _{0} = {1};
 ";
-        private static string clearTemplateIf = @"        if (force) _{0} = {1};
+
+        private const string ClearTemplateIf = @"        if (force) _{0} = {1};
+";
+
+        private const string AddToDictionaryTemplate = @"        values[nameof({0})] = {0};
 ";
 
         public static void GenerateClass(ChannelsDefinition def) {
-            string generated = string.Format(classTemplate, def.name, def.baseClass, GetProperties(def), GetClears(def));
+            string generated = string.Format(ClassTemplate, def.name, def.baseClass, GetProperties(def), GetClears(def), GetAdds(def));
 
             string defPath = AssetDatabase.GetAssetPath(def);
 
@@ -72,12 +82,20 @@ public class {0} : {1} {{
         }
 
         private static string GetClears(ChannelsDefinition def) {
-            return string.Join("", def.channels.Select(c => GetClear(c)));
+            return string.Join("", def.channels.Select(GetClear));
         }
 
         private static string GetClear(ChannelsDefinition.Channel channel) {
-            string template = channel.clears ? clearTemplate : clearTemplateIf;
+            string template = channel.clears ? ClearTemplate : ClearTemplateIf;
             return string.Format(template, channel.name, GetChannelDefault(channel));
+        }
+
+        private static string GetAdds(ChannelsDefinition def) {
+            return string.Join("", def.channels.Select(GetAdd));
+        }
+
+        private static string GetAdd(ChannelsDefinition.Channel channel) {
+            return string.Format(AddToDictionaryTemplate, channel.name);
         }
         
         private static string GetChannelDefault(ChannelsDefinition.Channel def) {
@@ -109,7 +127,7 @@ public class {0} : {1} {{
         }
 
         private static string GetProperty(ChannelsDefinition.Channel channel) {
-            return string.Format(propertyTemplate, GetType(channel), channel.name, GetSetter(channel));
+            return string.Format(PropertyTemplate, GetType(channel), channel.name, GetSetter(channel));
         }
 
         private static string GetType(ChannelsDefinition.Channel channel) {

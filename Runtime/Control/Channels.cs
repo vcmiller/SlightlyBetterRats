@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Collections.Generic;
+
 namespace SBR {
     public abstract class Channels {
         public Channels() {
@@ -27,5 +29,7 @@ namespace SBR {
         }
 
         public virtual void ClearInput(bool force = false) { }
+
+        public virtual void AddFields(Dictionary<string, object> values) { }
     }
 }

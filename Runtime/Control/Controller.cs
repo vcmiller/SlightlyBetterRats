@@ -55,7 +55,8 @@ namespace SBR {
         /// <summary>
         /// The channels object which carries input information.
         /// </summary>
-        public T channels { get; private set; }
+        public T Channels { get; private set; }
+        public Channels BaseChannels => Channels;
         private readonly SafeUpdateSet<Action<T>> _inputReceived = new SafeUpdateSet<Action<T>>();
         private readonly SafeUpdateSet<Action<T>> _postInputReceived = new SafeUpdateSet<Action<T>>();
 
@@ -76,7 +77,7 @@ namespace SBR {
         }
 
         public Controller() {
-            channels = new T();
+            Channels = new T();
         }
 
         private void Update() {
@@ -92,13 +93,13 @@ namespace SBR {
             _postInputReceived.Update();
 
             foreach (var callback in _inputReceived) {
-                callback(channels);
+                callback(Channels);
             }
 
-            channels.ClearInput();
+            Channels.ClearInput();
 
             foreach (var callback in _postInputReceived) {
-                callback(channels);
+                callback(Channels);
             }
         }
 
@@ -149,5 +150,7 @@ namespace SBR {
 }
 
 namespace SBR.Internal {
-    public interface IController { }
+    public interface IController {
+        public Channels BaseChannels { get; }
+    }
 }

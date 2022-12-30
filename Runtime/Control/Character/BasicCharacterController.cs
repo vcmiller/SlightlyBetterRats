@@ -69,26 +69,26 @@ namespace SBR {
 
         protected virtual void Axis_Horizontal(float value) {
             Vector3 right = ViewTarget ? (_alignInput ? ViewTarget.flatRight : ViewTarget.transform.right) : Vector3.right;
-            channels.Movement += right * value;
+            Channels.Movement += right * value;
         }
 
         protected virtual void Axis_Vertical(float value) {
             Vector3 fwd = ViewTarget ? (_alignInput ? ViewTarget.flatForward : ViewTarget.transform.forward) : Vector3.forward;
-            channels.Movement += fwd * value;
+            Channels.Movement += fwd * value;
         }
 
         protected virtual void ButtonDown_Jump() {
-            channels.Jump = true;
+            Channels.Jump = true;
         }
 
         protected virtual void ButtonUp_Jump() {
-            channels.Jump = false;
+            Channels.Jump = false;
         }
 
         protected virtual void Axis_MouseX(float value) {
             _angles.y += value;
 
-            channels.Rotation = Quaternion.Euler(_angles);
+            Channels.Rotation = Quaternion.Euler(_angles);
         }
 
         protected virtual void Axis_MouseY(float value) {
@@ -100,7 +100,7 @@ namespace SBR {
                 _angles.x = _pitchMax;
             }
 
-            channels.Rotation = Quaternion.Euler(_angles);
+            Channels.Rotation = Quaternion.Euler(_angles);
         }
     }
 }
