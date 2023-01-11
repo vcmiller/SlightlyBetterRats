@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Infohazard.Core;
+using Infohazard.Sequencing;
 using Infohazard.StateSystem;
 using UnityEngine;
 
@@ -146,6 +147,33 @@ namespace SBR {
         /// This will still be called if enableInput is false.
         /// </summary>
         protected virtual void PostOutput(T channels) { }
+    }
+    
+    public abstract class PersistedMotor<TChannels, TState> : Motor<TChannels>, IPersistedComponent
+        where TState : PersistedData, new()
+        where TChannels : Channels, new() {
+        
+        protected TState State { get; private set; }
+        public bool Initialized => State != null;
+        protected PersistedGameObjectBase Owner { get; private set; }
+
+        public void Initialize(PersistedGameObjectBase owner, PersistedData parent, string id) {
+            if (PersistenceManager.Instance.GetCustomData(parent, id, out TState state)) {
+                Owner = owner;
+                State = state;
+                if (state.Initialized) LoadState();
+                else LoadDefaultState();
+                State.Initialized = true;
+            } else {
+                State = null;
+                Debug.LogError($"State {id} could not be loaded.");
+            }
+        }
+        
+        public virtual void LoadState() {}
+        public virtual void LoadDefaultState() {}
+        public virtual void PostLoad() {}
+        public virtual void WriteState() {}
     }
 
     public static class MotorExtensions {
