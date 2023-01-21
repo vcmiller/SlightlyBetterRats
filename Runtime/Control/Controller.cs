@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using Infohazard.Core;
 using Infohazard.Sequencing;
 using Infohazard.StateSystem;
@@ -129,7 +130,7 @@ namespace SBR {
         
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
-        public virtual void PostLoad() {}
+        public virtual UniTask PostLoad() => UniTask.CompletedTask;
         public virtual void WriteState() {}
     }
 
