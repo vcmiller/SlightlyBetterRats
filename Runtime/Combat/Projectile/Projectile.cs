@@ -20,8 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System;
 using Infohazard.Core;
+using Infohazard.Core.Addressables;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     public delegate void ProjectileHitCallback(GameObject hitObject, Vector3 position, float damageDealt);
@@ -94,6 +97,8 @@ namespace SBR {
         [Tooltip("Prefab to spawn on impact, such as an explosion.")]
         public GameObject impactPrefab;
 
+        [FormerlySerializedAs("_impactPrefabAddressable"),SerializeField] private AddressableSpawnRef _impactPrefabSpawnRef;
+
         /// <summary>
         /// Whether to parent the spawned impact object to the hit object.
         /// </summary>
@@ -130,6 +135,23 @@ namespace SBR {
         public bool fired { get; protected set; }
         
         public float damageMultiplier { get; set; }
+
+        public AddressableSpawnRef ImpactPrefabSpawnRef {
+            get => _impactPrefabSpawnRef;
+            set {
+                if (_impactPrefabSpawnRef == value) return;
+
+                if (_impactPrefabSpawnRef?.IsValid == true) {
+                    _impactPrefabSpawnRef.Release();
+                }
+
+                _impactPrefabSpawnRef = value;
+
+                if (_impactPrefabSpawnRef?.IsValid == true) {
+                    _impactPrefabSpawnRef.Retain();
+                }
+            }
+        }
 
         /// <summary>
         /// Invoked when the projectile collides with an object.
@@ -176,6 +198,18 @@ namespace SBR {
             _hasLifetime = false;
         }
 
+        private void Awake() {
+            if (_impactPrefabSpawnRef?.IsValid == true) {
+                _impactPrefabSpawnRef.Retain();
+            }
+        }
+
+        private void OnDestroy() {
+            if (_impactPrefabSpawnRef?.IsValid == true) {
+                _impactPrefabSpawnRef.Release();
+            }
+        }
+
         protected virtual void Update() {
             if (!fired || !_hasLifetime) return;
             _lifetime -= Time.deltaTime;
@@ -201,6 +235,13 @@ namespace SBR {
 
             if (impactPrefab) {
                 GameObject obj = Spawnable.Spawn(impactPrefab, t.position, t.rotation, null, true, scene: gameObject.scene);
+                if (obj.TryGetComponent(out IHasCreator ihc)) {
+                    ihc.Creator = Creator;
+                }
+            }
+
+            if (_impactPrefabSpawnRef.IsValid) {
+                GameObject obj = _impactPrefabSpawnRef.Spawn(SpawnParams.At(t, false, true));
                 if (obj.TryGetComponent(out IHasCreator ihc)) {
                     ihc.Creator = Creator;
                 }
@@ -252,6 +293,20 @@ namespace SBR {
             if (impactPrefab) {
                 GameObject obj = Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, 
                                                  true, scene:gameObject.scene);
+                if (obj.TryGetComponent(out IHasCreator ihc)) {
+                    ihc.Creator = Creator;
+                }
+            }
+            
+            if (_impactPrefabSpawnRef.IsValid) {
+                GameObject obj = _impactPrefabSpawnRef.Spawn(new SpawnParams {
+                    Position = position,
+                    Rotation = transform.rotation,
+                    Parent = parentImpactObject ? col : null,
+                    InWorldSpace = true,
+                    Scene = gameObject.scene,
+                });
+                
                 if (obj.TryGetComponent(out IHasCreator ihc)) {
                     ihc.Creator = Creator;
                 }
