@@ -53,6 +53,7 @@ namespace SBR.Menu {
         }
 
         protected virtual void OnValidate() {
+            if (!gameObject.activeInHierarchy) return;
             UpdateUIElement();
         }
 
