@@ -32,8 +32,10 @@ namespace SBR {
         /// <param name="point">Location of the damage.</param>
         /// <param name="direction">Direction of the damage.</param>
         /// <param name="force">Force applied by the bullet.</param>
-        /// <param name="hitObject"></param>
-        public PointDamage(float amount, GameObject dealer, Vector3 point, Vector3 direction, float force, GameObject hitObject) : base(amount, dealer) {
+        /// <param name="hitObject">Object that was originally hit (may be a child object).</param>
+        /// <param name="method">Method for dealing the damage, such as a weapon.</param>
+        public PointDamage(float amount, GameObject dealer, Vector3 point, Vector3 direction, float force, GameObject hitObject, object method = null) : 
+            base(amount, dealer, method) {
             Point = point;
             Direction = direction.normalized;
             Force = force;

@@ -40,11 +40,10 @@ namespace SBR {
         [Tooltip("Range of the projectile.")]
         public float range = Mathf.Infinity;
 
-        public override void Fire(GameObject creator, Vector3 direction, bool align = true) {
-            base.Fire(creator, direction, align);
-            RaycastHit hit;
+        public override void Fire(GameObject creator, Vector3 direction, bool align = true, object method = null) {
+            base.Fire(creator, direction, align, method);
 
-            if (Physics.Raycast(transform.position, direction, out hit, range, hitMask, triggerInteraction)) {
+            if (Physics.Raycast(transform.position, direction, out RaycastHit hit, range, hitMask, triggerInteraction)) {
                 OnHitCollider(hit.collider, hit.point);
             } else {
                 Spawnable.Despawn(gameObject, linger);

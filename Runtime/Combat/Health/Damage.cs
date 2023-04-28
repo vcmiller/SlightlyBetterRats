@@ -33,10 +33,12 @@ namespace SBR {
         /// Create a new Damage instance.
         /// </summary>
         /// <param name="amount">Amount of damage.</param>
-        /// <param name="dealer">GameObject that caused the damage</param>
-        public Damage(float amount, GameObject dealer) {
+        /// <param name="dealer">GameObject that caused the damage.</param>
+        /// <param name="method">Method for dealing the damage, such as a weapon.</param>
+        public Damage(float amount, GameObject dealer, object method = null) {
             Amount = amount;
             Dealer = dealer;
+            Method = method;
         }
 
         /// <summary>
@@ -48,5 +50,10 @@ namespace SBR {
         /// GameObject that caused the damage.
         /// </summary>
         public GameObject Dealer { get; set; }
+        
+        /// <summary>
+        /// Method for dealing the damage, such as a weapon.
+        /// </summary>
+        public object Method { get; set; }
     }
 }
