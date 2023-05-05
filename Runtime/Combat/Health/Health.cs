@@ -82,7 +82,7 @@ namespace SBR {
                 if (State.Health == value) return;
                 State.Health = value;
                 if (State.Health == 0) {
-                    SendDeathMessage();
+                    SendDeathMessage(false);
                 }
                 State.NotifyStateChanged();
             }
@@ -178,7 +178,7 @@ namespace SBR {
         public override void LoadState() {
             base.LoadState();
             if (!persisted) LoadDefaultState();
-            if (Dead) SendDeathMessage();
+            if (Dead) SendDeathMessage(true);
         }
 
         protected virtual void Start() {
@@ -201,8 +201,8 @@ namespace SBR {
             Destroyed?.Invoke(this);
         }
 
-        private void SendDeathMessage() {
-            SendMessage("OnZeroHealth", SendMessageOptions.DontRequireReceiver);
+        private void SendDeathMessage(bool isLoading) {
+            SendMessage("OnZeroHealth", isLoading, SendMessageOptions.DontRequireReceiver);
             ZeroHealth?.Invoke();
         }
 
