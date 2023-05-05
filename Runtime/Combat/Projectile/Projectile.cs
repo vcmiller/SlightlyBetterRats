@@ -279,7 +279,8 @@ namespace SBR {
                                                            position,
                                                            velocity.normalized,
                                                            velocity.magnitude * impactForce,
-                                                           col.gameObject));
+                                                           col.gameObject,
+                                                           Method));
 
             HitObject?.Invoke(col.gameObject, position, damageDealt);
 
