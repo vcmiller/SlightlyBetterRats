@@ -20,22 +20,45 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Linq;
 using UnityEngine;
 
 #if SBRGraphicsSettings
 
 namespace SBR.Menu {
     public static class SBRGraphicsSettings {
-        private const string anisotropicKey = "Graphics/Anisotropic";
-        private const string antialiasingKey = "Graphics/Antialiasing";
-        private const string blendWeightsKey = "Graphics/BlendWeights";
-        private const string textureQualityKey = "Graphics/TextureQuality";
-        private const string realtimeReflectionsKey = "Graphics/RealtimeReflections";
-        private const string shadowQualityKey = "Graphics/ShadowQuality";
-        private const string shadowTypeKey = "Graphics/ShadowType";
-        private const string softParticlesKey = "Graphics/SoftParticles";
-        private const string softVegetationKey = "Graphics/SoftVegetation";
-        private const string overallQualityLevelKey = "Graphics/OverallQualityLevel";
+        private const string AnisotropicKey = "Graphics/Anisotropic";
+        private const string AntialiasingKey = "Graphics/Antialiasing";
+        private const string BlendWeightsKey = "Graphics/BlendWeights";
+        private const string TextureQualityKey = "Graphics/TextureQuality";
+        private const string RealtimeReflectionsKey = "Graphics/RealtimeReflections";
+        private const string ShadowQualityKey = "Graphics/ShadowQuality";
+        private const string ShadowTypeKey = "Graphics/ShadowType";
+        private const string SoftParticlesKey = "Graphics/SoftParticles";
+        private const string SoftVegetationKey = "Graphics/SoftVegetation";
+        private const string OverallQualityLevelKey = "Graphics/OverallQualityLevel";
+
+        private const string AnisotropicName = "Anisotropic Filtering";
+        private const string AntialiasingName = "Antialiasing";
+        private const string BlendWeightsName = "Blend Weights";
+        private const string TextureQualityName = "Texture Quality";
+        private const string RealtimeReflectionsName = "Realtime Reflections";
+        private const string ShadowQualityName = "Shadow Quality";
+        private const string ShadowTypeName = "Shadow Type";
+        private const string SoftParticlesName = "Soft Particles";
+        private const string SoftVegetationName = "Soft Vegetation";
+        private const string OverallQualityLevelName = "Overall Quality Level";
+
+        private const string AnisotropicDesc = "Improves texture quality when viewed at an angle.";
+        private const string AntialiasingDesc = "Improves jagged/pixelated edges.";
+        private const string BlendWeightsDesc = "Controls quality of character animations.";
+        private const string TextureQualityDesc = "Controls quality of textures.";
+        private const string RealtimeReflectionsDesc = "Controls whether realtime reflections are shown.";
+        private const string ShadowQualityDesc = "Controls the resolution of shadows.";
+        private const string ShadowTypeDesc = "Controls whether hard and/or soft shadows are enabled.";
+        private const string SoftParticlesDesc = "Makes VFX look better when they intersect with other objects.";
+        private const string SoftVegetationDesc = "Improves quality of vegetation rendering.";
+        private const string OverallQualityLevelDesc = "Controls overall quality level based on presets.";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 #if UNITY_EDITOR
@@ -45,82 +68,79 @@ namespace SBR.Menu {
             SettingsManager.RegisterSettings(typeof(SBRGraphicsSettings));
         }
 
-#region Settings Definitions
+        #region Settings Definitions
 
-        public static readonly Setting<AnisotropicFiltering> anisotropic =
-            new EnumSetting<AnisotropicFiltering>(anisotropicKey,
-                AnisotropicFiltering.Enable, false,
-                t => QualitySettings.anisotropicFiltering = t, null);
+        public static readonly Setting<AnisotropicFiltering> Anisotropic =
+            new EnumSetting<AnisotropicFiltering>(AnisotropicKey, AnisotropicName, AnisotropicDesc,
+                                                  AnisotropicFiltering.Enable, false,
+                                                  t => QualitySettings.anisotropicFiltering = t);
 
-        public static readonly Setting<int> antialiasing =
-            new IntSetting(antialiasingKey, 2, false,
-                t => QualitySettings.antiAliasing = t,
-                t => {
-                    if (t == 0) return "None";
-                    else return t + "x MSAA";
-                }, new[] { 0, 2, 4, 8 });
+        public static readonly Setting<int> Antialiasing =
+            new IntSetting(AntialiasingKey, AntialiasingName, AntialiasingDesc, 2, false,
+                           t => QualitySettings.antiAliasing = t,
+                           t => {
+                               if (t == 0) return "None";
+                               return t + "x MSAA";
+                           }, new[] { 0, 2, 4, 8 });
 
-        public static readonly Setting<SkinWeights> blendWeights =
-            new EnumSetting<SkinWeights>(blendWeightsKey, SkinWeights.FourBones, false,
-                t => QualitySettings.skinWeights = t);
+        public static readonly Setting<SkinWeights> BlendWeights =
+            new EnumSetting<SkinWeights>(BlendWeightsKey, BlendWeightsName, BlendWeightsDesc, SkinWeights.FourBones,
+                                         false, t => QualitySettings.skinWeights = t);
 
-        public static readonly Setting<int> textureQuality =
-            new IntSetting(textureQualityKey, 0, false,
-                t => QualitySettings.masterTextureLimit = t,
-                t => {
-                    switch(t) {
-                        case 0: return "Full";
-                        case 1: return "Half";
-                        case 2: return "Quarter";
-                        case 3: return "Eighth";
-                        default: return null;
-                    }
-                }, new[] { 0, 1, 2, 3 });
+        public static readonly Setting<int> TextureQuality =
+            new IntSetting(TextureQualityKey, TextureQualityName, TextureQualityDesc, 0, false,
+                           t => QualitySettings.masterTextureLimit = t,
+                           t => {
+                               return t switch {
+                                   0 => "Full",
+                                   1 => "Half",
+                                   2 => "Quarter",
+                                   3 => "Eighth",
+                                   _ => null,
+                               };
+                           }, new[] { 0, 1, 2, 3 });
 
-        public static readonly Setting<bool> realtimeReflections =
-            new BoolSetting(realtimeReflectionsKey, true, false,
-                t => QualitySettings.realtimeReflectionProbes = t);
+        public static readonly Setting<bool> RealtimeReflections =
+            new BoolSetting(RealtimeReflectionsKey, RealtimeReflectionsName, RealtimeReflectionsDesc, true, false,
+                            t => QualitySettings.realtimeReflectionProbes = t);
 
-        public static readonly Setting<ShadowQuality> shadowType =
-            new EnumSetting<ShadowQuality>(shadowTypeKey,
-                ShadowQuality.All, false,
-                t => QualitySettings.shadows = t);
+        public static readonly Setting<ShadowQuality> ShadowType =
+            new EnumSetting<ShadowQuality>(ShadowTypeKey, ShadowTypeName, ShadowTypeDesc, UnityEngine.ShadowQuality.All,
+                                           false, t => QualitySettings.shadows = t);
 
-        public static readonly Setting<ShadowResolution> shadowQuality =
-            new EnumSetting<ShadowResolution>(shadowQualityKey,
-                ShadowResolution.High, false,
-                t => QualitySettings.shadowResolution = t);
+        public static readonly Setting<ShadowResolution> ShadowQuality =
+            new EnumSetting<ShadowResolution>(ShadowQualityKey, ShadowQualityName, ShadowQualityDesc,
+                                              ShadowResolution.High, false, t => QualitySettings.shadowResolution = t);
 
-        public static readonly Setting<bool> softParticles =
-            new BoolSetting(softParticlesKey, true, false,
-                t => QualitySettings.softParticles = t);
+        public static readonly Setting<bool> SoftParticles =
+            new BoolSetting(SoftParticlesKey, SoftParticlesName, SoftParticlesDesc, true, false,
+                            t => QualitySettings.softParticles = t);
 
-        public static readonly Setting<bool> softVegetation =
-            new BoolSetting(softVegetationKey, true, false,
-                t => QualitySettings.softVegetation = t);
+        public static readonly Setting<bool> SoftVegetation =
+            new BoolSetting(SoftVegetationKey, SoftVegetationName, SoftVegetationDesc, true, false,
+                            t => QualitySettings.softVegetation = t);
 
-        public static readonly Setting<int> overallQualityLevel =
-            new IntSetting(overallQualityLevelKey,
-                QualitySettings.names.Length / 2, true, t => {
-                    if (t >= 0) {
-                        QualitySettings.SetQualityLevel(t);
-                        anisotropic.value = QualitySettings.anisotropicFiltering;
-                        antialiasing.value = QualitySettings.antiAliasing;
-                        blendWeights.value = QualitySettings.skinWeights;
-                        textureQuality.value = QualitySettings.masterTextureLimit;
-                        realtimeReflections.value = QualitySettings.realtimeReflectionProbes;
-                        shadowType.value = QualitySettings.shadows;
-                        shadowQuality.value = QualitySettings.shadowResolution;
-                        softParticles.value = QualitySettings.softParticles;
-                        softVegetation.value = QualitySettings.softVegetation;
-                        SBRDisplaySettings.vsyncCount.value = QualitySettings.maxQueuedFrames;
-                    }
-                }, t => {
-                    if (t < 0) return "Custom";
-                    else return QualitySettings.names[t];
-                }, Enumerable.Range(-1, QualitySettings.names.Length + 1).ToArray());
+        public static readonly Setting<int> OverallQualityLevel =
+            new IntSetting(OverallQualityLevelKey, OverallQualityLevelName, OverallQualityLevelDesc,
+                           QualitySettings.names.Length / 2, true, t => {
+                               if (t < 0) return;
+                               QualitySettings.SetQualityLevel(t);
+                               Anisotropic.Value = QualitySettings.anisotropicFiltering;
+                               Antialiasing.Value = QualitySettings.antiAliasing;
+                               BlendWeights.Value = QualitySettings.skinWeights;
+                               TextureQuality.Value = QualitySettings.masterTextureLimit;
+                               RealtimeReflections.Value = QualitySettings.realtimeReflectionProbes;
+                               ShadowType.Value = QualitySettings.shadows;
+                               ShadowQuality.Value = QualitySettings.shadowResolution;
+                               SoftParticles.Value = QualitySettings.softParticles;
+                               SoftVegetation.Value = QualitySettings.softVegetation;
+                               SBRDisplaySettings.VerticalSync.Value = QualitySettings.maxQueuedFrames;
+                           }, t => {
+                               if (t < 0) return "Custom";
+                               else return QualitySettings.names[t];
+                           }, Enumerable.Range(-1, QualitySettings.names.Length + 1).ToArray());
 
-#endregion
+        #endregion
     }
 }
 

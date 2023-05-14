@@ -63,6 +63,11 @@ namespace SBR.Editor {
         }
 
         public static void Draw(Rect position, SerializedProperty property, GUIContent label, Type[] types = null) {
+            if (property.hasMultipleDifferentValues) {
+                EditorGUI.LabelField(position, label, new GUIContent("Different values"));
+                return;
+            }
+            
             var settings = GetCachedSettings(types);
 
             int curVal = Array.IndexOf(settings, property.stringValue);

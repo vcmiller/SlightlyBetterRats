@@ -22,16 +22,17 @@
 
 using System;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SBR.Menu {
     public class SettingDropdown : SettingControl {
-        [SerializeField] private Dropdown _dropdown;
+        [SerializeField] private TMP_Dropdown _dropdown;
         private object[] _settingValues;
 
         private void Reset() {
-            _dropdown = GetComponentInChildren<Dropdown>();
+            _dropdown = GetComponentInChildren<TMP_Dropdown>();
         }
 
         public override void UpdateUIElement() {
