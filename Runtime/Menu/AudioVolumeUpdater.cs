@@ -69,7 +69,7 @@ namespace SBR.Menu {
         }
 
         private void UpdateSettings(Info item, Setting setting, float val) {
-            float log = Mathf.Log(Mathf.Clamp(val, 0.001f, 1.0f)) * 20;
+            float log = Mathf.Log10(Mathf.Clamp(val, 0.001f, 1.0f)) * 20;
 
             item.Mixer.SetFloat(item.ParamName, log);
         }
