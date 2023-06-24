@@ -380,7 +380,7 @@ namespace SBR {
         [SerializeField] private string movingState = "Moving";
 
         public enum RotateMode {
-            None, Movement, Control,
+            None, Movement, Control, Manual,
         }
 
         public enum JumpMode {
