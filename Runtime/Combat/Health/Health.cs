@@ -178,6 +178,9 @@ namespace SBR {
         public override void LoadState() {
             base.LoadState();
             if (!persisted) LoadDefaultState();
+
+            State.Health = Mathf.Clamp(State.Health, 0, maxHealth);
+            
             if (Dead) SendDeathMessage(true);
         }
 
