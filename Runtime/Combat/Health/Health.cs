@@ -49,7 +49,7 @@ namespace SBR {
         /// <summary>
         /// Invoked when this Health reaches zero.
         /// </summary>
-        public event Action ZeroHealth;
+        public event Action<bool> ZeroHealth;
 
         /// <summary>
         /// Invoked when this Health is healed.
@@ -203,7 +203,7 @@ namespace SBR {
 
         private void SendDeathMessage(bool isLoading) {
             SendMessage("OnZeroHealth", isLoading, SendMessageOptions.DontRequireReceiver);
-            ZeroHealth?.Invoke();
+            ZeroHealth?.Invoke(isLoading);
         }
 
         /// <summary>
