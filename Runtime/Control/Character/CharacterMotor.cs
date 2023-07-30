@@ -228,6 +228,12 @@ namespace SBR {
         public float movementDeceleration = 20;
 
         /// <summary>
+        /// Delay in seconds between receiving input and character actually moving.
+        /// </summary>
+        [Tooltip("Delay in seconds between receiving input and character actually moving.")] [SerializeField]
+        private PassiveTimer _movementDelay;
+
+        /// <summary>
         /// Multiplier to apply to movement speed while not grounded.
         /// </summary>
         [Tooltip("Multiplier to apply to movement speed while not grounded.")]
@@ -419,6 +425,8 @@ namespace SBR {
             if (jumpMode == JumpMode.Charge) {
                 JumpChargeTimer = new ExpirationTimer(jumpChargeTime);
             }
+
+            _movementDelay.Initialize();
 
             SetupStates();
         }
@@ -724,8 +732,21 @@ namespace SBR {
                 Rigidbody.rotation = Quaternion.Slerp(_snapStartRotation, _snapEndRotation, t);
                 return;
             }
+
+            bool hasMovementInput = receivingInput;
+            bool inputIsNonzero = movementInput != Vector3.zero;
             
-            UpdateMovementVelocity(receivingInput ? movementInput : Vector3.zero, dt);
+            if (!(hasMovementInput && inputIsNonzero) &&
+                _movementDelay.Interval > 0 &&
+                MovementVelocity.sqrMagnitude < 0.01f) {
+                _movementDelay.StartInterval();
+            }
+
+            if (!_movementDelay.IsIntervalEnded) {
+                hasMovementInput = false;
+            }
+            
+            UpdateMovementVelocity(hasMovementInput ? movementInput : Vector3.zero, dt);
 
             if (!IsGrounded) {
                 Rigidbody.velocity += gravity * dt;
