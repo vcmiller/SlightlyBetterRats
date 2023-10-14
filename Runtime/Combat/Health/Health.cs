@@ -127,6 +127,8 @@ namespace SBR {
 
         public bool persisted = true;
 
+        public float damageMultiplier = 1;
+
         /// <summary>
         /// Sound to play when damaged.
         /// </summary>
@@ -216,6 +218,7 @@ namespace SBR {
         /// <returns>The actual damage amount dealt.</returns>
         public virtual float Damage(Damage dmg) {
             if (enabled && dmg.Amount > 0 && TimeUntilNotInvuln == 0) {
+                dmg.Amount *= damageMultiplier;
                 DamageModifier?.Invoke(ref dmg);
 
                 float prevHealth = CurrentHealth;
