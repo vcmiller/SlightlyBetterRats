@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using Infohazard.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -48,7 +49,7 @@ namespace SBR {
         /// Text used to show amount.
         /// </summary>
         [Tooltip("Text used to show amount.")]
-        public Text amountText;
+        public TMP_Text amountText;
 
         /// <summary>
         /// How to display the amount text.
@@ -56,6 +57,8 @@ namespace SBR {
         [Tooltip("How to display the amount text.")]
         [ConditionalDraw("amountText", null, false)]
         public AmountTextType amountTextType;
+
+        public string amountTextFormat;
 
         /// <summary>
         /// Optional additional graphics which will be shown and hidden along with the rest of the Healthbar.
@@ -184,12 +187,19 @@ namespace SBR {
             }
 
             if (amountText && target) {
+                string textValue;
                 if (amountTextType == AmountTextType.Amount) {
-                    amountText.text = Mathf.CeilToInt(target.CurrentHealth).ToString();
+                    textValue = Mathf.CeilToInt(target.CurrentHealth).ToString();
                 } else if (amountTextType == AmountTextType.Fraction) {
-                    amountText.text = Mathf.CeilToInt(target.CurrentHealth) + " / " + Mathf.CeilToInt(target.maxHealth);
+                    textValue = Mathf.CeilToInt(target.CurrentHealth) + " / " + Mathf.CeilToInt(target.maxHealth);
                 } else {
-                    amountText.text = Mathf.CeilToInt(target.CurrentHealth * 100 / target.maxHealth) + " %";
+                    textValue = Mathf.CeilToInt(target.CurrentHealth * 100 / target.maxHealth).ToString();
+                }
+
+                if (string.IsNullOrEmpty(amountTextFormat)) {
+                    amountText.text = string.Format(amountTextFormat, textValue);
+                } else {
+                    amountText.text = textValue;
                 }
             }
 
