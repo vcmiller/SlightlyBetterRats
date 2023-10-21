@@ -196,7 +196,7 @@ namespace SBR {
                     textValue = Mathf.CeilToInt(target.CurrentHealth * 100 / target.maxHealth).ToString();
                 }
 
-                if (string.IsNullOrEmpty(amountTextFormat)) {
+                if (!string.IsNullOrEmpty(amountTextFormat)) {
                     amountText.text = string.Format(amountTextFormat, textValue);
                 } else {
                     amountText.text = textValue;
