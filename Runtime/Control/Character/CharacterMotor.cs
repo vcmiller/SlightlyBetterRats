@@ -459,6 +459,10 @@ namespace SBR {
             stateManager = GetComponent<StateManager>();
         }
 
+        private void OnZeroHealth(bool isLoading) {
+            stateManager.SetStateActive(movingState, false);
+        }
+
         public void ApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation) {
             rootMotionMovement += deltaPosition;
             rootMotionRotation = deltaRotation * rootMotionRotation;
