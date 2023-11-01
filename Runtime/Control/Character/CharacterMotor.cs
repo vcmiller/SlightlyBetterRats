@@ -566,6 +566,7 @@ namespace SBR {
                         DoJump(1);
                     } else if (jumpMode == JumpMode.Charge && !JumpCharging) {
                         JumpCharging = true;
+                        JumpChargeTimer ??= new ExpirationTimer(jumpChargeTime);
                         JumpChargeTimer.Set();
                     }
                 } else if (JumpCharging) {
