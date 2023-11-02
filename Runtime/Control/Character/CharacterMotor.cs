@@ -708,14 +708,16 @@ namespace SBR {
         private void RotateTowardsTarget() {
             if (isRotating) {
                 Quaternion q = Rigidbody.rotation;
-                if (useSmoothRotation) {
+                if (rotationSpeed == 0) {
+                    Rigidbody.MoveRotation(targetRotation);
+                } else if (useSmoothRotation) {
                     Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 } else {
                     Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 }
                 RotationRates = MathUtility.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
-                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) <= minTargetAngle) {
+                if (minTargetAngle > 0 && Quaternion.Angle(Rigidbody.rotation, targetRotation) <= minTargetAngle) {
                     isRotating = false;
                 }
             } else {
