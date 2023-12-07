@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,7 +31,7 @@ namespace SBR.Menu {
         [SettingReference, SerializeField] private string _settingKey;
 
         public string SettingKey => _settingKey;
-        public Setting Setting => SettingsManager.GetSetting(_settingKey);
+        public ISetting Setting => SettingsManager.GetSetting(_settingKey);
         private Selectable _selectable;
 
         public virtual bool Interactable {
@@ -40,9 +40,9 @@ namespace SBR.Menu {
         }
 
         public virtual void UpdateUIElement() {
-            Setting s = Setting;
+            ISetting s = Setting;
             if (s == null) return;
-            
+
             if (_label != null) {
                 _label.text = s.DisplayName;
             }
@@ -60,11 +60,11 @@ namespace SBR.Menu {
         protected virtual void Awake() {
             _selectable = GetComponentInChildren<Selectable>();
             UpdateUIElement();
-            Setting.ObjValueChanged += SettingValueChanged;
+            Setting.ValueChanged += SettingValueChanged;
         }
 
         private void OnDestroy() {
-            Setting.ObjValueChanged -= SettingValueChanged;
+            Setting.ValueChanged -= SettingValueChanged;
         }
 
         private void SettingValueChanged(object value) {

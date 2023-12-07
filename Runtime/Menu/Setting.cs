@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,39 +27,70 @@ using Infohazard.Core;
 using UnityEngine;
 
 namespace SBR.Menu {
-    public abstract class Setting {
-        public Setting(string key, Type settingType, string displayName, string description) {
-            Key = key;
-            SettingType = settingType;
-            DisplayName = displayName;
-            Description = description;
-        }
-
+    public interface ISetting {
         public string Key { get; }
         public Type SettingType { get; }
         public string DisplayName { get; }
         public string Description { get; }
+        public object Value { get; set; }
+        public IReadOnlyList<object> PossibleValues { get; }
+        public bool Modified { get; }
 
-        public bool Modified { get; protected set; }
+        public event Action<object> ValueChanged;
 
-        public event Action<object> ObjValueChanged;
-        protected void OnObjValueChanged(object value) => ObjValueChanged?.Invoke(value);
-
-        public abstract void Default();
-        public virtual void Save() => Modified = false;
-        public virtual void Load() => Modified = false;
-        public abstract object ObjValue { get; set; }
-        public abstract IEnumerable<object> ObjPossibleValues { get; }
-        public abstract string ObjValueToString(object value);
+        public void SetDefault();
+        public void Save();
+        public void Load();
+        public string ValueToString(object value);
     }
 
-    public abstract class Setting<T> : Setting {
+    public interface ISetting<T> : ISetting {
+        public new T Value { get; set; }
+        public new IReadOnlyList<T> PossibleValues { get; }
+
+        public new event Action<T> ValueChanged;
+        public string ValueToString(T value);
+    }
+
+    public abstract class Setting<T> : ISetting<T> {
         private readonly Func<T, string> _toString;
-        private readonly T[] _values;
         private readonly bool _hasDefault;
+        private T _currentValue;
+
         protected T DefaultValue { get; }
-        protected T CurrentValue { get; set; }
+        public string Key { get; }
+        public Type SettingType => typeof(T);
+        public string DisplayName { get; }
+        public string Description { get; }
+
+        public bool Modified { get; private set; }
+
         public event Action<T> ValueChanged;
+
+        private Action<object> _objectValueChanged;
+        event Action<object> ISetting.ValueChanged {
+            add => _objectValueChanged += value;
+            remove => _objectValueChanged -= value;
+        }
+
+        public T Value {
+            get => _currentValue;
+            set {
+                if (Equals(value, _currentValue)) return;
+                _currentValue = value;
+                Modified = true;
+                InvokeValueChanged();
+            }
+        }
+
+        object ISetting.Value {
+            get => Value;
+            set => Value = (T)value;
+        }
+
+        private readonly object[] _possibleObjectValues;
+        public IReadOnlyList<T> PossibleValues { get; }
+        IReadOnlyList<object> ISetting.PossibleValues => _possibleObjectValues;
 
         public Setting(string key,
                        string displayName,
@@ -68,40 +99,46 @@ namespace SBR.Menu {
                        bool hasDefault = true,
                        Action<T> setter = null,
                        Func<T, string> toString = null,
-                       T[] values = null) :
-            base(key, typeof(T), displayName, description) {
+                       IReadOnlyList<T> values = null) {
+            Key = key;
+            DisplayName = displayName;
+            Description = description;
             DefaultValue = defaultValue;
             _hasDefault = hasDefault;
             ValueChanged = setter;
-            ValueChanged += v => OnObjValueChanged(v);
             _toString = toString;
-            _values = values;
+            PossibleValues = values;
 
-            CurrentValue = defaultValue;
-        }
-
-        public override object ObjValue {
-            get => Value;
-            set => this.Value = (T) value;
-        }
-
-        public T Value {
-            get => CurrentValue;
-            set {
-                if (Equals(value, CurrentValue)) return;
-                CurrentValue = value;
-                Modified = true;
-                ValueChanged?.Invoke(value);
+            if (values != null) {
+                _possibleObjectValues = new object[values.Count];
+                for (int i = 0; i < values.Count; i++) {
+                    _possibleObjectValues[i] = values[i];
+                }
+            } else {
+                _possibleObjectValues = null;
             }
+
+            _currentValue = defaultValue;
         }
 
-        public override IEnumerable<object> ObjPossibleValues => _values?.Cast<object>() ?? null;
-        public virtual T[] PossibleValues => _values;
-        public override string ObjValueToString(object value) => ValueToString((T) value);
         public virtual string ValueToString(T v) => _toString?.Invoke(v) ?? v.ToString();
+        string ISetting.ValueToString(object v) => _toString?.Invoke((T) v) ?? v.ToString();
 
-        public override void Default() {
+        public void SetDefault() {
             if (_hasDefault) Value = DefaultValue;
+        }
+
+        public virtual void Save() {
+            Modified = false;
+        }
+
+        public virtual void Load() {
+            Modified = false;
+        }
+
+        protected virtual void InvokeValueChanged() {
+            ValueChanged?.Invoke(Value);
+            _objectValueChanged?.Invoke(Value);
         }
     }
 

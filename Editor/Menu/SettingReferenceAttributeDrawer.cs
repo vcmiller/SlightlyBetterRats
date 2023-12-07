@@ -37,7 +37,7 @@ namespace SBR.Editor {
         private static string[] GetCachedSettings(Type[] types) {
             if (types == null) {
                 if (allSettings == null) {
-                    allSettings = SettingsManager.allSettings.Select(s => s.Key).Prepend("None").ToArray();
+                    allSettings = SettingsManager.AllSettings.Select(s => s.Key).Prepend("None").ToArray();
                 }
                 return allSettings;
             } else {
