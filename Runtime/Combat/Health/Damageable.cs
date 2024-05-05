@@ -51,22 +51,25 @@ namespace SBR {
         /// <param name="dmg">The damage object.</param>
         /// <returns>The actual damage amount dealt.</returns>
         public static float Damage(this GameObject obj, Damage dmg) {
-            if (dmg is PointDamage pointDamage && pointDamage.Force > 0) {
+            float result;
+            if (obj.TryGetComponent(out IDamageable d1)) {
+                result = d1.Damage(dmg);
+            } else if (obj.TryGetComponentInParent(out IParentDamageable d2)) {
+                result =d2.Damage(dmg);
+            } else {
+                result =0;
+            }
+            
+            if (dmg is PointDamage { Force: > 0 } pointDamage) {
                 Vector3 impulse = pointDamage.Direction * pointDamage.Amount;
                 
-                var rb = obj.GetComponentInParent<Rigidbody>();
+                Rigidbody rb = obj.GetComponentInParent<Rigidbody>();
                 if (rb) rb.AddForce(impulse, ForceMode.Impulse);
-                var rb2d = obj.GetComponentInParent<Rigidbody2D>();
-                if (rb2d) rb2d.AddForce(impulse, ForceMode2D.Impulse);
-            } 
-            
-            if (obj.TryGetComponent(out IDamageable d1)) {
-                return d1.Damage(dmg);
-            } else if (obj.TryGetComponentInParent(out IParentDamageable d2)) {
-                return d2.Damage(dmg);
-            } else {
-                return 0;
+                Rigidbody2D rb2d = obj.GetComponentInParent<Rigidbody2D>();
+                if (rb2d) rb2d.AddForce(impulse.ToXY(), ForceMode2D.Impulse);
             }
+            
+            return result;
         }
 
         /// <summary>
