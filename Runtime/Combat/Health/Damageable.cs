@@ -61,7 +61,7 @@ namespace SBR {
             }
             
             if (dmg is PointDamage { Force: > 0 } pointDamage) {
-                Vector3 impulse = pointDamage.Direction * pointDamage.Amount;
+                Vector3 impulse = pointDamage.Direction * pointDamage.Force;
                 
                 Rigidbody rb = obj.GetComponentInParent<Rigidbody>();
                 if (rb) rb.AddForce(impulse, ForceMode.Impulse);

@@ -205,6 +205,11 @@ namespace SBR {
         protected virtual void OnDestroy() {
             Destroyed?.Invoke(this);
         }
+        
+        private void SendDamageMessage(Damage dmg) {
+            SendMessage("OnDamage", dmg, SendMessageOptions.DontRequireReceiver);
+            Damaged?.Invoke(dmg);
+        }
 
         private void SendDeathMessage(bool isLoading) {
             SendMessage("OnZeroHealth", isLoading, SendMessageOptions.DontRequireReceiver);
@@ -221,14 +226,21 @@ namespace SBR {
                 dmg.Amount *= damageMultiplier;
                 DamageModifier?.Invoke(ref dmg);
 
-                float prevHealth = CurrentHealth;
-                CurrentHealth -= dmg.Amount;
-                dmg.Amount = prevHealth - CurrentHealth;
-
+                dmg.Amount = Mathf.Min(dmg.Amount, CurrentHealth);
+                if (dmg.Amount == 0) return 0;
+                
+                State.Health -= dmg.Amount;
+                State.NotifyStateChanged();
+                
+                SendDamageMessage(dmg);
+                
+                if (State.Health == 0) {
+                    SendDeathMessage(false);
+                }
+                
                 TimeUntilNotInvuln = hitInvuln;
                 TimeUntilRegen = healthRegenDelay;
-                SendMessage("OnDamage", dmg, SendMessageOptions.DontRequireReceiver);
-                Damaged?.Invoke(dmg);
+                
                 if (damageSound) {
                     damageSound.Play();
                 }

@@ -278,7 +278,7 @@ namespace SBR {
                                                            Creator ? Creator : gameObject,
                                                            position,
                                                            velocity.normalized,
-                                                           velocity.magnitude * impactForce,
+                                                           impactForce,
                                                            col.gameObject,
                                                            Method));
 
