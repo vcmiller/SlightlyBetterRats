@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -90,7 +90,7 @@ namespace SBR {
         }
 
         public bool IsMoving { get; private set; }
-        
+
         public ExpirationTimer SnapPositionTimer { get; private set; }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace SBR {
 
         public float actualMovementDeceleration =>
             IsGrounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
-        
+
         public RaycastHit[] GroundHitBuffer { get; private set; }
 
         public RaycastHit groundHit => _groundHit;
@@ -549,7 +549,7 @@ namespace SBR {
 
             if (SnapPositionTimer == null) SnapPositionTimer = new ExpirationTimer(time);
             else SnapPositionTimer.expiration = time;
-            
+
             SnapPositionTimer.Set();
         }
 
@@ -558,7 +558,7 @@ namespace SBR {
             movementInput = channels.Movement;
             DoJumpOutput(channels);
         }
-        
+
         private void DoJumpOutput(CharacterChannels channels) {
             if (IsGrounded && enableInput && jumpVelocity.sqrMagnitude > 0) {
                 if (channels.Jump) {
@@ -580,10 +580,15 @@ namespace SBR {
             }
         }
 
-        private void DoJump(float charge) {
+        public void DoJump(float charge) {
+            Vector3 vel = transform.TransformDirection(jumpVelocity) * Mathf.Lerp(jumpChargeMinMultiplier, 1, charge);
+            DoJump(vel);
+        }
+
+        public void DoJump(Vector3 velocity) {
             Jumped?.Invoke();
             Jumping = true;
-            Velocity = transform.TransformDirection(jumpVelocity) * Mathf.Lerp(jumpChargeMinMultiplier, 1, charge);
+            Velocity = velocity;
         }
 
         private void UpdateMovementVelocity(Vector3 input, float dt) {
@@ -656,7 +661,7 @@ namespace SBR {
                 if (lastGround) Grounded?.Invoke(false);
                 return;
             }
-            
+
             Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
 
             int hits = Physics.SphereCastNonAlloc(pnt2 + transform.up * groundDist, radius, -transform.up,
@@ -742,7 +747,7 @@ namespace SBR {
 
             bool hasMovementInput = receivingInput;
             bool inputIsNonzero = movementInput != Vector3.zero;
-            
+
             if (!(hasMovementInput && inputIsNonzero) &&
                 _movementDelay.Interval > 0 &&
                 MovementVelocity.sqrMagnitude < 0.01f) {
@@ -752,7 +757,7 @@ namespace SBR {
             if (!_movementDelay.IsIntervalEnded) {
                 hasMovementInput = false;
             }
-            
+
             UpdateMovementVelocity(hasMovementInput ? movementInput : Vector3.zero, dt);
 
             if (!IsGrounded) {
