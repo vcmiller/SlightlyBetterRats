@@ -257,11 +257,17 @@ namespace SBR {
         [Tooltip("How to project the movement input vector.")]
         public ProjectMovementMode projectMovement = ProjectMovementMode.GroundNormal;
 
+        [Tooltip("Custom normal to project movement input onto.")]
+        [ConditionalDraw(nameof(projectMovement), ProjectMovementMode.Custom)]
+        public Vector3 customProjectMovementNormal = Vector3.up;
+
         /// <summary>
         /// The maximum slope, in degrees, that the character can climb.
         /// </summary>
         [Tooltip("The maximum slope, in degrees, that the character can climb.")]
         public float maxGroundAngle = 45;
+
+        public bool slideOnSteepSlopes = true;
 
         /// <summary>
         /// How much the player will stick to the ground.
@@ -394,7 +400,7 @@ namespace SBR {
         }
 
         public enum ProjectMovementMode {
-            None, LocalY, GroundNormal, Gravity,
+            None, LocalY, GroundNormal, Gravity, Custom,
         }
 
         public enum InputAccelerationMode {
@@ -504,19 +510,32 @@ namespace SBR {
             }
         }
 
-        private Vector3 AlignMovementInput(Vector3 input) {
-            Vector3 result = input;
+        private bool TryGetPlaneNormalForMovementProjection(out Vector3 normal) {
             switch (projectMovement) {
                 case ProjectMovementMode.GroundNormal when IsGrounded:
-                    result = Vector3.ProjectOnPlane(input, groundNormal);
-                    break;
+                    normal = groundNormal;
+                    return true;
                 case ProjectMovementMode.LocalY:
                 case ProjectMovementMode.GroundNormal when !IsGrounded:
-                    result = Vector3.ProjectOnPlane(input, transform.up);
-                    break;
+                    normal =  transform.up;
+                    return true;
                 case ProjectMovementMode.Gravity:
-                    result = Vector3.ProjectOnPlane(input, gravityDirection);
-                    break;
+                    normal =  gravityDirection;
+                    return true;
+                case ProjectMovementMode.Custom:
+                    normal =  customProjectMovementNormal;
+                    return true;
+                default:
+                    normal = Vector3.zero;
+                    return false;
+            }
+        }
+
+        private Vector3 AlignMovementInput(Vector3 input) {
+            Vector3 result = input;
+
+            if (TryGetPlaneNormalForMovementProjection(out Vector3 planeNormal)) {
+                result = Vector3.ProjectOnPlane(input, planeNormal);
             }
 
             if (result.sqrMagnitude > 0.00001f)
@@ -688,7 +707,7 @@ namespace SBR {
             }
 
             _groundHit.distance -= groundDist;
-            Sliding = anyHit && !IsGrounded;
+            Sliding = anyHit && !IsGrounded && slideOnSteepSlopes;
 
             if (anyHit) {
                 groundNormal = groundHit.normal;
