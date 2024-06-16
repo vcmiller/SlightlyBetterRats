@@ -20,34 +20,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System;
+using Infohazard.Sequencing;
+using Infohazard.StateSystem;
 using UnityEngine;
-using UnityEditor;
 
 namespace SBR {
-    [CanEditMultipleObjects]
-    [CustomEditor(typeof(Health))]
-    public class HealthInspector : UnityEditor.Editor {
-        private static float amt = 20;
-        private static readonly string[] exclude = { "m_Script", "_states" };
+    public class PersistedStateBehavior<T> : PersistedComponent<T>, IStateBehaviour where T : PersistedData, new() {
+        [SerializeField]
+        private StateList _states;
 
-        public override void OnInspectorGUI() {
-            EditorGUI.BeginDisabledGroup(!Application.isPlaying);
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Damage (" + amt + ")")) {
-                foreach (var t in targets) {
-                    var health = t as Health;
-                    health.Damage(amt);
-                }
-            }
-            amt = EditorGUILayout.FloatField(amt);
-            EditorGUILayout.EndHorizontal();
-            EditorGUI.EndDisabledGroup();
+        private bool _initialized = false;
 
-            serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, exclude);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_states"));
-            serializedObject.ApplyModifiedProperties();
+        public Type Type => GetType();
+
+        protected virtual void Awake() {
+            Initialize();
+        }
+
+        private void Initialize() {
+            if (_initialized) return;
+            _initialized = true;
+            
+            InitializeDefaultValues();
+            _states.Initialize(this);
+        }
+
+        protected virtual void InitializeDefaultValues() { }
+        public bool HasState(string stateName) => _states.HasState(stateName);
+        public bool IsStateActive(string stateName) => _states.IsStateActive(stateName);
+        public void SetStateActive(string stateName, bool value) {
+            Initialize();
+            _states.SetStateActive(stateName, value);
         }
     }
-
 }

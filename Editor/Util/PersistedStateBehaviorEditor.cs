@@ -20,34 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using UnityEngine;
+using SBR;
 using UnityEditor;
 
-namespace SBR {
+namespace SBR.Editor {
+    [CustomEditor(typeof(PersistedStateBehavior<>), true, isFallback = true)]
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(Health))]
-    public class HealthInspector : UnityEditor.Editor {
-        private static float amt = 20;
-        private static readonly string[] exclude = { "m_Script", "_states" };
-
+    public class PersistedStateBehaviorInspector : UnityEditor.Editor {
         public override void OnInspectorGUI() {
-            EditorGUI.BeginDisabledGroup(!Application.isPlaying);
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Damage (" + amt + ")")) {
-                foreach (var t in targets) {
-                    var health = t as Health;
-                    health.Damage(amt);
-                }
-            }
-            amt = EditorGUILayout.FloatField(amt);
-            EditorGUILayout.EndHorizontal();
-            EditorGUI.EndDisabledGroup();
-
             serializedObject.Update();
-            DrawPropertiesExcluding(serializedObject, exclude);
+            DrawPropertiesExcluding(serializedObject, "m_Script", "_states");
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_states"));
             serializedObject.ApplyModifiedProperties();
         }
     }
-
 }

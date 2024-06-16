@@ -30,7 +30,7 @@ namespace SBR {
     /// Used to give a GameObject a health value.
     /// </summary>
     [DisallowMultipleComponent]
-    public class Health : PersistedComponent<Health.StateInfo>, IParentDamageable {
+    public class Health : PersistedStateBehavior<Health.StateInfo>, IParentDamageable {
         /// <summary>
         /// Invoked when a new Health is created.
         /// </summary>
