@@ -31,7 +31,7 @@ namespace SBR.Menu {
         public bool Modified => _settings.Any(s => s.Modified);
 
         private void Awake() {
-            _settings = GetComponentsInChildren<SettingControl>().Select(t => t.Setting).ToArray<ISetting>();
+            _settings = GetComponentsInChildren<SettingControl>(true).Select(t => t.Setting).ToArray();
         }
 
         private void OnDisable() {
