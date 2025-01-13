@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System;
 using UnityEngine;
 
 namespace SBR {
@@ -36,7 +37,7 @@ namespace SBR {
             get => base.velocity;
             set {
                 base.velocity = value;
-                if (_rigidbody) _rigidbody.velocity = value;
+                if (_rigidbody && !_rigidbody.isKinematic) _rigidbody.velocity = value;
             }
         }
 
@@ -49,10 +50,16 @@ namespace SBR {
         protected override void Update() {
             base.Update();
             
-            if (_rigidbody) {
+            if (_rigidbody && !_rigidbody.isKinematic) {
                 velocity = _rigidbody.velocity;
             } else {
                 transform.position += velocity * Time.deltaTime;
+            }
+        }
+
+        private void FixedUpdate() {
+            if (_rigidbody && _rigidbody.isKinematic) {
+                _rigidbody.position += velocity * Time.fixedDeltaTime;
             }
         }
 

@@ -82,7 +82,9 @@ namespace SBR {
 
         public Vector3 Velocity {
             get => Rigidbody.velocity;
-            set => Rigidbody.velocity = value;
+            set {
+                if (!Rigidbody.isKinematic) Rigidbody.velocity = value;
+            }
         }
 
         public Vector3 MovementVelocity {
