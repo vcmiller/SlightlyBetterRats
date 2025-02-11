@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 //
 // Copyright (c) 2022-present Vincent Miller
 //
@@ -81,9 +81,9 @@ namespace SBR {
         public Vector3 RotationRates { get; private set; }
 
         public Vector3 Velocity {
-            get => Rigidbody.velocity;
+            get => Rigidbody.GetLinearVelocity();
             set {
-                if (!Rigidbody.isKinematic) Rigidbody.velocity = value;
+                if (!Rigidbody.isKinematic) Rigidbody.SetLinearVelocity(value);
             }
         }
 
@@ -758,7 +758,7 @@ namespace SBR {
             float dt = Time.fixedDeltaTime;
 
             if (SnapPositionTimer?.expired == false) {
-                Rigidbody.velocity = Vector3.zero;
+                Rigidbody.SetLinearVelocity(Vector3.zero);
 
                 float t = _snapPositionCurve.Evaluate(1 - SnapPositionTimer.remainingRatio);
                 Rigidbody.position = Vector3.Lerp(_snapStartPosition, _snapEndPosition, t);
@@ -782,7 +782,7 @@ namespace SBR {
             UpdateMovementVelocity(hasMovementInput ? movementInput : Vector3.zero, dt);
 
             if (!IsGrounded) {
-                Rigidbody.velocity += gravity * dt;
+                Rigidbody.AddLinearVelocity(gravity * dt);
             }
 
             Vector3 theGroundIsMoving = GetPlatformMovement();
