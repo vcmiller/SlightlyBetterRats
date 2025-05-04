@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -47,7 +47,7 @@ namespace SBR {
         /// <summary>
         /// Allows enabling/disabling DoOutput callback without disabling the entire Component.
         /// </summary>
-        public bool enableInput {
+        public bool EnableInput {
             get => _enableInput;
             set {
                 if (_enableInput != value) {
@@ -57,18 +57,13 @@ namespace SBR {
             }
         }
 
-        /// <summary>
-        /// Whether motor currently receives input from any Controller.
-        /// </summary>
-        public bool receivingInput => enableInput && controllers.Any(c => c.enabled);
-
-        private IController<T>[] controllers;
+        protected IController<T>[] Controllers { get; private set; }
 
         /// <summary>
         /// The last Channels object passed to DoOutput.
         /// This may be null! Use the passed-in object where possible.
         /// </summary>
-        protected T lastChannels { get; private set; }
+        protected T LastChannels { get; private set; }
 
         protected override void Awake() {
             base.Awake();
@@ -84,18 +79,18 @@ namespace SBR {
         }
 
         private void GetControllersArray() {
-            controllers = GetComponentsInParent<IController>().OfType<IController<T>>().ToArray();
+            Controllers = GetComponentsInParent<IController>().OfType<IController<T>>().ToArray();
         }
 
         private void ConnectControllers() {
-            foreach (var ctrl in controllers) {
+            foreach (var ctrl in Controllers) {
                 ctrl.InputReceived += ControllerInputReceived;
                 ctrl.PostInputReceived += ControllerPostInputReceived;
             }
         }
 
         private void DisconnectControllers() {
-            foreach (var ctrl in controllers) {
+            foreach (var ctrl in Controllers) {
                 ctrl.InputReceived -= ControllerInputReceived;
                 ctrl.PostInputReceived -= ControllerPostInputReceived;
             }
@@ -116,8 +111,8 @@ namespace SBR {
         private void ControllerInputReceived(T channels) {
             if (Pause.Paused) return;
 
-            lastChannels = channels;
-            if (enableInput) {
+            LastChannels = channels;
+            if (EnableInput) {
                 try {
                     DoOutput(channels);
                 } catch (Exception ex) {
@@ -149,11 +144,11 @@ namespace SBR {
         /// </summary>
         protected virtual void PostOutput(T channels) { }
     }
-    
+
     public abstract class PersistedMotor<TChannels, TState> : Motor<TChannels>, IPersistedComponent
         where TState : PersistedData, new()
         where TChannels : Channels, new() {
-        
+
         protected TState State { get; private set; }
         public bool Initialized => State != null;
         protected PersistedGameObjectBase Owner { get; private set; }
@@ -170,7 +165,7 @@ namespace SBR {
                 Debug.LogError($"State {id} could not be loaded.");
             }
         }
-        
+
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
         public virtual UniTask PostLoad() => UniTask.CompletedTask;

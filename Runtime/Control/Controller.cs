@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -56,29 +56,26 @@ namespace SBR {
         /// <summary>
         /// The channels object which carries input information.
         /// </summary>
-        public T Channels { get; private set; }
+        public T Channels { get; private set; } = new();
+
         public Channels BaseChannels => Channels;
-        private readonly SafeUpdateSet<Action<T>> _inputReceived = new SafeUpdateSet<Action<T>>();
-        private readonly SafeUpdateSet<Action<T>> _postInputReceived = new SafeUpdateSet<Action<T>>();
+        private readonly SafeUpdateSet<Action<T>> _inputReceived = new();
+        private readonly SafeUpdateSet<Action<T>> _postInputReceived = new();
 
         /// <summary>
         /// Invoked each frame after Channels have been updated.
         /// </summary>
         public event Action<T> InputReceived {
-            add { _inputReceived.Add(value); }
-            remove { _inputReceived.Remove(value); }
+            add => _inputReceived.Add(value);
+            remove => _inputReceived.Remove(value);
         }
 
         /// <summary>i
         /// Invoked each frame after InputReceived.
         /// </summary>
         public event Action<T> PostInputReceived {
-            add { _postInputReceived.Add(value); }
-            remove { _postInputReceived.Remove(value); }
-        }
-
-        public Controller() {
-            Channels = new T();
+            add => _postInputReceived.Add(value);
+            remove => _postInputReceived.Remove(value);
         }
 
         private void Update() {
@@ -93,24 +90,24 @@ namespace SBR {
             _inputReceived.Update();
             _postInputReceived.Update();
 
-            foreach (var callback in _inputReceived) {
+            foreach (Action<T> callback in _inputReceived) {
                 callback(Channels);
             }
 
             Channels.ClearInput();
 
-            foreach (var callback in _postInputReceived) {
+            foreach (Action<T> callback in _postInputReceived) {
                 callback(Channels);
             }
         }
 
         protected abstract void DoInput();
     }
-    
+
     public abstract class PersistedController<TChannels, TState> : Controller<TChannels>, IPersistedComponent
         where TState : PersistedData, new()
         where TChannels : Channels, new() {
-        
+
         protected TState State { get; private set; }
         public bool Initialized => State != null;
         protected PersistedGameObjectBase Owner { get; private set; }
@@ -127,7 +124,7 @@ namespace SBR {
                 Debug.LogError($"State {id} could not be loaded.");
             }
         }
-        
+
         public virtual void LoadState() {}
         public virtual void LoadDefaultState() {}
         public virtual UniTask PostLoad() => UniTask.CompletedTask;

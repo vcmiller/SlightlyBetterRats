@@ -107,7 +107,7 @@ namespace SBR {
         protected override void DoOutput(CharacterChannels channels) {
             Vector2 move = Vector2.zero;
 
-            if (enableInput) {
+            if (EnableInput) {
                 move = Vector3.Project(channels.Movement, transform.right) * walkSpeed;
             }
 

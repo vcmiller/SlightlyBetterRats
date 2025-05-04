@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System;
+using System.Linq;
 using Infohazard.Core;
 using Infohazard.StateSystem;
 using UnityEngine;
@@ -87,9 +88,7 @@ namespace SBR {
             }
         }
 
-        public Vector3 MovementVelocity {
-            get => GetVelocityMovementComponent(Velocity);
-        }
+        public Vector3 MovementVelocity => GetVelocityMovementComponent(Velocity);
 
         public bool IsMoving { get; private set; }
 
@@ -113,42 +112,47 @@ namespace SBR {
         /// <summary>
         /// Current ground collider if grounded is true.
         /// </summary>
-        public Collider ground { get; private set; }
+        public Collider Ground { get; private set; }
+
+        /// <summary>
+        /// Rigidbody of the ground collider if grounded is true.
+        /// </summary>
+        public Rigidbody GroundRigidbody { get; private set; }
 
         /// <summary>
         /// World-space gravity acceleration on this Character.
         /// </summary>
-        public Vector3 gravity => transform.TransformDirection(gravityDirection) * Mathf.Abs(Physics.gravity.y) * gravityScale;
+        public Vector3 Gravity => Physics.gravity * gravityScale;
 
         /// <summary>
         /// Current movement-based acceleration factoring in air control.
         /// </summary>
-        public float actualMovementAcceleration =>
+        public float ActualMovementAcceleration =>
             IsGrounded ? movementAcceleration : movementAcceleration * airAccelerationMultiplier;
 
-        public float actualMovementDeceleration =>
+        public float ActualMovementDeceleration =>
             IsGrounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
 
         public RaycastHit[] GroundHitBuffer { get; private set; }
 
-        public RaycastHit groundHit => _groundHit;
+        public RaycastHit GroundHit => _groundHit;
         private RaycastHit _groundHit;
 
+        private Vector3 _groundNormal;
+        private Vector3 _groundLastPos;
+        private Vector3 _groundHitLocalPos;
 
-        private Vector3 groundNormal;
-        private Vector3 groundLastPos;
-        private Vector3 groundHitLocalPos;
+        private PhysicMaterial _frictionless;
 
-        private PhysicMaterial frictionless;
+        private Vector3 _rootMotionMovement;
+        private Quaternion _rootMotionRotation = Quaternion.identity;
 
-        private Vector3 rootMotionMovement;
-        private Quaternion rootMotionRotation = Quaternion.identity;
+        private Vector3 _movementInput;
 
-        private Vector3 movementInput;
-
-        private Quaternion targetRotation = Quaternion.identity;
-        private bool hasInitializedTargetRotation = false;
-        private bool isRotating;
+        private Quaternion _targetRotation = Quaternion.identity;
+        private bool _hasInitializedTargetRotation = false;
+        private bool _isRotating;
+        private bool _hasInput;
 
         private AnimationCurve _snapPositionCurve;
         private Vector3 _snapStartPosition, _snapEndPosition;
@@ -317,12 +321,6 @@ namespace SBR {
         public float gravityScale = 1;
 
         /// <summary>
-        /// The value to multiply Physics.Gravity by.
-        /// </summary>
-        [Tooltip("The direction of gravity on the character.")]
-        public Vector3 gravityDirection = Vector3.down;
-
-        /// <summary>
         /// Distance for ground checks. Should be about 0.05 * capsule height.
         /// </summary>
         [Tooltip("Distance for ground checks. Should be about 0.05 * capsule height.")]
@@ -418,14 +416,14 @@ namespace SBR {
 
             Rigidbody.useGravity = false;
 
-            frictionless = new PhysicMaterial("Frictionless") {
+            _frictionless = new PhysicMaterial("Frictionless") {
                 bounciness = 0,
                 bounceCombine = PhysicMaterialCombine.Minimum,
                 staticFriction = 0,
                 dynamicFriction = 0,
                 frictionCombine = PhysicMaterialCombine.Minimum,
             };
-            Capsule.sharedMaterial = frictionless;
+            Capsule.sharedMaterial = _frictionless;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
             GroundHitBuffer = new RaycastHit[groundHitBufferSize];
@@ -472,20 +470,22 @@ namespace SBR {
         }
 
         public void ApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation) {
-            rootMotionMovement += deltaPosition;
-            rootMotionRotation = deltaRotation * rootMotionRotation;
+            _rootMotionMovement += deltaPosition;
+            _rootMotionRotation = deltaRotation * _rootMotionRotation;
         }
 
         private void UpdateJumping() {
             if (Jumping && transform.InverseTransformDirection(Velocity).y <= 0) {
                 Jumping = false;
-                lastChannels.Jump = false;
+                LastChannels.Jump = false;
             }
         }
 
         private void LateUpdate() {
             UpdateGrounded();
             UpdateJumping();
+
+            _hasInput = EnableInput && Controllers.Any(c => c.enabled);
         }
 
         public void MoveTargetRotationTowards(Quaternion rotation) {
@@ -494,12 +494,12 @@ namespace SBR {
                 if (!rotateX) euler.x = 0;
                 if (!rotateY) euler.y = 0;
                 if (!rotateZ) euler.z = 0;
-                targetRotation = transform.rotation * Quaternion.Euler(euler);
+                _targetRotation = transform.rotation * Quaternion.Euler(euler);
             } else {
-                targetRotation = rotation;
+                _targetRotation = rotation;
             }
 
-            hasInitializedTargetRotation = true;
+            _hasInitializedTargetRotation = true;
         }
 
         private void DoRotationOutput(CharacterChannels channels) {
@@ -515,14 +515,14 @@ namespace SBR {
         private bool TryGetPlaneNormalForMovementProjection(out Vector3 normal) {
             switch (projectMovement) {
                 case ProjectMovementMode.GroundNormal when IsGrounded:
-                    normal = groundNormal;
+                    normal = _groundNormal;
                     return true;
                 case ProjectMovementMode.LocalY:
                 case ProjectMovementMode.GroundNormal when !IsGrounded:
-                    normal =  transform.up;
+                    normal = Rigidbody.rotation * Vector3.up;
                     return true;
                 case ProjectMovementMode.Gravity:
-                    normal =  gravityDirection;
+                    normal = -Physics.gravity;
                     return true;
                 case ProjectMovementMode.Custom:
                     normal =  customProjectMovementNormal;
@@ -576,12 +576,12 @@ namespace SBR {
 
         protected override void DoOutput(CharacterChannels channels) {
             DoRotationOutput(channels);
-            movementInput = channels.Movement;
+            _movementInput = channels.Movement;
             DoJumpOutput(channels);
         }
 
         private void DoJumpOutput(CharacterChannels channels) {
-            if (IsGrounded && enableInput && jumpVelocity.sqrMagnitude > 0) {
+            if (IsGrounded && EnableInput && jumpVelocity.sqrMagnitude > 0) {
                 if (channels.Jump) {
                     if (jumpMode == JumpMode.Press) {
                         DoJump(1);
@@ -628,15 +628,15 @@ namespace SBR {
                     // Player is holding input in a direction, and is not moving faster than the speed limit.
                     if (inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
                         currentMovementVelocity =
-                            Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, actualMovementAcceleration * dt);
+                            Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, ActualMovementAcceleration * dt);
                     } else if (inputAccelerationMode == InputAccelerationMode.Force) {
-                        currentMovementVelocity += input.normalized * (actualMovementAcceleration * dt);
+                        currentMovementVelocity += input.normalized * (ActualMovementAcceleration * dt);
                         currentMovementVelocity = Vector3.ClampMagnitude(currentMovementVelocity, speedLimit);
                     }
                 } else {
                     // Player is not holding input, or is moving faster than the speed limit.
                     currentMovementVelocity =
-                        Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, actualMovementDeceleration * dt);
+                        Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, ActualMovementDeceleration * dt);
                 }
             }
 
@@ -647,7 +647,7 @@ namespace SBR {
             }
 
             if (Sliding) {
-                Vector3 n = Vector3.ProjectOnPlane(groundNormal, transform.up);
+                Vector3 n = Vector3.ProjectOnPlane(_groundNormal, Rigidbody.rotation * Vector3.up);
                 n = -n.normalized;
 
                 if (Vector3.Dot(projectedVel, n) > 0) {
@@ -675,17 +675,27 @@ namespace SBR {
         }
 
         public void UpdateGrounded() {
-            var lastGround = ground;
+            bool isFixedUpdate = Time.inFixedTimeStep;
+            var lastGround = Ground;
             if (Jumping) {
                 IsGrounded = false;
-                ground = null;
+                Ground = null;
+                GroundRigidbody = null;
                 if (lastGround) Grounded?.Invoke(false);
                 return;
             }
 
-            Capsule.GetCapsuleInfo(out _, out Vector3 pnt2, out float radius, out _);
+            Matrix4x4 transformMatrix = isFixedUpdate
+                ? Matrix4x4.TRS(Rigidbody.position, Rigidbody.rotation, Vector3.one)
+                : transform.localToWorldMatrix;
 
-            int hits = Physics.SphereCastNonAlloc(pnt2 + transform.up * groundDist, radius, -transform.up,
+            GameObjectUtility.GetCapsuleInfo(Capsule.radius, Capsule.height, Capsule.center, Capsule.direction,
+                                             transformMatrix, out _, out Vector3 pnt2, out float radius, out _);
+
+            Quaternion rotation = isFixedUpdate ? Rigidbody.rotation : transform.rotation;
+            Vector3 up = rotation * Vector3.up;
+
+            int hits = Physics.SphereCastNonAlloc(pnt2 + up * groundDist, radius, -up,
                 GroundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
 
             bool anyHit = false;
@@ -695,11 +705,11 @@ namespace SBR {
             float maxGroundAngleDot = Mathf.Cos(maxGroundAngle);
             for (int i = 0; i < hits; i++) {
                 RaycastHit hit = GroundHitBuffer[i];
+                Vector3 proj = Vector3.ProjectOnPlane(hit.point - pnt2, up);
 
-                Vector2 h = transform.InverseTransformPoint(hit.point).ToXZ();
-                if (h.sqrMagnitude > maxPointDist) continue;
+                if (proj.sqrMagnitude > maxPointDist) continue;
 
-                bool angle = Vector3.Dot(hit.normal, transform.up) >= maxGroundAngleDot;
+                bool angle = Vector3.Dot(hit.normal, up) >= maxGroundAngleDot;
                 if (IsGrounded && !angle) continue;
                 if ((IsGrounded || !angle) && anyHit && hit.distance >= _groundHit.distance) continue;
 
@@ -712,43 +722,51 @@ namespace SBR {
             Sliding = anyHit && !IsGrounded && slideOnSteepSlopes;
 
             if (anyHit) {
-                groundNormal = groundHit.normal;
+                _groundNormal = GroundHit.normal;
             }
 
             if (IsGrounded) {
-                ground = groundHit.collider;
+                Ground = GroundHit.collider;
+                GroundRigidbody = GroundHit.rigidbody;
 
-                if (lastGround != ground) {
-                    groundHitLocalPos = ground.transform.InverseTransformPoint(groundHit.point);
-                    groundLastPos = groundHit.point;
+                if (lastGround != Ground) {
+                    if (GroundHit.rigidbody) {
+                        _groundHitLocalPos = Quaternion.Inverse(GroundHit.rigidbody.rotation) *
+                                            (GroundHit.point - GroundHit.rigidbody.position);
+                    } else {
+                        _groundHitLocalPos = Ground.transform.InverseTransformPoint(GroundHit.point);
+                    }
+
+                    _groundLastPos = GroundHit.point;
                 }
             } else {
-                ground = null;
+                Ground = null;
+                GroundRigidbody = null;
             }
 
-            if (lastGround != ground) {
-                Grounded?.Invoke(ground);
+            if (lastGround != Ground) {
+                Grounded?.Invoke(Ground);
             }
         }
 
         private void RotateTowardsTarget() {
-            if (isRotating) {
+            if (_isRotating) {
                 Quaternion q = Rigidbody.rotation;
                 if (rotationSpeed == 0) {
-                    Rigidbody.MoveRotation(targetRotation);
+                    Rigidbody.MoveRotation(_targetRotation);
                 } else if (useSmoothRotation) {
-                    Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                    Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 } else {
-                    Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                    Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * rotationSpeed));
                 }
                 RotationRates = MathUtility.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
-                if (minTargetAngle > 0 && Quaternion.Angle(Rigidbody.rotation, targetRotation) <= minTargetAngle) {
-                    isRotating = false;
+                if (minTargetAngle > 0 && Quaternion.Angle(Rigidbody.rotation, _targetRotation) <= minTargetAngle) {
+                    _isRotating = false;
                 }
             } else {
-                if (Quaternion.Angle(Rigidbody.rotation, targetRotation) > maxTargetAngle) {
-                    isRotating = true;
+                if (Quaternion.Angle(Rigidbody.rotation, _targetRotation) > maxTargetAngle) {
+                    _isRotating = true;
                 }
                 RotationRates = Vector3.zero;
             }
@@ -766,8 +784,8 @@ namespace SBR {
                 return;
             }
 
-            bool hasMovementInput = receivingInput;
-            bool inputIsNonzero = movementInput != Vector3.zero;
+            bool hasMovementInput = _hasInput;
+            bool inputIsNonzero = _movementInput != Vector3.zero;
 
             if (!(hasMovementInput && inputIsNonzero) &&
                 _movementDelay.Interval > 0 &&
@@ -779,10 +797,10 @@ namespace SBR {
                 hasMovementInput = false;
             }
 
-            UpdateMovementVelocity(hasMovementInput ? movementInput : Vector3.zero, dt);
+            UpdateMovementVelocity(hasMovementInput ? _movementInput : Vector3.zero, dt);
 
             if (!IsGrounded) {
-                Rigidbody.AddLinearVelocity(gravity * dt);
+                Rigidbody.AddLinearVelocity(Gravity * dt);
             }
 
             Vector3 theGroundIsMoving = GetPlatformMovement();
@@ -790,7 +808,7 @@ namespace SBR {
 
             Rigidbody.MovePosition(Rigidbody.position + theGroundIsMoving + rootMovement);
 
-            if (rotateMode != RotateMode.None && enableInput && hasInitializedTargetRotation) {
+            if (rotateMode != RotateMode.None && EnableInput && _hasInitializedTargetRotation) {
                 RotateTowardsTarget();
             }
         }
@@ -798,29 +816,26 @@ namespace SBR {
         private Vector3 GetRootMovement() {
             Vector3 rootMovement = Vector3.zero;
 
-            rootMovement = rootMotionMovement * rootMotionScale;
+            rootMovement = _rootMotionMovement * rootMotionScale;
 
-            rootMovement = transform.InverseTransformVector(rootMovement);
+            Vector3 up = Rigidbody.rotation * Vector3.up;
 
             if (!useRootMotionY) {
-                rootMovement.y = 0;
+                rootMovement = Vector3.ProjectOnPlane(rootMovement, up);
             }
 
             if (!useRootMotionXZ) {
-                rootMovement.x = 0;
-                rootMovement.z = 0;
+                rootMovement = Vector3.Project(rootMovement, up);
             }
 
-            rootMovement = transform.TransformVector(rootMovement);
-
-            rootMotionMovement = Vector3.zero;
+            _rootMotionMovement = Vector3.zero;
 
             if (useRootMotionRotation) {
-                Rigidbody.MoveRotation(rootMotionRotation * Rigidbody.rotation);
+                Rigidbody.MoveRotation(_rootMotionRotation * Rigidbody.rotation);
             }
 
-            rootMotionRotation = Quaternion.identity;
-            rootMotionMovement = Vector3.zero;
+            _rootMotionRotation = Quaternion.identity;
+            _rootMotionMovement = Vector3.zero;
 
             return rootMovement;
         }
@@ -828,12 +843,14 @@ namespace SBR {
         private Vector3 GetPlatformMovement() {
             Vector3 theGroundIsMoving = Vector3.zero;
 
-            if (ground) {
-                Vector3 curGroundHitPos = ground.transform.TransformPoint(groundHitLocalPos);
+            if (GroundRigidbody) {
+                Vector3 curGroundHitPos = GroundRigidbody.position + GroundRigidbody.rotation * _groundHitLocalPos;
 
-                if (moveWithPlatforms) theGroundIsMoving = curGroundHitPos - groundLastPos;
-                groundLastPos = groundHit.point;
-                groundHitLocalPos = ground.transform.InverseTransformPoint(groundHit.point);
+                if (moveWithPlatforms) theGroundIsMoving = curGroundHitPos - _groundLastPos;
+                _groundLastPos = GroundHit.point;
+
+                _groundHitLocalPos = Quaternion.Inverse(GroundRigidbody.rotation) *
+                                     (GroundHit.point - GroundRigidbody.position);
 
                 if (groundStickiness > 0 && !Jumping) {
                     float d = Mathf.Lerp(_groundHit.distance - groundDist, 0, groundStickiness);
