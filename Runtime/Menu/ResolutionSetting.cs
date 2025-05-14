@@ -20,7 +20,7 @@ namespace SBR.Menu {
         }
 
         private static void Setter(Resolution value) {
-            Screen.SetResolution(value.width, value.height, Screen.fullScreenMode, value.refreshRate);
+            Screen.SetResolution(value.width, value.height, Screen.fullScreenMode, value.refreshRateRatio);
         }
 
         public override void Load() {
