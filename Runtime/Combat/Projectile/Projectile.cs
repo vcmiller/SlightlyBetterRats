@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,7 +28,7 @@ using UnityEngine.Serialization;
 
 namespace SBR {
     public delegate void ProjectileHitCallback(GameObject hitObject, Vector3 position, float damageDealt);
-    
+
     /// <summary>
     /// Base class for Projectiles.
     /// </summary>
@@ -133,7 +133,7 @@ namespace SBR {
         /// Whether the projectile has been fired.
         /// </summary>
         public bool fired { get; protected set; }
-        
+
         public float damageMultiplier { get; set; }
 
         public AddressableSpawnRef ImpactPrefabSpawnRef {
@@ -157,14 +157,14 @@ namespace SBR {
         /// Invoked when the projectile collides with an object.
         /// </summary>
         public event ProjectileHitCallback HitObject;
-        
+
         protected virtual bool hitsTriggers => triggerInteraction == QueryTriggerInteraction.Collide ||
                     (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics.queriesHitTriggers);
-        
+
         protected virtual Vector3 gravityVector => gravity * Physics.gravity;
-        
+
         public GameObject Creator { get; set; }
-        
+
         public object Method { get; set; }
 
         /// <summary>
@@ -199,6 +199,7 @@ namespace SBR {
         }
 
         protected virtual void OnDespawned() {
+            HitObject = null;
             _hasLifetime = false;
         }
 
@@ -231,7 +232,7 @@ namespace SBR {
             fired = false;
 
             if (!playDestroyEffectsAfterTime) return;
-            
+
             Transform t = transform;
             if (impactSound) {
                 impactSound.PlayAtPoint(t.position);
@@ -298,14 +299,14 @@ namespace SBR {
             }
 
             if (impactPrefab) {
-                GameObject obj = Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null, 
+                GameObject obj = Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null,
                                                  true, scene:gameObject.scene);
                 if (obj.TryGetComponent(out IHasCreator ihc)) {
                     ihc.Creator = Creator;
                     ihc.Method = Method;
                 }
             }
-            
+
             if (_impactPrefabSpawnRef.IsValid) {
                 GameObject obj = _impactPrefabSpawnRef.Spawn(new SpawnParams {
                     Position = position,
@@ -314,7 +315,7 @@ namespace SBR {
                     InWorldSpace = true,
                     Scene = gameObject.scene,
                 });
-                
+
                 if (obj.TryGetComponent(out IHasCreator ihc)) {
                     ihc.Creator = Creator;
                     ihc.Method = Method;
