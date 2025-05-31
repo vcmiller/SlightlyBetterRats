@@ -89,7 +89,7 @@ namespace SBR {
             if (ShouldCreate(health)) {
                 var hb = Instantiate(healthbarPrefab, transform, false);
                 healthbars[health] = hb;
-                hb.target = health;
+                hb.Target = health;
                 hb.gameObject.SetActive(enabled);
             }
         }

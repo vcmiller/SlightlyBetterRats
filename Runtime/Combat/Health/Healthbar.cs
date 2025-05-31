@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Diagnostics;
 using Infohazard.Core;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SBR {
@@ -32,209 +34,287 @@ namespace SBR {
         private Health _target;
 
         /// <summary>
-        /// Image that is used for the bar itself. 
-        /// If the mode is set to filled, will control the fill amount. 
+        /// Image that is used for the bar itself.
+        /// If the mode is set to filled, will control the fill amount.
         /// Otherwise, will control the anchor positions.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("fillImage")]
         [Tooltip("Image that is used for the bar itself.")]
-        public Image fillImage;
+        private Image _fillImage;
 
         /// <summary>
         /// Image that is used for the background of the healthbar.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("backImage")]
         [Tooltip("Image that is used for the background of the healthbar.")]
-        public Image backImage;
+        private Image _backImage;
+
+        [SerializeField]
+        [FormerlySerializedAs("backFillImage")]
+        [Tooltip("Image that updates in a delayed mode behind the main fill, in order to show damage taken.")]
+        private Image _backFillImage;
+
+        [SerializeField]
+        [FormerlySerializedAs("backFillDelay")]
+        [ConditionalDraw(nameof(_backFillImage), null, false)]
+        [Tooltip("How long to wait before the back fill image starts updating after damage is taken.")]
+        private float _backFillDelay = 0.5f;
+
+        [SerializeField]
+        [FormerlySerializedAs("backFillSpeed")]
+        [ConditionalDraw(nameof(_backFillImage), null, false)]
+        [Tooltip("How fast the back fill image updates to show damage taken, as a fraction of the bar per second.")]
+        private float _backFillSpeed = 1.0f;
 
         /// <summary>
         /// Text used to show amount.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("amountText")]
         [Tooltip("Text used to show amount.")]
-        public TMP_Text amountText;
+        private TMP_Text _amountText;
 
         /// <summary>
         /// How to display the amount text.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("amountTextType")]
         [Tooltip("How to display the amount text.")]
-        [ConditionalDraw("amountText", null, false)]
-        public AmountTextType amountTextType;
+        [ConditionalDraw(nameof(_amountText), null, false)]
+        private AmountTextType _amountTextType;
 
-        public string amountTextFormat;
+        [SerializeField]
+        [FormerlySerializedAs("amountTextFormat")]
+        private string _amountTextFormat;
 
         /// <summary>
         /// Optional additional graphics which will be shown and hidden along with the rest of the Healthbar.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("additionalGraphics")]
         [Tooltip("Optional additional graphics which will be shown and hidden along with the rest of the Healthbar.")]
-        public Graphic[] additionalGraphics;
+        private Graphic[] _additionalGraphics;
 
         /// <summary>
         /// Whether to track the location of the target on screen.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("trackOnScreen")]
         [Tooltip("Whether to track the location of the target on screen.")]
-        public bool trackOnScreen;
+        private bool _trackOnScreen;
 
         /// <summary>
         /// Camera to use for tracking on screen. Leave empty to use Camera.main.
         /// </summary>
-        [ConditionalDraw("trackOnScreen")]
+        [SerializeField]
+        [FormerlySerializedAs("trackingCamera")]
+        [ConditionalDraw(nameof(_trackOnScreen))]
         [Tooltip("Camera to use for tracking on screen. Leave empty to use Camera.main.")]
-        public Camera trackingCamera;
+        private Camera _trackingCamera;
 
         /// <summary>
         /// World space offset to apply when tracking the target.
         /// </summary>
-        [ConditionalDraw("trackOnScreen")]
+        [SerializeField]
+        [FormerlySerializedAs("trackWorldOffset")]
+        [ConditionalDraw(nameof(_trackOnScreen))]
         [Tooltip("World space offset to apply when tracking the target.")]
-        public Vector3 trackWorldOffset = Vector3.up;
+        private Vector3 _trackWorldOffset = Vector3.up;
 
         /// <summary>
         /// Screen space offset to apply when tracking the target.
         /// </summary>
-        [ConditionalDraw("trackOnScreen")]
+        [SerializeField]
+        [FormerlySerializedAs("trackScreenOffset")]
+        [ConditionalDraw(nameof(_trackOnScreen))]
         [Tooltip("Screen space offset to apply when tracking the target.")]
-        public Vector2 trackScreenOffset;
+        private Vector2 _trackScreenOffset;
 
         /// <summary>
         /// How the Healthbar is displayed.
         /// </summary>
+        [SerializeField]
+        [FormerlySerializedAs("displayMode")]
         [Tooltip("How the Healthbar is displayed.")]
-        public DisplayMode displayMode = DisplayMode.Visible;
+        private DisplayMode _displayMode = DisplayMode.Visible;
 
         /// <summary>
         /// When using DisplayMode.OnDamage, how long to show the Healthbar when it is damaged.
         /// </summary>
-        [ConditionalDraw("displayMode", DisplayMode.OnDamage, true)]
+        [SerializeField]
+        [FormerlySerializedAs("displayDuration")]
+        [ConditionalDraw(nameof(_displayMode), DisplayMode.OnDamage, true)]
         [Tooltip("How long to show the Healthbar when it is damaged.")]
-        public float displayDuration = 3;
-        
+        private float _displayDuration = 3;
+
         /// <summary>
         /// Target Health that this Healthbar monitors.
         /// </summary>
-        public Health target {
-            get { return _target; }
+        public Health Target {
+            get => _target;
             set {
-                if (_target != value) {
-                    if (_target) {
-                        _target.Damaged -= HealthDamaged;
-                    }
+                if (_target == value) return;
+                if (_target) {
+                    _target.Damaged -= HealthDamaged;
+                }
 
-                    _target = value;
+                _target = value;
 
-                    if (_target) {
-                        _target.Damaged += HealthDamaged;
-                    }
+                if (_target) {
+                    _target.Damaged += HealthDamaged;
+                    _backFillAmount = _target.CurrentHealth / _target.maxHealth;
                 }
             }
+        }
+
+        public Image FillImage {
+            get => _fillImage;
+            set => _fillImage = value;
+        }
+
+        public Image BackImage {
+            get => _backImage;
+            set => _backImage = value;
         }
 
         public enum DisplayMode {
-            Hidden, Visible, OnDamage
+            Hidden,
+            Visible,
+            OnDamage
         }
 
         public enum AmountTextType {
-            Percent, Fraction, Amount
+            Percent,
+            Fraction,
+            Amount
         }
 
-        private RectTransform fillRect;
-        private Canvas canvas;
-        private ExpirationTimer displayTimer;
+        private Canvas _canvas;
+        private PassiveTimer _displayTimer;
+        private PassiveTimer _backFillTimer;
+        private float _backFillAmount;
 
         private void HealthDamaged(Damage dmg) {
-            displayTimer?.Set();
+            _displayTimer.StartInterval();
+            _backFillTimer.StartInterval();
         }
 
         private void Awake() {
-            displayTimer = new ExpirationTimer(displayDuration);
+            _displayTimer = new PassiveTimer(_displayDuration);
+            _backFillTimer = new PassiveTimer(_backFillDelay);
         }
 
         private void Start() {
-            fillRect = fillImage.GetComponent<RectTransform>();
-            canvas = GetComponentInParent<Canvas>();
+            _canvas = GetComponentInParent<Canvas>();
 
-            var t = _target;
+            Health t = _target;
             _target = null;
-            target = t;
+            Target = t;
         }
 
         private void Reset() {
-            var canvas = GetComponentInParent<Canvas>();
+            Canvas canvas = GetComponentInParent<Canvas>();
             if (canvas.renderMode == RenderMode.ScreenSpaceCamera) {
-                trackingCamera = canvas.worldCamera;
+                _trackingCamera = canvas.worldCamera;
             }
 
-            backImage = GetComponent<Image>();
-            var fill = transform.GetChild(0);
+            _backImage = GetComponent<Image>();
+            Transform fill = transform.GetChild(0);
             if (fill) {
-                fillImage = fill.GetComponent<Image>();
+                _fillImage = fill.GetComponent<Image>();
             }
         }
-        
+
         private void LateUpdate() {
-            bool en = target;
-            if (displayMode == DisplayMode.Hidden) {
+            bool en = Target;
+            if (_displayMode == DisplayMode.Hidden) {
                 en = false;
-            } else if (displayMode == DisplayMode.OnDamage) {
-                en &= !displayTimer.expired;
+            } else if (_displayMode == DisplayMode.OnDamage) {
+                en &= !_displayTimer.IsIntervalEnded;
             }
 
-            if (fillImage && target) {
-                if (fillImage.type == Image.Type.Filled) {
-                    fillImage.fillAmount = target.CurrentHealth / target.maxHealth;
-                    fillRect.anchorMax = Vector2.one;
+            if (Target) {
+                float fillAmount = Target.CurrentHealth / Target.maxHealth;
+
+                if (_fillImage) {
+                    if (_fillImage.type == Image.Type.Filled) {
+                        _fillImage.fillAmount = fillAmount;
+                        _fillImage.rectTransform.anchorMax = Vector2.one;
+                    } else {
+                        _fillImage.fillAmount = 1.0f;
+                        _fillImage.rectTransform.anchorMax = new Vector2(fillAmount, 1);
+                    }
+                }
+
+                if (_backFillImage) {
+                    if (_backFillAmount < fillAmount) {
+                        _backFillAmount = fillAmount;
+                    } else if (_backFillAmount > fillAmount && _backFillTimer.IsIntervalEnded) {
+                        _backFillAmount =
+                            Mathf.MoveTowards(_backFillAmount, fillAmount, _backFillSpeed * Time.deltaTime);
+                    }
+
+                    if (_backImage.type == Image.Type.Filled) {
+                        _backFillImage.fillAmount = _backFillAmount;
+                        _backFillImage.rectTransform.anchorMax = Vector2.one;
+                    } else {
+                        _backFillImage.fillAmount = 1.0f;
+                        _backFillImage.rectTransform.anchorMax = new Vector2(_backFillAmount, 1);
+                    }
+                }
+
+                if (_amountText) {
+                    string textValue;
+                    if (_amountTextType == AmountTextType.Amount) {
+                        textValue = Mathf.CeilToInt(Target.CurrentHealth).ToString();
+                    } else if (_amountTextType == AmountTextType.Fraction) {
+                        textValue = Mathf.CeilToInt(Target.CurrentHealth) + " / " + Mathf.CeilToInt(Target.maxHealth);
+                    } else {
+                        textValue = Mathf.CeilToInt(Target.CurrentHealth * 100 / Target.maxHealth).ToString();
+                    }
+
+                    if (!string.IsNullOrEmpty(_amountTextFormat)) {
+                        _amountText.text = string.Format(_amountTextFormat, textValue);
+                    } else {
+                        _amountText.text = textValue;
+                    }
+                }
+
+                Camera cam;
+                if (_trackingCamera) {
+                    cam = _trackingCamera;
                 } else {
-                    fillImage.fillAmount = 1.0f;
-                    fillRect.anchorMax = new Vector2(target.CurrentHealth / target.maxHealth, 1);
+                    cam = Camera.main;
+                }
+
+                if (_trackOnScreen && cam) {
+                    Vector3 wpos = Target.transform.position + _trackWorldOffset;
+                    Vector3 spos = cam.WorldToViewportPoint(wpos) + (Vector3) _trackScreenOffset;
+
+                    en &= spos.z > 0;
+
+                    Rect rect = _canvas.pixelRect;
+                    spos.z = 0;
+                    spos.x *= rect.width;
+                    spos.y *= rect.height;
+                    spos.x -= rect.width / 2;
+                    spos.y -= rect.height / 2;
+
+                    Vector3 s = _canvas.transform.localScale;
+                    _canvas.transform.localScale = Vector3.one;
+                    Vector3 p = _canvas.transform.TransformPoint(spos);
+                    _canvas.transform.localScale = s;
+                    transform.position = p;
                 }
             }
 
-            if (amountText && target) {
-                string textValue;
-                if (amountTextType == AmountTextType.Amount) {
-                    textValue = Mathf.CeilToInt(target.CurrentHealth).ToString();
-                } else if (amountTextType == AmountTextType.Fraction) {
-                    textValue = Mathf.CeilToInt(target.CurrentHealth) + " / " + Mathf.CeilToInt(target.maxHealth);
-                } else {
-                    textValue = Mathf.CeilToInt(target.CurrentHealth * 100 / target.maxHealth).ToString();
-                }
+            _fillImage.enabled = en;
+            if (_backImage) _backImage.enabled = en;
+            if (_amountText) _amountText.enabled = en;
 
-                if (!string.IsNullOrEmpty(amountTextFormat)) {
-                    amountText.text = string.Format(amountTextFormat, textValue);
-                } else {
-                    amountText.text = textValue;
-                }
-            }
-
-            Camera cam;
-            if (trackingCamera) {
-                cam = trackingCamera;
-            } else {
-                cam = Camera.main;
-            }
-
-            if (target && trackOnScreen && cam) {
-                Vector3 wpos = target.transform.position + trackWorldOffset;
-                Vector3 spos = cam.WorldToViewportPoint(wpos) + (Vector3)trackScreenOffset;
-                
-                en &= spos.z > 0;
-
-                var rect = canvas.pixelRect;
-                spos.z = 0;
-                spos.x *= rect.width;
-                spos.y *= rect.height;
-                spos.x -= rect.width / 2;
-                spos.y -= rect.height / 2;
-
-                var s = canvas.transform.localScale;
-                canvas.transform.localScale = Vector3.one;
-                Vector3 p = canvas.transform.TransformPoint(spos);
-                canvas.transform.localScale = s;
-                transform.position = p;
-            }
-
-            fillImage.enabled = en;
-            if (backImage) backImage.enabled = en;
-            if (amountText) amountText.enabled = en;
-
-            foreach (var graphic in additionalGraphics) {
+            foreach (Graphic graphic in _additionalGraphics) {
                 graphic.enabled = en;
             }
         }
