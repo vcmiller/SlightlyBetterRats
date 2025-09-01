@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2022-present Vincent Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,47 +29,81 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Apply Transform/Position")]
         [MenuItem("GameObject/Apply Transform/Position")]
         public static void ApplyPosition() {
-            foreach (var obj in Selection.gameObjects) {
-                if (obj && obj.transform.position != Vector3.zero) {
-                    RecordUndo(obj, "Apply Position");
-                    Vector3[] childPositions = new Vector3[obj.transform.childCount];
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        var child = obj.transform.GetChild(i);
-                        childPositions[i] = child.position;
-                    }
-
-                    Vector3 offset = obj.transform.InverseTransformVector(obj.transform.position);
-                    obj.transform.position = Vector3.zero;
-
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        obj.transform.GetChild(i).position = childPositions[i];
-                    }
-                    
-                    OffsetAllColliders(obj, offset);
+            foreach (GameObject obj in Selection.gameObjects) {
+                if (!obj || obj.transform.position == Vector3.zero) continue;
+                RecordUndo(obj, "Apply Position");
+                Vector3[] childPositions = new Vector3[obj.transform.childCount];
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    Transform child = obj.transform.GetChild(i);
+                    childPositions[i] = child.position;
                 }
+
+                Vector3 offset = obj.transform.InverseTransformVector(obj.transform.position);
+                obj.transform.position = Vector3.zero;
+
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    obj.transform.GetChild(i).position = childPositions[i];
+                }
+
+                OffsetAllColliders(obj, offset);
             }
         }
-        
+
         [MenuItem("Tools/Infohazard/Apply Transform/Local Position")]
         [MenuItem("GameObject/Apply Transform/Local Position")]
         public static void ApplyLocalPosition() {
-            foreach (var obj in Selection.gameObjects) {
-                if (obj && obj.transform.localPosition != Vector3.zero) {
-                    RecordUndo(obj, "Apply Local Position");
-                    Vector3[] childPositions = new Vector3[obj.transform.childCount];
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        var child = obj.transform.GetChild(i);
-                        childPositions[i] = child.position;
-                    }
+            foreach (GameObject obj in Selection.gameObjects) {
+                if (!obj || obj.transform.localPosition == Vector3.zero) continue;
+                RecordUndo(obj, "Apply Local Position");
+                Vector3[] childPositions = new Vector3[obj.transform.childCount];
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    Transform child = obj.transform.GetChild(i);
+                    childPositions[i] = child.position;
+                }
 
-                    Vector3 offset = Quaternion.Inverse(obj.transform.localRotation) * obj.transform.localPosition;
-                    obj.transform.localPosition = Vector3.zero;
+                Vector3 offset = Quaternion.Inverse(obj.transform.localRotation) * obj.transform.localPosition;
+                obj.transform.localPosition = Vector3.zero;
 
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        obj.transform.GetChild(i).position = childPositions[i];
-                    }
-                    
-                    OffsetAllColliders(obj, offset);
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    obj.transform.GetChild(i).position = childPositions[i];
+                }
+
+                OffsetAllColliders(obj, offset);
+            }
+        }
+
+        [MenuItem("Tools/Infohazard/Apply Transform/Collider Offset to Position")]
+        [MenuItem("GameObject/Apply Transform/Collider Offset to Position")]
+        public static void ApplyColliderOffsetToPosition() {
+            foreach (GameObject obj in Selection.gameObjects) {
+                if (!obj || !obj.TryGetComponent(out Collider collider)) continue;
+
+                Vector3 colliderOffset = collider switch {
+                    SphereCollider s => s.center,
+                    CapsuleCollider c => c.center,
+                    BoxCollider b => b.center,
+                    _ => Vector3.zero,
+                };
+
+                if (colliderOffset == Vector3.zero) continue;
+                colliderOffset.Scale(obj.transform.localScale);
+
+                Vector3 offsetToSelf = obj.transform.localRotation * colliderOffset;
+
+                Undo.RecordObject(obj.transform, "Apply Collider Offset");
+                Undo.RecordObject(collider, "Apply Collider Offset");
+                obj.transform.localPosition += offsetToSelf;
+
+                switch (collider) {
+                    case SphereCollider s:
+                        s.center = Vector3.zero;
+                        break;
+                    case CapsuleCollider c:
+                        c.center = Vector3.zero;
+                        break;
+                    case BoxCollider b:
+                        b.center = Vector3.zero;
+                        break;
                 }
             }
         }
@@ -114,54 +148,108 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Apply Transform/Rotation")]
         [MenuItem("GameObject/Apply Transform/Rotation")]
         public static void ApplyRotation() {
-            foreach (var obj in Selection.gameObjects) {
-                if (obj && obj.transform.rotation != Quaternion.identity) {
-                    RecordUndo(obj, "Apply Rotation");
+            foreach (GameObject obj in Selection.gameObjects) {
+                if (!obj || obj.transform.rotation == Quaternion.identity) continue;
+                RecordUndo(obj, "Apply Rotation");
 
-                    (Quaternion rot, Vector3 pos)[] childRotations = new (Quaternion, Vector3)[obj.transform.childCount];
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        var child = obj.transform.GetChild(i);
-                        childRotations[i].rot = child.rotation;
-                        childRotations[i].pos = child.position;
+                (Quaternion rot, Vector3 pos)[] childRotations = new (Quaternion, Vector3)[obj.transform.childCount];
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    var child = obj.transform.GetChild(i);
+                    childRotations[i].rot = child.rotation;
+                    childRotations[i].pos = child.position;
+                }
+
+                Quaternion offset = obj.transform.rotation;
+                obj.transform.rotation = Quaternion.identity;
+
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    Transform child = obj.transform.GetChild(i);
+                    child.rotation = childRotations[i].rot;
+                    child.position = childRotations[i].pos;
+                }
+
+                foreach (Collider col in obj.GetComponents<Collider>()) {
+                    SetColliderOffset(col, offset * GetColliderOffset(col));
+                    switch (col) {
+                        case BoxCollider box:
+                            box.size = offset * box.size;
+                            break;
+                        case CapsuleCollider capsule:
+                            capsule.direction = RotateCapuleDirection(capsule.direction, offset);
+                            break;
                     }
+                }
 
-                    Quaternion offset = obj.transform.rotation;
-                    obj.transform.rotation = Quaternion.identity;
-
-                    for (int i = 0; i < obj.transform.childCount; i++) {
-                        var child = obj.transform.GetChild(i);
-                        child.rotation = childRotations[i].rot;
-                        child.position = childRotations[i].pos;
+                foreach (Collider2D col in obj.GetComponents<Collider2D>()) {
+                    col.offset = offset * col.offset;
+                    switch (col) {
+                        case BoxCollider2D box:
+                            box.size = offset * box.size;
+                            break;
+                        case CapsuleCollider2D capsule:
+                            capsule.direction = RotateCapuleDirection2D(capsule.direction, offset);
+                            break;
+                        case EdgeCollider2D edge:
+                            edge.points = RotatePoints(edge.points, offset);
+                            break;
+                        case PolygonCollider2D poly:
+                            poly.points = RotatePoints(poly.points, offset);
+                            break;
                     }
+                }
+            }
+        }
 
-                    foreach (var col in obj.GetComponents<Collider>()) {
-                        SetColliderOffset(col, offset * GetColliderOffset(col));
-                        switch (col) {
-                            case BoxCollider box:
-                                box.size = offset * box.size;
-                                break;
-                            case CapsuleCollider capsule:
-                                capsule.direction = RotateCapuleDirection(capsule.direction, offset);
-                                break;
-                        }
+        [MenuItem("Tools/Infohazard/Apply Transform/Local Rotation")]
+        [MenuItem("GameObject/Apply Transform/Local Rotation")]
+        public static void ApplyLocalRotation() {
+            foreach (GameObject obj in Selection.gameObjects) {
+                if (!obj || obj.transform.localRotation == Quaternion.identity) continue;
+                RecordUndo(obj, "Apply Local Rotation");
+
+                (Quaternion rot, Vector3 pos)[] childRotations = new (Quaternion, Vector3)[obj.transform.childCount];
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    Transform child = obj.transform.GetChild(i);
+                    childRotations[i].rot = child.rotation;
+                    childRotations[i].pos = child.position;
+                }
+
+                Quaternion offset = obj.transform.localRotation;
+                obj.transform.localRotation = Quaternion.identity;
+
+                for (int i = 0; i < obj.transform.childCount; i++) {
+                    Transform child = obj.transform.GetChild(i);
+                    child.rotation = childRotations[i].rot;
+                    child.position = childRotations[i].pos;
+                }
+
+                foreach (Collider col in obj.GetComponents<Collider>()) {
+                    SetColliderOffset(col, offset * GetColliderOffset(col));
+                    switch (col) {
+                        case BoxCollider box:
+                            box.size = offset * box.size;
+                            break;
+                        case CapsuleCollider capsule:
+                            capsule.direction = RotateCapuleDirection(capsule.direction, offset);
+                            break;
                     }
+                }
 
-                    foreach (var col in obj.GetComponents<Collider2D>()) {
-                        col.offset = offset * col.offset;
-                        switch (col) {
-                            case BoxCollider2D box:
-                                box.size = offset * box.size;
-                                break;
-                            case CapsuleCollider2D capsule:
-                                capsule.direction = RotateCapuleDirection2D(capsule.direction, offset);
-                                break;
-                            case EdgeCollider2D edge:
-                                edge.points = RotatePoints(edge.points, offset);
-                                break;
-                            case PolygonCollider2D poly:
-                                poly.points = RotatePoints(poly.points, offset);
-                                break;
-                        }
+                foreach (Collider2D col in obj.GetComponents<Collider2D>()) {
+                    col.offset = offset * col.offset;
+                    switch (col) {
+                        case BoxCollider2D box:
+                            box.size = offset * box.size;
+                            break;
+                        case CapsuleCollider2D capsule:
+                            capsule.direction = RotateCapuleDirection2D(capsule.direction, offset);
+                            break;
+                        case EdgeCollider2D edge:
+                            edge.points = RotatePoints(edge.points, offset);
+                            break;
+                        case PolygonCollider2D poly:
+                            poly.points = RotatePoints(poly.points, offset);
+                            break;
                     }
                 }
             }
