@@ -200,7 +200,7 @@ namespace SBR {
                 velocity += Physics2D.gravity * gravityScale * Time.deltaTime;
             }
 
-            rigidbody.velocity = Vector2.zero;
+            rigidbody.linearVelocity = Vector2.zero;
         }
 
         private void FixedUpdate() {

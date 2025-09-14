@@ -142,8 +142,6 @@ namespace SBR {
         private Vector3 _groundLastPos;
         private Vector3 _groundHitLocalPos;
 
-        private PhysicMaterial _frictionless;
-
         private Vector3 _rootMotionMovement;
         private Quaternion _rootMotionRotation = Quaternion.identity;
 
@@ -416,14 +414,14 @@ namespace SBR {
 
             Rigidbody.useGravity = false;
 
-            _frictionless = new PhysicMaterial("Frictionless") {
+            PhysicsMaterial frictionlessMaterial = new("Frictionless") {
                 bounciness = 0,
-                bounceCombine = PhysicMaterialCombine.Minimum,
+                bounceCombine = PhysicsMaterialCombine.Minimum,
                 staticFriction = 0,
                 dynamicFriction = 0,
-                frictionCombine = PhysicMaterialCombine.Minimum,
+                frictionCombine = PhysicsMaterialCombine.Minimum,
             };
-            Capsule.sharedMaterial = _frictionless;
+            Capsule.sharedMaterial = frictionlessMaterial;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
             GroundHitBuffer = new RaycastHit[groundHitBufferSize];
