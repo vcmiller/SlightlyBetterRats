@@ -748,6 +748,7 @@ namespace SBR {
         }
 
         private void RotateTowardsTarget() {
+            _targetRotation = _targetRotation.normalized;
             if (_isRotating) {
                 Quaternion q = Rigidbody.rotation;
                 if (rotationSpeed == 0) {
