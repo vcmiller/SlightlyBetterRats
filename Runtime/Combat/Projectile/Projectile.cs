@@ -97,6 +97,12 @@ namespace SBR {
         [Tooltip("Prefab to spawn on impact, such as an explosion.")]
         public GameObject impactPrefab;
 
+        /// <summary>
+        /// Whether to align the impact prefab to the hit object's normal.
+        /// </summary>
+        [Tooltip("Whether to align the impact prefab to the hit object's normal.")]
+        public bool alignImpactToHit = false;
+
         [FormerlySerializedAs("_impactPrefabAddressable"),SerializeField] private AddressableSpawnRef _impactPrefabSpawnRef;
 
         /// <summary>
@@ -255,9 +261,9 @@ namespace SBR {
             }
         }
 
-        protected virtual bool OnHitCollider(Collider col, Vector3 position) {
+        protected virtual bool OnHitCollider(Collider col, Vector3 position, Vector3 normal) {
             if (ShouldHitObject(col.transform, position) && (hitsTriggers || !col.isTrigger)) {
-                OnHitObject(col.transform, position);
+                OnHitObject(col.transform, position, normal);
                 return true;
             } else {
                 return false;
@@ -274,7 +280,7 @@ namespace SBR {
             return true;
         }
 
-        protected virtual void OnHitObject(Transform col, Vector3 position) {
+        protected virtual void OnHitObject(Transform col, Vector3 position, Vector3 normal) {
             float damageDealt = col.Damage(new PointDamage(damage * damageMultiplier,
                                                            Creator ? Creator : gameObject,
                                                            position,
@@ -298,8 +304,9 @@ namespace SBR {
                 impactSound.PlayAtPoint(transform.position);
             }
 
+            Quaternion impactRotation = alignImpactToHit ? Quaternion.LookRotation(normal) : transform.rotation;
             if (impactPrefab) {
-                GameObject obj = Spawnable.Spawn(impactPrefab, position, transform.rotation, parentImpactObject ? col : null,
+                GameObject obj = Spawnable.Spawn(impactPrefab, position, impactRotation, parentImpactObject ? col : null,
                                                  true, scene:gameObject.scene);
                 if (obj.TryGetComponent(out IHasCreator ihc)) {
                     ihc.Creator = Creator;
@@ -310,7 +317,7 @@ namespace SBR {
             if (_impactPrefabSpawnRef.IsValid) {
                 GameObject obj = _impactPrefabSpawnRef.Spawn(new SpawnParams {
                     Position = position,
-                    Rotation = transform.rotation,
+                    Rotation = impactRotation,
                     Parent = parentImpactObject ? col : null,
                     InWorldSpace = true,
                     Scene = gameObject.scene,

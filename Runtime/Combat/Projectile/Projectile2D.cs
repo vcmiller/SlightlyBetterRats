@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 // 
 // Copyright (c) 2026-present Val Miller
 // 
@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,13 +24,13 @@ using UnityEngine;
 
 namespace SBR {
     public class Projectile2D : Projectile {
-        protected override bool hitsTriggers => 
+        protected override bool hitsTriggers =>
             triggerInteraction == QueryTriggerInteraction.Collide ||
             (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics2D.queriesHitTriggers);
 
-        protected virtual void OnHitCollider2D(Collider2D col, Vector2 position) {
+        protected virtual void OnHitCollider2D(Collider2D col, Vector2 position, Vector2 normal) {
             if (hitsTriggers || !col.isTrigger) {
-                OnHitObject(col.transform, position);
+                OnHitObject(col.transform, position, normal);
             }
         }
 

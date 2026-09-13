@@ -50,7 +50,7 @@ namespace SBR {
 
         protected override void Update() {
             base.Update();
-            
+
             if (_rigidbody && !_rigidbody.isKinematic) {
                 velocity = _rigidbody.GetLinearVelocity();
             } else {
@@ -66,15 +66,15 @@ namespace SBR {
 
         private void OnCollisionEnter(Collision collision) {
             var hit = collision.contacts[0];
-            OnHitCollider(collision.collider, hit.point);
+            OnHitCollider(collision.collider, hit.point, hit.normal);
         }
 
         private void OnTriggerEnter(Collider other) {
-            OnHitCollider(other, transform.position);
+            OnHitCollider(other, transform.position, velocity.normalized);
         }
 
-        protected override void OnHitObject(Transform col, Vector3 position) {
-            base.OnHitObject(col, position);
+        protected override void OnHitObject(Transform col, Vector3 position, Vector3 normal) {
+            base.OnHitObject(col, position, normal);
             if (_kinematicOnHit && _rigidbody) {
                 _rigidbody.isKinematic = true;
             }

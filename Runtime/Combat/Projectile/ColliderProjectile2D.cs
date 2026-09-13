@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 // 
 // Copyright (c) 2026-present Val Miller
 // 
@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,11 +35,11 @@ namespace SBR {
 
         private void OnCollisionEnter2D(Collision2D collision) {
             var hit = collision.contacts[0];
-            OnHitCollider2D(collision.collider, hit.point);
+            OnHitCollider2D(collision.collider, hit.point, hit.normal);
         }
 
         private void OnTriggerEnter2D(Collider2D other) {
-            OnHitCollider2D(other, transform.position);
+            OnHitCollider2D(other, transform.position, velocity.normalized);
         }
     }
 }
