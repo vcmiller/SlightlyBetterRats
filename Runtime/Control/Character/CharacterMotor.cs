@@ -971,7 +971,7 @@ namespace SBR {
             IsGrounded = false;
             float maxPointDist = radius * (1 - _groundCheckRadiusShell);
             maxPointDist *= maxPointDist;
-            float maxGroundAngleDot = Mathf.Cos(_maxGroundAngle);
+            float maxGroundAngleDot = Mathf.Cos(_maxGroundAngle * Mathf.Deg2Rad);
             for (int i = 0; i < hits; i++) {
                 RaycastHit hit = GroundHitBuffer[i];
                 Vector3 proj = Vector3.ProjectOnPlane(hit.point - pnt2, up);
