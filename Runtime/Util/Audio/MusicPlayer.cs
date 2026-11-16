@@ -22,6 +22,7 @@
 
 using Infohazard.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -38,69 +39,70 @@ namespace SBR {
         /// <summary>
         /// Whether to fade out AudioSources when stopping.
         /// </summary>
-        [Tooltip("Whether to fade out AudioSources when stopping.")]
-        public bool fadeOut = true;
+        [FormerlySerializedAs("fadeOut"),Tooltip("Whether to fade out AudioSources when stopping.")]
+        public bool _fadeOut = true;
 
         /// <summary>
         /// Whether to fade in AudioSources when playing.
         /// </summary>
-        public bool fadeIn = false;
+        [FormerlySerializedAs("fadeIn")]
+        public bool _fadeIn = false;
 
         /// <summary>
         /// Used if a newly loaded MusicPlayer has is resolution mode set to DestroyNewerIfSameId.
         /// </summary>
-        [Tooltip("Used if a newly loaded MusicPlayer has is resolution mode set to DestroyNewerIfSameId.")]
-        public int id;
+        [FormerlySerializedAs("id"),Tooltip("Used if a newly loaded MusicPlayer has is resolution mode set to DestroyNewerIfSameId.")]
+        public int _id;
 
         /// <summary>
         /// How to handle cases where a MusicPlayer is loaded when one already exists.
         /// This is most likely to occur when a new level is loaded while persistThroughLoad is true.
         /// </summary>
-        [Tooltip("How to handle cases where a MusicPlayer is loaded when one already exists.")]
-        public ConflictResolution conflictResolution;
+        [FormerlySerializedAs("conflictResolution"),Tooltip("How to handle cases where a MusicPlayer is loaded when one already exists.")]
+        public ConflictResolution _conflictResolution;
 
         /// <summary>
         /// Whether to shuffle order of tracks.
         /// </summary>
-        [Tooltip("Whether to shuffle order of tracks.")]
-        public bool shuffle = false;
+        [FormerlySerializedAs("shuffle"),Tooltip("Whether to shuffle order of tracks.")]
+        public bool _shuffle = false;
 
         /// <summary>
         /// Whether the player should persist and keep playing when a new level is loaded.
         /// If the new level also has a MusicPlayer, one of them will be destroyed,
         /// determined by the newly loaded player's conflictResolution.
         /// </summary>
-        [Tooltip("Whether the player should persist and keep playing when a new level is loaded.")]
-        public bool persistThroughLoad = true;
+        [FormerlySerializedAs("persistThroughLoad"),Tooltip("Whether the player should persist and keep playing when a new level is loaded.")]
+        public bool _persistThroughLoad = true;
 
         /// <summary>
         /// Whether to automatically start playing the first track on awake.
         /// </summary>
-        [Tooltip("Whether to automatically start playing the first track on awake.")]
-        public bool playOnAwake = true;
+        [FormerlySerializedAs("playOnAwake"),Tooltip("Whether to automatically start playing the first track on awake.")]
+        public bool _playOnAwake = true;
 
         /// <summary>
         /// Currently active MusicPlayer.
         /// </summary>
-        public static MusicPlayer inst { get; private set; }
+        public static MusicPlayer Inst { get; private set; }
         
         /// <summary>
         /// Index of currently playing AudioSource.
         /// </summary>
-        public int currentIndex { get; private set; }
+        public int CurrentIndex { get; private set; }
 
         /// <summary>
         /// Whether is currently playing any audioSource.
         /// </summary>
-        public bool isPlaying { get; private set; }
+        public bool IsPlaying { get; private set; }
 
-        private AudioSource currentSource;
-        private AudioSource[] audioSources;
-        private bool started = false;
+        private AudioSource _currentSource;
+        private AudioSource[] _audioSources;
+        private bool _started = false;
 
         private void OnValidate() {
-            if (fadeOut) {
-                foreach (var source in GetComponentsInChildren<AudioSource>()) {
+            if (_fadeOut) {
+                foreach (AudioSource source in GetComponentsInChildren<AudioSource>()) {
                     if (!source.GetComponent<AudioFade>()) {
                         source.gameObject.AddComponent<AudioFade>();
                     }
@@ -109,42 +111,42 @@ namespace SBR {
         }
 
         private void Awake() {
-            if (inst == this) return;
+            if (Inst == this) return;
 
-            if (inst != null) {
-                bool keepOther = conflictResolution == ConflictResolution.DestroyNewer || 
-                    (id == inst.id && conflictResolution == ConflictResolution.DestroyNewerIfSameId);
+            if (Inst != null) {
+                bool keepOther = _conflictResolution == ConflictResolution.DestroyNewer || 
+                    (_id == Inst._id && _conflictResolution == ConflictResolution.DestroyNewerIfSameId);
 
                 
                 if (keepOther) {
                     gameObject.SetActive(false);
                     return;
                 } else {
-                    inst.Stop();
-                    Spawnable.Despawn(inst.gameObject, inst.GetComponent<AudioFade>().fadeDuration);
+                    Inst.Stop();
+                    Spawnable.Despawn(Inst.gameObject, Inst.GetComponent<AudioFade>()._fadeDuration);
                 }
             }
 
-            audioSources = GetComponentsInChildren<AudioSource>();
-            currentIndex = shuffle ? UnityEngine.Random.Range(0, audioSources.Length) : 0;
-            inst = this;
-            if (persistThroughLoad) DontDestroyOnLoad(gameObject);
+            _audioSources = GetComponentsInChildren<AudioSource>();
+            CurrentIndex = _shuffle ? UnityEngine.Random.Range(0, _audioSources.Length) : 0;
+            Inst = this;
+            if (_persistThroughLoad) DontDestroyOnLoad(gameObject);
         }
 
         private void Start() {
-            if (playOnAwake) Play();
+            if (_playOnAwake) Play();
         }
 
         private void Update() {
-            if (isPlaying && !started) {
-                if (!currentSource.isPlaying) {
-                    currentSource = null;
-                    isPlaying = false;
+            if (IsPlaying && !_started) {
+                if (!_currentSource.isPlaying) {
+                    _currentSource = null;
+                    IsPlaying = false;
                     Next();
                 }
             }
 
-            started = false;
+            _started = false;
         }
 
         /// <summary>
@@ -152,18 +154,18 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Play() {
-            if (inst != this) {
-                inst.Play();
+            if (Inst != this) {
+                Inst.Play();
                 return;
             }
 
-            if (isPlaying) return;
+            if (IsPlaying) return;
 
-            if (currentSource) {
-                currentSource.UnPause();
-                isPlaying = true;
+            if (_currentSource) {
+                _currentSource.UnPause();
+                IsPlaying = true;
             } else {
-                Play(currentIndex);
+                Play(CurrentIndex);
             }
         }
 
@@ -172,15 +174,15 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Next() {
-            if (inst != this) {
-                inst.Next();
+            if (Inst != this) {
+                Inst.Next();
                 return;
             }
 
-            if (shuffle) {
-                Play(UnityEngine.Random.Range(0, audioSources.Length));
+            if (_shuffle) {
+                Play(UnityEngine.Random.Range(0, _audioSources.Length));
             } else {
-                Play((currentIndex + 1) % audioSources.Length);
+                Play((CurrentIndex + 1) % _audioSources.Length);
             }
         }
 
@@ -189,24 +191,24 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Play(AudioSource source) {
-            if (inst != this) {
-                inst.Play(source);
+            if (Inst != this) {
+                Inst.Play(source);
                 return;
             }
 
-            if (isPlaying) {
+            if (IsPlaying) {
                 Stop();
             }
 
-            isPlaying = true;
-            currentSource = source;
+            IsPlaying = true;
+            _currentSource = source;
 
-            if (fadeIn) {
+            if (_fadeIn) {
                 source.FadeIn();
             } else {
                 source.ClearFade();
                 source.Play();
-                started = true;
+                _started = true;
             }
         }
 
@@ -215,13 +217,13 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Play(int index) {
-            if (inst != this) {
-                inst.Play(index);
+            if (Inst != this) {
+                Inst.Play(index);
                 return;
             }
 
-            currentIndex = index;
-            Play(audioSources[index]);
+            CurrentIndex = index;
+            Play(_audioSources[index]);
         }
 
         /// <summary>
@@ -229,13 +231,13 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Pause() {
-            if (inst != this) {
-                inst.Pause();
+            if (Inst != this) {
+                Inst.Pause();
                 return;
             }
 
-            currentSource.Pause();
-            isPlaying = false;
+            _currentSource.Pause();
+            IsPlaying = false;
         }
 
         /// <summary>
@@ -243,32 +245,32 @@ namespace SBR {
         /// Will always be run on active instance, so it is safe to use in UnityEvents even if inactive.
         /// </summary>
         public void Stop() {
-            if (inst != this) {
-                inst.Stop();
+            if (Inst != this) {
+                Inst.Stop();
                 return;
             }
 
-            if (!currentSource) return;
+            if (!_currentSource) return;
             
-            if (fadeOut) {
-                currentSource.FadeOut();
+            if (_fadeOut) {
+                _currentSource.FadeOut();
             } else {
-                currentSource.Stop();
+                _currentSource.Stop();
             }
-            currentSource = null;
+            _currentSource = null;
         }
 
         /// <summary>
         /// Same as stop, but additionally resets to beginning of playlist.
         /// </summary>
         public void StopAndReset() {
-            if (inst != this) {
-                inst.StopAndReset();
+            if (Inst != this) {
+                Inst.StopAndReset();
                 return;
             }
 
             Stop();
-            currentIndex = 0;
+            CurrentIndex = 0;
         }
     }
 

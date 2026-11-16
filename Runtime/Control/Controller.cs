@@ -39,7 +39,7 @@ namespace SBR {
         /// <summary>
         /// Whether controller is enabled.
         /// </summary>
-        bool enabled { get; set; }
+        bool Enabled { get; set; }
 
         /// <summary>
         /// Invoked each frame after Channels have been updated.
@@ -61,6 +61,11 @@ namespace SBR {
         public Channels BaseChannels => Channels;
         private readonly SafeUpdateSet<Action<T>> _inputReceived = new();
         private readonly SafeUpdateSet<Action<T>> _postInputReceived = new();
+
+        public bool Enabled {
+            get => enabled;
+            set => enabled = value;
+        }
 
         /// <summary>
         /// Invoked each frame after Channels have been updated.

@@ -28,7 +28,7 @@ namespace SBR.Editor {
     [CustomEditor(typeof(Spline))]
     public class SplineInspector : UnityEditor.Editor {
         private Spline spline { get { return target as Spline; } }
-        private SplineData data { get { return spline.spline; } }
+        private SplineData data { get { return spline._spline; } }
         private bool meshNeedsUpdate;
 
         private static Vector3[] samples = new Vector3[100];
@@ -72,9 +72,9 @@ namespace SBR.Editor {
             DrawPropertiesExcluding(serializedObject, excludeFields);
             serializedObject.ApplyModifiedProperties();
 
-            bool closed = spline.spline.closed;
-            spline.spline.closed = EditorGUILayout.Toggle("Closed", spline.spline.closed);
-            if (closed != spline.spline.closed) {
+            bool closed = spline._spline._closed;
+            spline._spline._closed = EditorGUILayout.Toggle("Closed", spline._spline._closed);
+            if (closed != spline._spline._closed) {
                 spline.OnChanged(true);
                 SceneView.lastActiveSceneView.Repaint();
             }
@@ -86,7 +86,7 @@ namespace SBR.Editor {
                 DrawWaypointEditor(rect, pointList.index);
                 serializedObject.ApplyModifiedProperties();
             } else {
-                if (data.points.Length > 0) {
+                if (data._points.Length > 0) {
                     EditorGUI.HelpBox(rect,
                         "Click on a waypoint in the scene view\nor in the Path Details list",
                         MessageType.Info);
@@ -152,7 +152,7 @@ namespace SBR.Editor {
             // GUI.color = spline.m_Appearance.pathColor;
             if (GUI.Button(r, new GUIContent(index.ToString(), "Go to the waypoint in the scene view"))) {
                 pointList.index = index;
-                SceneView.lastActiveSceneView.pivot = spline.transform.TransformPoint(data.points[index].position);
+                SceneView.lastActiveSceneView.pivot = spline.transform.TransformPoint(data._points[index]._position);
                 SceneView.lastActiveSceneView.size = 3;
                 SceneView.lastActiveSceneView.Repaint();
             }
@@ -168,8 +168,8 @@ namespace SBR.Editor {
             r.size = addButtonDimension;
             if (GUI.Button(r, new GUIContent("-", "Remove this waypoint"))) {
                 Undo.RecordObject(spline, "Delete waypoint");
-                ArrayUtility.RemoveAt(ref data.points, index);
-                if (index == data.points.Length) {
+                ArrayUtility.RemoveAt(ref data._points, index);
+                if (index == data._points.Length) {
                     pointList.index = index - 1;
                 }
             }
@@ -207,33 +207,33 @@ namespace SBR.Editor {
             Vector3 tangent = Vector3.right;
             float roll = 0;
             
-            int numWaypoints = data.points.Length;
+            int numWaypoints = data._points.Length;
             if (indexA < 0)
                 indexA = numWaypoints - 1;
             if (indexA >= 0) {
                 int indexB = indexA + 1;
-                if (data.closed && indexB >= numWaypoints) {
+                if (data._closed && indexB >= numWaypoints) {
                     indexB = 0;
                 }
 
                 if (indexB >= numWaypoints) {
-                    if (data.points[indexA].tangent.sqrMagnitude >= 0.0001f)
-                        tangent = data.points[indexA].tangent;
-                    pos = data.points[indexA].position + tangent;
-                    roll = data.points[indexA].roll;
+                    if (data._points[indexA]._tangent.sqrMagnitude >= 0.0001f)
+                        tangent = data._points[indexA]._tangent;
+                    pos = data._points[indexA]._position + tangent;
+                    roll = data._points[indexA]._roll;
                 } else {
-                    float interp = (0.5f + indexA) / data.max;
+                    float interp = (0.5f + indexA) / data.Max;
                     pos = data.GetPointNonUniform(interp);
                     tangent = data.GetTangent(interp);
                     roll = data.GetRoll(interp);
                 }
             }
             Undo.RecordObject(spline, "Add waypoint");
-            var wp = new SplineData.Point();
-            wp.position = pos;
-            wp.tangent = tangent;
-            wp.roll = roll;
-            ArrayUtility.Insert(ref data.points, indexA + 1, wp);
+            SplineData.Point wp = new SplineData.Point();
+            wp._position = pos;
+            wp._tangent = tangent;
+            wp._roll = roll;
+            ArrayUtility.Insert(ref data._points, indexA + 1, wp);
             pointList.index = indexA + 1;
         }
 
@@ -251,7 +251,7 @@ namespace SBR.Editor {
             Color colorOld = Handles.color;
 
             Handles.matrix = spline.transform.localToWorldMatrix;
-            for (int i = 0; i < data.points.Length; ++i) {
+            for (int i = 0; i < data._points.Length; ++i) {
                 DrawSelectionHandle(i);
                 if (pointList.index == i) {
                     // Waypoint is selected
@@ -270,7 +270,7 @@ namespace SBR.Editor {
 
         void DrawSelectionHandle(int i) {
             if (Event.current.button != 1) {
-                Vector3 pos = data.points[i].position;
+                Vector3 pos = data._points[i]._position;
                 float size = HandleUtility.GetHandleSize(pos) * 0.2f;
                 Handles.color = Color.white;
                 if (Handles.Button(pos, Quaternion.identity, size, size, Handles.SphereHandleCap)
@@ -296,11 +296,11 @@ namespace SBR.Editor {
         }
 
         void DrawTangentControl(int i) {
-            SplineData.Point wp = data.points[i];
-            Vector3 hPos = wp.position + wp.tangent;
+            SplineData.Point wp = data._points[i];
+            Vector3 hPos = wp._position + wp._tangent;
 
             Handles.color = tangentColor;
-            Handles.DrawLine(wp.position, hPos);
+            Handles.DrawLine(wp._position, hPos);
 
             Quaternion rotation;
             
@@ -321,8 +321,8 @@ namespace SBR.Editor {
 
                 if (EditorGUI.EndChangeCheck()) {
                     Undo.RecordObject(target, "Edit Waypoint Tangent");
-                    wp.tangent = newPos - wp.position;
-                    data.points[i] = wp;
+                    wp._tangent = newPos - wp._position;
+                    data._points[i] = wp;
                     if (updateMeshConstantly) {
                         spline.OnChanged(true);
                     } else {
@@ -333,26 +333,26 @@ namespace SBR.Editor {
         }
 
         void DrawPositionControl(int i) {
-            SplineData.Point wp = data.points[i];
+            SplineData.Point wp = data._points[i];
             Handles.color = pointColor;
             Quaternion rotation;
             if (Tools.current == Tool.Rotate || Tools.current == Tool.Scale) {
-                rotation = data.GetPointRotation(i) * Quaternion.AngleAxis(data.points[i].roll, Vector3.forward);
+                rotation = data.GetPointRotation(i) * Quaternion.AngleAxis(data._points[i]._roll, Vector3.forward);
             } else if (Tools.pivotRotation == PivotRotation.Local) {
                 rotation = Quaternion.identity;
             } else {
                 rotation = Quaternion.Inverse(spline.transform.rotation);
             }
-            float size = HandleUtility.GetHandleSize(wp.position) * 0.1f;
-            Handles.SphereHandleCap(0, wp.position, rotation, size, EventType.Repaint);
+            float size = HandleUtility.GetHandleSize(wp._position) * 0.1f;
+            Handles.SphereHandleCap(0, wp._position, rotation, size, EventType.Repaint);
             
             if (Tools.current == Tool.Move) {
                 EditorGUI.BeginChangeCheck();
-                Vector3 pos = Handles.PositionHandle(wp.position, rotation);
+                Vector3 pos = Handles.PositionHandle(wp._position, rotation);
                 if (EditorGUI.EndChangeCheck()) {
                     Undo.RecordObject(target, "Move Waypoint");
-                    wp.position = pos;
-                    data.points[i] = wp;
+                    wp._position = pos;
+                    data._points[i] = wp;
                     if (updateMeshConstantly) {
                         spline.OnChanged(true);
                     } else {
@@ -361,18 +361,18 @@ namespace SBR.Editor {
                 }
             } else if (Tools.current == Tool.Rotate) {
                 EditorGUI.BeginChangeCheck();
-                Quaternion rot = Handles.RotationHandle(rotation, wp.position);
+                Quaternion rot = Handles.RotationHandle(rotation, wp._position);
                 if (EditorGUI.EndChangeCheck()) {
                     Undo.RecordObject(target, "Edit Waypoint Tangent");
-                    float f = wp.tangent.magnitude;
-                    wp.tangent = rot * Vector3.forward * f;
+                    float f = wp._tangent.magnitude;
+                    wp._tangent = rot * Vector3.forward * f;
                     float rollMod = (Quaternion.Inverse(rotation) * rot).eulerAngles.z;
                     rollMod = ((rollMod % 360) + 360) % 360;
                     if (rollMod > 180) {
                         rollMod -= 360;
                     }
-                    wp.roll += rollMod;
-                    data.points[i] = wp;
+                    wp._roll += rollMod;
+                    data._points[i] = wp;
                     if (updateMeshConstantly) {
                         spline.OnChanged(true);
                     } else {
@@ -381,12 +381,12 @@ namespace SBR.Editor {
                 }
             } else if (Tools.current == Tool.Scale) {
                 EditorGUI.BeginChangeCheck();
-                float scale = Handles.ScaleSlider(wp.tangent.magnitude, wp.position, wp.tangent.normalized, Quaternion.identity, size * 10, 0);
+                float scale = Handles.ScaleSlider(wp._tangent.magnitude, wp._position, wp._tangent.normalized, Quaternion.identity, size * 10, 0);
                 if (EditorGUI.EndChangeCheck()) {
                     Undo.RecordObject(target, "Edit Waypoint Tangent");
-                    float f = wp.tangent.magnitude;
-                    wp.tangent = wp.tangent.normalized * scale;
-                    data.points[i] = wp;
+                    float f = wp._tangent.magnitude;
+                    wp._tangent = wp._tangent.normalized * scale;
+                    data._points[i] = wp;
                     if (updateMeshConstantly) {
                         spline.OnChanged(true);
                     } else {

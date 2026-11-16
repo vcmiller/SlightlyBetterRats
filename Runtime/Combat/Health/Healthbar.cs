@@ -164,7 +164,7 @@ namespace SBR {
 
                 if (_target) {
                     _target.Damaged += HealthDamaged;
-                    _backFillAmount = _target.CurrentHealth / _target.maxHealth;
+                    _backFillAmount = _target.CurrentHealth / _target._maxHealth;
                 }
             }
         }
@@ -236,7 +236,7 @@ namespace SBR {
             }
 
             if (Target) {
-                float fillAmount = Target.CurrentHealth / Target.maxHealth;
+                float fillAmount = Target.CurrentHealth / Target._maxHealth;
 
                 if (_fillImage) {
                     if (_fillImage.type == Image.Type.Filled) {
@@ -270,9 +270,9 @@ namespace SBR {
                     if (_amountTextType == AmountTextType.Amount) {
                         textValue = Mathf.CeilToInt(Target.CurrentHealth).ToString();
                     } else if (_amountTextType == AmountTextType.Fraction) {
-                        textValue = Mathf.CeilToInt(Target.CurrentHealth) + " / " + Mathf.CeilToInt(Target.maxHealth);
+                        textValue = Mathf.CeilToInt(Target.CurrentHealth) + " / " + Mathf.CeilToInt(Target._maxHealth);
                     } else {
-                        textValue = Mathf.CeilToInt(Target.CurrentHealth * 100 / Target.maxHealth).ToString();
+                        textValue = Mathf.CeilToInt(Target.CurrentHealth * 100 / Target._maxHealth).ToString();
                     }
 
                     if (!string.IsNullOrEmpty(_amountTextFormat)) {

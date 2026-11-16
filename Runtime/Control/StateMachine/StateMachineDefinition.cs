@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@ using UnityEngine;
 using System;
 using System.Text.RegularExpressions;
 using Infohazard.Core;
+using UnityEngine.Serialization;
 
 namespace SBR {
     [CreateAssetMenu(menuName = "Infohazard/State Machine")]
@@ -34,80 +35,80 @@ namespace SBR {
             /// <summary>
             /// Name of the state. Must be a valid variable name.
             /// </summary>
-            [Tooltip("Name of the state. Must be a valid variable name.")]
-            public string name;
+            [FormerlySerializedAs("name"),Tooltip("Name of the state. Must be a valid variable name.")]
+            public string _name;
 
             /// <summary>
             /// Parent state. Must be another state in this StateMachine.
             /// </summary>
-            [StateSelect]
+            [FormerlySerializedAs("parent"),StateSelect]
             [Tooltip("Parent state name.")]
-            public string parent;
+            public string _parent;
 
             /// <summary>
             /// Whether the state receives a callback when it is entered.
             /// </summary>
-            [Tooltip("Whether the state receives a callback when it is entered.")]
-            public bool hasEnter = false;
+            [FormerlySerializedAs("hasEnter"),Tooltip("Whether the state receives a callback when it is entered.")]
+            public bool _hasEnter = false;
 
             /// <summary>
             /// Whether the state receives a callback every frame while it is active.
             /// </summary>
-            [Tooltip("Whether the state receives a callback every frame while it is active.")]
-            public bool hasDuring = true;
+            [FormerlySerializedAs("hasDuring"),Tooltip("Whether the state receives a callback every frame while it is active.")]
+            public bool _hasDuring = true;
 
             /// <summary>
             /// Whether the state receives a callback when it is exited.
             /// </summary>
-            [Tooltip("Whether the state receives a callback when it is exited.")]
-            public bool hasExit = false;
+            [FormerlySerializedAs("hasExit"),Tooltip("Whether the state receives a callback when it is exited.")]
+            public bool _hasExit = false;
 
             /// <summary>
             /// Transitions to other states.
             /// </summary>
-            [Tooltip("Transitions to other states.")]
-            public List<Transition> transitions;
-            
+            [FormerlySerializedAs("transitions"),Tooltip("Transitions to other states.")]
+            public List<Transition> _transitions;
+
             /// <summary>
             /// Whether the state is a sub state machine, and thus allowed to have children.
             /// </summary>
-            [Tooltip("Whether the state is a sub state machine, and thus allowed to have children.")]
-            public bool hasChildren;
+            [FormerlySerializedAs("hasChildren"),Tooltip("Whether the state is a sub state machine, and thus allowed to have children.")]
+            public bool _hasChildren;
 
             /// <summary>
             /// Default state of the local sub state machine.
             /// </summary>
-            [StateSelect]
+            [FormerlySerializedAs("localDefault"),StateSelect]
             [Tooltip("Default state of the local sub state machine.")]
-            public string localDefault;
+            public string _localDefault;
 
-            [HideInInspector]
-            public Vector2 position;
+            [FormerlySerializedAs("position"),HideInInspector]
+            public Vector2 _position;
 
-            [HideInInspector]
-            public Vector2 size = new Vector2(192, 48);
+            [FormerlySerializedAs("size"),HideInInspector]
+            public Vector2 _size = new Vector2(192, 48);
 
-            public Rect rect => new Rect(position, size);
-            public Vector2 center => position + size / 2;
+            public Rect Rect => new Rect(_position, _size);
+            public Vector2 Center => _position + _size / 2;
 
             public Transition GetTransition(State target) {
-                if (transitions == null) {
+                if (_transitions == null) {
                     return null;
                 }
 
-                return transitions.Find((t) => {
-                    return t.to == target.name;
+                return _transitions.Find((t) => {
+                    return t._to == target._name;
                 });
             }
 
             public void RemoveTransition(Transition tr) {
-                transitions.Remove(tr);
+                _transitions.Remove(tr);
             }
 
             public void RemoveTransition(State target) {
-                if (transitions != null) {
-                    transitions.RemoveAll((t) => {
-                        return t.to == target.name;
+                if (_transitions != null) {
+                    _transitions.RemoveAll((t) => {
+                        return t._to == target._name;
                     });
                 }
             }
@@ -115,13 +116,13 @@ namespace SBR {
             public Transition AddTransition(State target) {
                 if (target != this && GetTransition(target) == null) {
                     Transition newT = new Transition();
-                    newT.to = target.name;
+                    newT._to = target._name;
 
-                    if (transitions == null) {
-                        transitions = new List<Transition>();
+                    if (_transitions == null) {
+                        _transitions = new List<Transition>();
                     }
 
-                    transitions.Add(newT);
+                    _transitions.Add(newT);
                     return newT;
                 } else {
                     return null;
@@ -134,43 +135,43 @@ namespace SBR {
             /// <summary>
             /// Which state the transition leads to.
             /// </summary>
-            [StateSelect]
+            [FormerlySerializedAs("to"),StateSelect]
             [Tooltip("Which state the transition leads to.")]
-            public string to;
+            public string _to;
 
             /// <summary>
             /// Whether the transition receives a callback when it is taken.
             /// </summary>
-            [Tooltip("Whether the transition receives a callback when it is taken.")]
-            public bool hasNotify = false;
+            [FormerlySerializedAs("hasNotify"),Tooltip("Whether the transition receives a callback when it is taken.")]
+            public bool _hasNotify = false;
 
             /// <summary>
             /// Minimum time after taking the transition before it can be taken again.
             /// </summary>
-            [Tooltip("Minimum time after taking the transition before it can be taken again.")]
-            public float cooldown = 0;
+            [FormerlySerializedAs("cooldown"),Tooltip("Minimum time after taking the transition before it can be taken again.")]
+            public float _cooldown = 0;
 
             /// <summary>
             /// Whether the transition is controlled by time or a condition function.
             /// </summary>
-            [Tooltip("Whether the transition is controlled by time or a condition function.")]
-            public TransitionMode mode = TransitionMode.Condition;
+            [FormerlySerializedAs("mode"),Tooltip("Whether the transition is controlled by time or a condition function.")]
+            public TransitionMode _mode = TransitionMode.Condition;
 
             /// <summary>
             /// Time after which the transition is exited.
             /// </summary>
-            [ConditionalDraw("mode", TransitionMode.Condition, false)]
+            [FormerlySerializedAs("exitTime"),ConditionalDraw(nameof(_mode), TransitionMode.Condition, false)]
             [Tooltip("Time after which the transition is exited.")]
-            public float exitTime = 0.0f;
+            public float _exitTime = 0.0f;
 
             /// <summary>
             /// Message function name that will trigger the transition.
             /// </summary>
-            [ConditionalDraw("mode", TransitionMode.Message)]
+            [FormerlySerializedAs("message"),ConditionalDraw(nameof(_mode), TransitionMode.Message)]
             [Tooltip("Message function name that will trigger the transition.")]
-            public string message = "Message";
+            public string _message = "Message";
 
-            public int width => 2;
+            public int Width => 2;
         }
 
         public enum TransitionMode {
@@ -180,71 +181,71 @@ namespace SBR {
         /// <summary>
         /// Default state of the StateMachine.
         /// </summary>
-        [StateSelect]
+        [FormerlySerializedAs("defaultState"),StateSelect]
         [Tooltip("Default state of the StateMachine.")]
-        public string defaultState;
+        public string _defaultState;
 
         /// <summary>
         /// All states of the StateMachine.
         /// </summary>
-        [Tooltip("All states of the StateMachine.")]
-        public List<State> states;
+        [FormerlySerializedAs("states"),Tooltip("All states of the StateMachine.")]
+        public List<State> _states;
 
-        [TypeSelect(typeof(StateMachines.IStateMachine), true, true)]
-        public string baseClass = "SBR.StateMachines.StateMachine`1";
+        [FormerlySerializedAs("baseClass"),TypeSelect(typeof(StateMachines.IStateMachine), true, true)]
+        public string _baseClass = "SBR.StateMachines.StateMachine`1";
 
         public void OnValidate() {
-            if (defaultState != "" && GetState(defaultState) == null) {
-                defaultState = "";
+            if (_defaultState != "" && GetState(_defaultState) == null) {
+                _defaultState = "";
             }
 
             HashSet<string> names = new HashSet<string>();
-            foreach (var state in states) {
-                state.name = Regex.Replace(state.name, "[^_a-zA-Z0-9]", "");
-                string s = state.name;
+            foreach (State state in _states) {
+                state._name = Regex.Replace(state._name, "[^_a-zA-Z0-9]", "");
+                string s = state._name;
                 int dup = 1;
-                while (!names.Add(state.name)) {
-                    state.name = s + "_" + dup++;
+                while (!names.Add(state._name)) {
+                    state._name = s + "_" + dup++;
                 }
 
-                if (state.parent != "") {
-                    var parent = GetState(state.parent);
+                if (state._parent != "") {
+                    State parent = GetState(state._parent);
                     if (parent == null) {
-                        state.parent = "";
+                        state._parent = "";
                     } else {
-                        parent.hasChildren = true;
+                        parent._hasChildren = true;
                     }
                 }
 
-                if (state.localDefault != "") {
-                    var localDefault = GetState(state.localDefault);
+                if (state._localDefault != "") {
+                    State localDefault = GetState(state._localDefault);
                     if (localDefault == null) {
-                        state.localDefault = "";
+                        state._localDefault = "";
                     }
                 }
 
-                foreach (var transition in state.transitions) {
-                    if (transition.to != "" && GetState(transition.to) == null) {
-                        transition.to = "";
+                foreach (Transition transition in state._transitions) {
+                    if (transition._to != "" && GetState(transition._to) == null) {
+                        transition._to = "";
                     }
 
-                    if (transition.mode == TransitionMode.Message) {
-                        transition.message = Regex.Replace(transition.message, "[^_a-zA-Z0-9]", "");
-                        if (transition.message.Length == 0) {
-                            transition.message = "Message";
+                    if (transition._mode == TransitionMode.Message) {
+                        transition._message = Regex.Replace(transition._message, "[^_a-zA-Z0-9]", "");
+                        if (transition._message.Length == 0) {
+                            transition._message = "Message";
                         }
                     }
                 }
             }
         }
-        
+
         public State GetState(string name) {
             if (name == null || name.Length == 0) {
                 return null;
             }
 
-            foreach (State def in states) {
-                if (def.name == name) {
+            foreach (State def in _states) {
+                if (def._name == name) {
                     return def;
                 }
             }
@@ -259,8 +260,8 @@ namespace SBR {
                 return list;
             }
 
-            foreach (State def in states) {
-                if (def.parent == name) {
+            foreach (State def in _states) {
+                if (def._parent == name) {
                     list.Add(def);
                 }
             }
@@ -271,9 +272,9 @@ namespace SBR {
         public State SelectState(Vector2 position) {
             State ret = null;
 
-            if (states != null) {
-                foreach (State def in states) {
-                    if (def.rect.Contains(position)) {
+            if (_states != null) {
+                foreach (State def in _states) {
+                    if (def.Rect.Contains(position)) {
                         ret = def;
                     }
                 }
@@ -283,10 +284,10 @@ namespace SBR {
         }
 
         public Pair<Vector2, Vector2> GetTransitionPoints(State from, Transition t) {
-            State to = GetState(t.to);
+            State to = GetState(t._to);
 
-            Rect r1 = from.rect;
-            Rect r2 = to.rect;
+            Rect r1 = from.Rect;
+            Rect r2 = to.Rect;
 
             Vector2 src, dest;
 
@@ -301,7 +302,7 @@ namespace SBR {
                 float w2 = r2.width;
                 src.x = dest.x = (r1.center.x * w2 + r2.center.x * w1) / (w1 + w2);
             }
-            
+
             if (r1.yMax < r2.yMin) {
                 src.y = r1.yMax;
                 dest.y = r2.yMin;
@@ -318,22 +319,22 @@ namespace SBR {
             v = v.normalized;
             Vector2 ortho = new Vector2(v.y, -v.x);
 
-            src += ortho * t.width;
-            dest += ortho * t.width;
+            src += ortho * t.Width;
+            dest += ortho * t.Width;
 
             return new Pair<Vector2, Vector2>(src, dest);
         }
 
         public Pair<State, Transition> SelectTransition(Vector2 position) {
-            if (states != null) {
-                foreach (State from in states) {
-                    if (from.transitions != null) {
-                        foreach (Transition tr in from.transitions) {
-                            if (GetState(tr.to) == null) {
+            if (_states != null) {
+                foreach (State from in _states) {
+                    if (from._transitions != null) {
+                        foreach (Transition tr in from._transitions) {
+                            if (GetState(tr._to) == null) {
                                 continue;
                             }
 
-                            var line = GetTransitionPoints(from, tr);
+                            Pair<Vector2, Vector2> line = GetTransitionPoints(from, tr);
 
                             Vector2 src = line.Item1;
                             Vector2 dest = line.Item2;
@@ -348,7 +349,7 @@ namespace SBR {
 
                             pr = q * pr;
 
-                            Rect rect = new Rect(0, -tr.width * 1.5f, Vector2.Distance(src, dest), tr.width * 3);
+                            Rect rect = new Rect(0, -tr.Width * 1.5f, Vector2.Distance(src, dest), tr.Width * 3);
 
                             if (rect.Contains(pr)) {
                                 return new Pair<State, Transition>(from, tr);
@@ -357,7 +358,7 @@ namespace SBR {
                     }
                 }
             }
-            
+
 
             return new Pair<State, Transition>(null, null);
         }
@@ -375,21 +376,21 @@ namespace SBR {
         }
 
         public State AddState() {
-            if (states == null) {
-                states = new List<State>();
+            if (_states == null) {
+                _states = new List<State>();
             }
 
             State newState = new State();
-            states.Add(newState);
+            _states.Add(newState);
             return newState;
         }
 
         public void RemoveState(State toRemove) {
-            foreach (State s in states) {
+            foreach (State s in _states) {
                 s.RemoveTransition(toRemove);
             }
 
-            states.Remove(toRemove);
+            _states.Remove(toRemove);
         }
 
         public void RenameState(State toRename, string newName) {
@@ -401,53 +402,53 @@ namespace SBR {
                 uniqueName = newName + "_" + ++dup;
             }
 
-            foreach (State s in states) {
-                var t = s.GetTransition(toRename);
+            foreach (State s in _states) {
+                Transition t = s.GetTransition(toRename);
                 if (t != null) {
-                    t.to = uniqueName;
+                    t._to = uniqueName;
                 }
             }
 
-            foreach (var child in GetChildren(toRename.name)) {
-                child.parent = uniqueName;
+            foreach (State child in GetChildren(toRename._name)) {
+                child._parent = uniqueName;
             }
 
-            if (defaultState == toRename.name) {
-                defaultState = uniqueName;
+            if (_defaultState == toRename._name) {
+                _defaultState = uniqueName;
             }
 
-            toRename.name = uniqueName;
+            toRename._name = uniqueName;
         }
 
         public void MoveAfter(State moving, State target) {
-            int iMoving = states.IndexOf(moving);
-            int iTarget = states.IndexOf(target);
+            int iMoving = _states.IndexOf(moving);
+            int iTarget = _states.IndexOf(target);
 
             if (iMoving >= 0 && iTarget >= 0 && iMoving < iTarget) {
-                states.RemoveAt(iMoving);
-                states.Insert(iTarget, moving);
+                _states.RemoveAt(iMoving);
+                _states.Insert(iTarget, moving);
 
-                foreach (var child in GetChildren(moving.name)) {
+                foreach (State child in GetChildren(moving._name)) {
                     MoveAfter(child, moving);
                 }
             }
         }
 
         public void RemoveSub(State toConvert, float padding) {
-            toConvert.hasChildren = false;
-            toConvert.size = new Vector2(192, 48);
+            toConvert._hasChildren = false;
+            toConvert._size = new Vector2(192, 48);
 
-            foreach (var child in GetChildren(toConvert.name)) {
-                child.parent = null;
+            foreach (State child in GetChildren(toConvert._name)) {
+                child._parent = null;
             }
 
-            if (!string.IsNullOrEmpty(toConvert.parent)) {
-                FitStateToChildren(GetState(toConvert.parent), padding);
+            if (!string.IsNullOrEmpty(toConvert._parent)) {
+                FitStateToChildren(GetState(toConvert._parent), padding);
             }
         }
 
         public void CreateSub(State toConvert, float padding) {
-            toConvert.hasChildren = true;
+            toConvert._hasChildren = true;
             FitStateToChildren(toConvert, padding);
         }
 
@@ -460,27 +461,27 @@ namespace SBR {
                 return true;
             }
 
-            if (descendant.parent == null || descendant.parent.Length == 0) {
+            if (descendant._parent == null || descendant._parent.Length == 0) {
                 return false;
             }
 
-            return IsAncestor(ancestor, GetState(descendant.parent));
+            return IsAncestor(ancestor, GetState(descendant._parent));
         }
 
         public bool SetStateParent(State state, State newParent, float padding) {
-            State oldParent = GetState(state.parent);
+            State oldParent = GetState(state._parent);
             if (oldParent != newParent && !IsAncestor(state, newParent)) {
                 if (oldParent != null) {
-                    state.parent = null;
+                    state._parent = null;
                     FitStateToChildren(oldParent, padding * 2);
                 }
 
                 if (newParent != null) {
-                    state.parent = newParent.name;
+                    state._parent = newParent._name;
                     MoveAfter(state, newParent);
                     FitStateToChildren(newParent, padding * 2);
                 } else {
-                    state.parent = null;
+                    state._parent = null;
                 }
 
                 return true;
@@ -490,28 +491,28 @@ namespace SBR {
         }
 
         public void FitStateToChildren(State state, float padding) {
-            if (!state.hasChildren) {
+            if (!state._hasChildren) {
                 return;
             }
 
-            state.size = new Vector2(192, 96);
-            var children = GetChildren(state.name);
+            state._size = new Vector2(192, 96);
+            List<State> children = GetChildren(state._name);
 
             if (children.Count > 0) {
-                state.position = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+                state._position = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
             }
 
-            foreach (var child in children) {
-                state.position.x = Mathf.Min(state.position.x, child.position.x - padding);
-                state.position.y = Mathf.Min(state.position.y, child.position.y - padding * 2);
+            foreach (State child in children) {
+                state._position.x = Mathf.Min(state._position.x, child._position.x - padding);
+                state._position.y = Mathf.Min(state._position.y, child._position.y - padding * 2);
             }
 
-            foreach (var child in children) {
-                state.size.x = Mathf.Max(state.size.x, child.position.x + child.size.x + padding - state.position.x);
-                state.size.y = Mathf.Max(state.size.y, child.position.y + child.size.y + padding - state.position.y);
+            foreach (State child in children) {
+                state._size.x = Mathf.Max(state._size.x, child._position.x + child._size.x + padding - state._position.x);
+                state._size.y = Mathf.Max(state._size.y, child._position.y + child._size.y + padding - state._position.y);
             }
 
-            var parent = GetState(state.parent);
+            State parent = GetState(state._parent);
 
             if (parent != null && parent != state) {
                 FitStateToChildren(parent, padding);

@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -38,51 +39,51 @@ namespace SBR {
         /// <summary>
         /// Duration of the fade. Can be overridden by duration parameter to FadeTo.
         /// </summary>
-        [Tooltip("Duration of the fade. Can be overridden by duration parameter to FadeTo.")]
-        public float fadeDuration = 1;
+        [FormerlySerializedAs("fadeDuration"),Tooltip("Duration of the fade. Can be overridden by duration parameter to FadeTo.")]
+        public float _fadeDuration = 1;
 
         /// <summary>
         /// Current fade level. Controls how loud it starts at.
         /// </summary>
-        [Tooltip("Current fade level. Controls how loud it starts at.")]
+        [FormerlySerializedAs("fadeLevel"),Tooltip("Current fade level. Controls how loud it starts at.")]
         [Range(0, 1)]
-        public float fadeLevel = 1;
+        public float _fadeLevel = 1;
 
         /// <summary>
         /// Specifies what happens when the script fades to zero. 
         /// </summary>
-        [Tooltip("Specifies what happens when the script fades to zero. ")]
-        public ZeroBehavior zeroBehavior = ZeroBehavior.Stop;
+        [FormerlySerializedAs("zeroBehavior"),Tooltip("Specifies what happens when the script fades to zero. ")]
+        public ZeroBehavior _zeroBehavior = ZeroBehavior.Stop;
 
-        private AudioSource audioSource;
-        private float currentTarget;
-        private float startVolume;
-        private float fadeSpeed;
-        private bool fading;
+        private AudioSource _audioSource;
+        private float _currentTarget;
+        private float _startVolume;
+        private float _fadeSpeed;
+        private bool _fading;
 
-        public bool IsFadedIn => currentTarget > 0;
+        public bool IsFadedIn => _currentTarget > 0;
 
         /// <summary>
         /// Fade the volume to its initial volume, and play if not already playing.
         /// </summary>
         public void FadeIn() {
-            fadeLevel = 0;
-            FadeTo(1, fadeDuration);
+            _fadeLevel = 0;
+            FadeTo(1, _fadeDuration);
         }
 
         /// <summary>
         /// Fade the volume to 0, and follow zeroBehavior when it reaches 0.
         /// </summary>
         public void FadeOut() {
-            fadeLevel = 1;
-            FadeTo(0, fadeDuration);
+            _fadeLevel = 1;
+            FadeTo(0, _fadeDuration);
         }
 
         /// <summary>
         /// Fade the volume to a given level.
         /// </summary>
         /// <param name="level">The level to fade to.</param>
-        public void FadeTo(float level) => FadeTo(level, fadeDuration);
+        public void FadeTo(float level) => FadeTo(level, _fadeDuration);
 
         /// <summary>
         /// Fade the volume to a given level over a given duration.
@@ -90,41 +91,41 @@ namespace SBR {
         /// <param name="level">The level to fade to.</param>
         /// <param name="duration">Override for fadeDuration field.</param>
         public void FadeTo(float level, float duration) {
-            if (!audioSource.isPlaying) {
-                audioSource.volume = fadeLevel * startVolume;
-                audioSource.Play();
+            if (!_audioSource.isPlaying) {
+                _audioSource.volume = _fadeLevel * _startVolume;
+                _audioSource.Play();
             }
 
-            currentTarget = Mathf.Clamp01(level);
-            fadeSpeed = Mathf.Abs(currentTarget - fadeLevel) / duration;
-            fading = true;
+            _currentTarget = Mathf.Clamp01(level);
+            _fadeSpeed = Mathf.Abs(_currentTarget - _fadeLevel) / duration;
+            _fading = true;
         }
 
         /// <summary>
         /// Clear the fade (reset volume to 1).
         /// </summary>
         public void Clear() {
-            fadeLevel = 1;
-            audioSource.volume = startVolume;
+            _fadeLevel = 1;
+            _audioSource.volume = _startVolume;
         }
 
         private void Awake() {
-            audioSource = GetComponent<AudioSource>();
-            startVolume = audioSource.volume;
-            audioSource.volume = startVolume * fadeLevel;
-            if (fadeLevel == 0) {
+            _audioSource = GetComponent<AudioSource>();
+            _startVolume = _audioSource.volume;
+            _audioSource.volume = _startVolume * _fadeLevel;
+            if (_fadeLevel == 0) {
                 ReachedZero();
             }
         }
 
         private void Update() {
-            if (fading) {
-                fadeLevel = Mathf.MoveTowards(fadeLevel, currentTarget, fadeSpeed * Time.unscaledDeltaTime);
-                audioSource.volume = fadeLevel * startVolume;
+            if (_fading) {
+                _fadeLevel = Mathf.MoveTowards(_fadeLevel, _currentTarget, _fadeSpeed * Time.unscaledDeltaTime);
+                _audioSource.volume = _fadeLevel * _startVolume;
 
-                if (fadeLevel == currentTarget) {
-                    fading = false;
-                    if (fadeLevel == 0) {
+                if (_fadeLevel == _currentTarget) {
+                    _fading = false;
+                    if (_fadeLevel == 0) {
                         ReachedZero();
                     }
                 }
@@ -132,10 +133,10 @@ namespace SBR {
         }
 
         private void ReachedZero() {
-            if (zeroBehavior == ZeroBehavior.Stop) {
-                audioSource.Stop();
-            } else if (zeroBehavior == ZeroBehavior.Pause) {
-                audioSource.Pause();
+            if (_zeroBehavior == ZeroBehavior.Stop) {
+                _audioSource.Stop();
+            } else if (_zeroBehavior == ZeroBehavior.Pause) {
+                _audioSource.Pause();
             }
         }
     }
@@ -179,7 +180,7 @@ namespace SBR {
         /// </summary>
         /// <param name="source"></param>
         public static void ClearFade(this AudioSource source) {
-            if (source.TryGetComponent<AudioFade>(out var fade)) {
+            if (source.TryGetComponent<AudioFade>(out AudioFade fade)) {
                 fade.Clear();
             }
         }

@@ -12,7 +12,7 @@ namespace SBR.Editor {
         };
         
         public static void SetSymbolDefined(string symbol, bool value) {
-            foreach (var group in BuildTargetGroups) {
+            foreach (BuildTargetGroup group in BuildTargetGroups) {
                 CoreEditorUtility.SetSymbolDefined(symbol, value, group);
             }
         }

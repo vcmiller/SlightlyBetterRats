@@ -90,7 +90,7 @@ namespace SBR.Editor {
             }
 
             Brush brush = brushObj.AddComponent<Brush>();
-            brush.type = type;
+            brush._type = type;
             brush.GetComponent<MeshRenderer>().sharedMaterial = defaultMat;
 
             Selection.activeGameObject = brushObj;

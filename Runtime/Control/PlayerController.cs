@@ -40,6 +40,7 @@ namespace SBR {
     /// <typeparam name="T">The type of Channels to use.</typeparam>
     public abstract class PlayerController<T> : Controller<T> where T : Channels, new() {
         protected bool MouseGrabbed { get; private set; }
+        [Infohazard.StateSystem.FormerlyOverriddenAs("inputEnabled")]
         public bool InputEnabled { get; set; } = true;
 
         public bool GrabMouse {

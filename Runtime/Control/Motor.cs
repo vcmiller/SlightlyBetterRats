@@ -83,14 +83,14 @@ namespace SBR {
         }
 
         private void ConnectControllers() {
-            foreach (var ctrl in Controllers) {
+            foreach (IController<T> ctrl in Controllers) {
                 ctrl.InputReceived += ControllerInputReceived;
                 ctrl.PostInputReceived += ControllerPostInputReceived;
             }
         }
 
         private void DisconnectControllers() {
-            foreach (var ctrl in Controllers) {
+            foreach (IController<T> ctrl in Controllers) {
                 ctrl.InputReceived -= ControllerInputReceived;
                 ctrl.PostInputReceived -= ControllerPostInputReceived;
             }

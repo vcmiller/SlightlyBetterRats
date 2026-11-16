@@ -59,7 +59,7 @@ namespace SBR.Editor {
                 return;
             }
 
-            Draw(position, property, label, ((SettingReferenceAttribute)attribute).settingTypes);
+            Draw(position, property, label, ((SettingReferenceAttribute)attribute).SettingTypes);
         }
 
         public static void Draw(Rect position, SerializedProperty property, GUIContent label, Type[] types = null) {
@@ -68,7 +68,7 @@ namespace SBR.Editor {
                 return;
             }
             
-            var settings = GetCachedSettings(types);
+            string[] settings = GetCachedSettings(types);
 
             int curVal = Array.IndexOf(settings, property.stringValue);
             if (curVal <= 0 || curVal >= settings.Length) {

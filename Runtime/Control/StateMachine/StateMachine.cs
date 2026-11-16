@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,111 +29,105 @@ namespace SBR.StateMachines {
         bool IsStateActive(string name);
         bool IsStateRemembered(string name);
         float TransitionLastTime(string from, string to);
-        GameObject gameObject { get; }
+        GameObject GameObject { get; }
     }
 
     public delegate void Notify();
     public delegate bool Condition();
 
     public class Trigger {
-        bool value;
-        public void Set() => value = true;
+        bool _value;
+        public void Set() => _value = true;
         public bool Get() {
-            bool b = value;
-            value = false;
+            bool b = _value;
+            _value = false;
             return b;
         }
     }
 
     public class State {
-        public Notify enter;
-        public Notify during;
-        public Notify exit;
+        public Notify EnterCallback;
+        public Notify UpdateCallback;
+        public Notify ExitCallback;
 
-        public List<Transition> transitions;
-        public SubStateMachine subMachine;
-        public State parent;
-        public SubStateMachine parentMachine;
+        public List<Transition> Transitions;
+        public SubStateMachine SubMachine;
+        public State Parent;
+        public SubStateMachine ParentMachine;
 
-        public float enterTime = float.NegativeInfinity;
+        public float EnterTime = float.NegativeInfinity;
 
         public void EnterSelf() {
-            enterTime = Time.time;
-            enter?.Invoke();
+            EnterTime = Time.time;
+            EnterCallback?.Invoke();
         }
 
         public void Enter() {
             EnterSelf();
 
-            if (subMachine != null) {
-                subMachine.Enter();
-            }
+            SubMachine?.Enter();
         }
 
         public void Update() {
-            during?.Invoke();
+            UpdateCallback?.Invoke();
 
-            if (subMachine != null) {
-                subMachine.Update();
-            }
+            SubMachine?.Update();
         }
 
         public void Exit() {
-            if (subMachine != null) {
-                subMachine.Exit();
-            }
+            SubMachine?.Exit();
 
-            exit?.Invoke();
+            ExitCallback?.Invoke();
         }
     }
 
     public class Transition {
-        public State from;
-        public State to;
+        public State From;
+        public State To;
 
-        public Notify notify;
-        public Condition cond;
-        public float cooldown;
+        public Notify Notify;
+        public Condition Cond;
+        public float Cooldown;
 
-        public float exitTime;
-        public StateMachineDefinition.TransitionMode mode;
+        public float ExitTime;
+        public StateMachineDefinition.TransitionMode Mode;
 
-        public float lastTimeTakenUnscaled = float.NegativeInfinity;
-        public float lastTimeTaken = float.NegativeInfinity;
+        public float LastTimeTakenUnscaled = float.NegativeInfinity;
+        public float LastTimeTaken = float.NegativeInfinity;
 
         public bool IsPassable() {
-            if (Time.time - lastTimeTaken < cooldown) return false;
-            
-            if (mode == StateMachineDefinition.TransitionMode.Time) {
-                return Time.time - from.enterTime >= exitTime;
+            if (Time.time - LastTimeTaken < Cooldown) return false;
+
+            if (Mode == StateMachineDefinition.TransitionMode.Time) {
+                return Time.time - From.EnterTime >= ExitTime;
             } else {
-                return cond();
-            } 
+                return Cond();
+            }
         }
     }
 
     public class SubStateMachine {
-        public State currentState;
-        public State defaultState;
+        public State CurrentState;
+        public State DefaultState;
 
-        public float leafEnterTime => activeLeaf.enterTime;
+        public float LeafEnterTime => ActiveLeaf.EnterTime;
 
-        public State activeLeaf {
+        public State ActiveLeaf {
             get {
-                if (currentState.subMachine == null) {
-                    return currentState;
+                if (CurrentState.SubMachine == null) {
+                    return CurrentState;
                 } else {
-                    return currentState.subMachine.activeLeaf;
+                    return CurrentState.SubMachine.ActiveLeaf;
                 }
             }
         }
 
         public void Enter() {
-            if (currentState == null) {
-                currentState = defaultState;
+            if (CurrentState == null) {
+                CurrentState = DefaultState;
             }
 
-            currentState?.Enter();
+            CurrentState?.Enter();
         }
 
         public bool Enter(Stack<State> states) {
@@ -142,20 +136,20 @@ namespace SBR.StateMachines {
                 return true;
             }
 
-            var next = states.Pop();
+            State next = states.Pop();
 
-            if (next.parentMachine != this) {
+            if (next.ParentMachine != this) {
                 Debug.LogError("Error in transition hierarchy.");
                 return false;
             } else {
-                currentState = next;
-                currentState.EnterSelf();
+                CurrentState = next;
+                CurrentState.EnterSelf();
 
-                if (states.Count > 0 && currentState.subMachine == null) {
+                if (states.Count > 0 && CurrentState.SubMachine == null) {
                     Debug.LogError("State in transition hierarchy doesn't have children.");
                     return false;
-                } else if (currentState.subMachine != null) {
-                    return currentState.subMachine.Enter(states);
+                } else if (CurrentState.SubMachine != null) {
+                    return CurrentState.SubMachine.Enter(states);
                 } else {
                     return true;
                 }
@@ -163,51 +157,51 @@ namespace SBR.StateMachines {
         }
 
         public void Update() {
-            if (currentState == null) {
+            if (CurrentState == null) {
                 Enter();
             }
 
-            currentState?.Update();
+            CurrentState?.Update();
         }
 
         public void Exit() {
-            currentState?.Exit();
+            CurrentState?.Exit();
         }
 
         public Transition CheckTransitions() {
-            if ( currentState == null) return null;
+            if ( CurrentState == null) return null;
 
-            foreach (var t in currentState.transitions) {
+            foreach (Transition t in CurrentState.Transitions) {
                 if (t.IsPassable()) {
                     return t;
                 }
             }
 
-            if (currentState.subMachine != null) {
-                return currentState.subMachine.CheckTransitions();
+            if (CurrentState.SubMachine != null) {
+                return CurrentState.SubMachine.CheckTransitions();
             }
 
             return null;
         }
 
         public bool TransitionTo(Stack<State> states) {
-            var next = states.Peek();
+            State next = states.Peek();
 
-            if (next.parentMachine != this) {
+            if (next.ParentMachine != this) {
                 Debug.LogError("Error in transition hierarchy on state " + next);
                 return false;
             }
 
-            if (next == currentState) {
+            if (next == CurrentState) {
                 if (states.Count == 0) {
                     Debug.LogWarning("Trying to transition to already active state.");
                     return false;
-                } else if (currentState.subMachine == null) {
+                } else if (CurrentState.SubMachine == null) {
                     Debug.LogError("Trying to transition to non-existant hierarchy.");
                     return false;
                 } else {
                     states.Pop();
-                    return currentState.subMachine.TransitionTo(states);
+                    return CurrentState.SubMachine.TransitionTo(states);
                 }
             } else {
                 Exit();
@@ -218,20 +212,20 @@ namespace SBR.StateMachines {
 
     public abstract class StateMachine<T> : Controller<T>, IStateMachine where T : Channels, new() {
         [NonSerialized]
-        protected SubStateMachine rootMachine = new SubStateMachine();
+        protected SubStateMachine RootMachine = new SubStateMachine();
 
         [NonSerialized]
-        protected State[] allStates;
+        protected State[] AllStates;
 
-        public float stateEnterTime => rootMachine.leafEnterTime;
-        public float timeSinceEntered => Time.time - rootMachine.leafEnterTime;
-        public string stateName {
-            get { 
-                return rootMachine.activeLeaf.ToString();
+        public float StateEnterTime => RootMachine.LeafEnterTime;
+        public float TimeSinceEntered => Time.time - RootMachine.LeafEnterTime;
+        public string StateName {
+            get {
+                return RootMachine.ActiveLeaf.ToString();
             }
 
             set {
-                var state = GetState(value);
+                State state = GetState(value);
                 if (state != null) {
                     TransitionTo(state);
                 } else {
@@ -239,9 +233,11 @@ namespace SBR.StateMachines {
                 }
             }
         }
-        
+
+        public GameObject GameObject => gameObject;
+
         protected State GetState(string name) {
-            foreach (var s in allStates) {
+            foreach (State s in AllStates) {
                 if (s.ToString() == name) {
                     return s;
                 }
@@ -251,14 +247,14 @@ namespace SBR.StateMachines {
         }
 
         public new bool IsStateActive(string name) {
-            State s = rootMachine.currentState;
+            State s = RootMachine.CurrentState;
             while (s != null) {
                 if (s.ToString() == name) {
                     return true;
                 }
 
-                if (s.subMachine != null) {
-                    s = s.subMachine.currentState;
+                if (s.SubMachine != null) {
+                    s = s.SubMachine.CurrentState;
                 } else {
                     return false;
                 }
@@ -272,16 +268,16 @@ namespace SBR.StateMachines {
             if (s == null) {
                 return false;
             }
-            
-            return s.parentMachine.currentState == s || (s.parentMachine.currentState == null && s.parentMachine.defaultState == s);
+
+            return s.ParentMachine.CurrentState == s || (s.ParentMachine.CurrentState == null && s.ParentMachine.DefaultState == s);
         }
 
         public float TransitionLastTime(string state1, string state2) {
             State s1 = GetState(state1);
 
-            foreach (var t in s1.transitions) {
-                if (t.to.ToString() == state2) {
-                    return t.lastTimeTakenUnscaled;
+            foreach (Transition t in s1.Transitions) {
+                if (t.To.ToString() == state2) {
+                    return t.LastTimeTakenUnscaled;
                 }
             }
 
@@ -289,14 +285,14 @@ namespace SBR.StateMachines {
         }
 
         protected override void DoInput() {
-            rootMachine.Update();
+            RootMachine.Update();
 
-            var t = rootMachine.CheckTransitions();
+            Transition t = RootMachine.CheckTransitions();
             if (t != null) {
-                t.notify?.Invoke();
-                t.lastTimeTakenUnscaled = Time.unscaledTime;
-                t.lastTimeTaken = Time.time;
-                TransitionTo(t.to);
+                t.Notify?.Invoke();
+                t.LastTimeTakenUnscaled = Time.unscaledTime;
+                t.LastTimeTaken = Time.time;
+                TransitionTo(t.To);
             }
         }
 
@@ -306,13 +302,13 @@ namespace SBR.StateMachines {
             while (target != null) {
                 t.Push(target);
 
-                target = target.parent;
+                target = target.Parent;
             }
 
-            rootMachine.TransitionTo(t);
+            RootMachine.TransitionTo(t);
         }
 
-        protected Trigger trigger_OnDamage = new Trigger();
-        protected virtual void OnDamage(Damage dmg) => trigger_OnDamage.Set();
+        protected Trigger TriggerOnDamage = new Trigger();
+        protected virtual void OnDamage(Damage dmg) => TriggerOnDamage.Set();
     }
 }

@@ -65,8 +65,8 @@ namespace SBR {
                 
                 Rigidbody rb = obj.GetComponentInParent<Rigidbody>();
                 if (rb) rb.AddForce(impulse, ForceMode.Impulse);
-                Rigidbody2D rb2d = obj.GetComponentInParent<Rigidbody2D>();
-                if (rb2d) rb2d.AddForce(impulse.ToXY(), ForceMode2D.Impulse);
+                Rigidbody2D rb2D = obj.GetComponentInParent<Rigidbody2D>();
+                if (rb2D) rb2D.AddForce(impulse.ToXY(), ForceMode2D.Impulse);
             }
             
             return result;

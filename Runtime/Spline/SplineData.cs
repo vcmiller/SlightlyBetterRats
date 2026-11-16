@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // Some code in this class is adapted from Cinemachine
 
@@ -37,43 +38,48 @@ namespace SBR {
         /// </summary>
         [System.Serializable]
         public class Point {
-            public Vector3 position;
-            public Vector3 tangent;
-            public float roll;
+            [FormerlySerializedAs("position")]
+            public Vector3 _position;
+            [FormerlySerializedAs("tangent")]
+            public Vector3 _tangent;
+            [FormerlySerializedAs("roll")]
+            public float _roll;
         }
 
         /// <summary>
         /// Whether the spline is a circuit.
         /// </summary>
-        public bool closed;
+        [FormerlySerializedAs("closed")]
+        public bool _closed;
 
         /// <summary>
         /// The points of the spline.
         /// </summary>
-        public Point[] points = new Point[0];
+        [FormerlySerializedAs("points")]
+        public Point[] _points = new Point[0];
 
-        private float[] samples = new float[100];
-        private bool samplesDirty = true;
+        private float[] _samples = new float[100];
+        private bool _samplesDirty = true;
         private float _length;
 
         /// <summary>
         /// The minimum position on the spline (always 0).
         /// </summary>
-        public float min { get { return 0; } }
+        public float Min { get { return 0; } }
 
         /// <summary>
         /// The maximum non-normalized position on the spline.
         /// </summary>
-        public float max { get { return Mathf.Max(0, closed ? points.Length : points.Length - 1); } }
+        public float Max { get { return Mathf.Max(0, _closed ? _points.Length : _points.Length - 1); } }
 
         /// <summary>
         /// Number of samples for spline calculations.
         /// </summary>
-        public int sampleCount {
-            get { return samples.Length; }
+        public int SampleCount {
+            get { return _samples.Length; }
             set {
-                if (value != samples.Length) {
-                    samples = new float[value];
+                if (value != _samples.Length) {
+                    _samples = new float[value];
                     InvalidateSamples();
                 }
             }
@@ -82,7 +88,7 @@ namespace SBR {
         /// <summary>
         /// Non-normalized length of the spline.
         /// </summary>
-        public float length {
+        public float Length {
             get {
                 RefreshSamples();
                 return _length;
@@ -93,27 +99,27 @@ namespace SBR {
         /// Invalidate calculated samples so they are recalculated later.
         /// </summary>
         public void InvalidateSamples() {
-            samplesDirty = true;
+            _samplesDirty = true;
         }
 
         private void RefreshSamples() {
-            if (!samplesDirty) return;
+            if (!_samplesDirty) return;
 
             Vector3 lastP = GetPointNonUniform(0);
             _length = 0;
-            samples[0] = 0;
-            for (int i = 1; i < samples.Length; i++) {
-                Vector3 curP = GetPointNonUniform(i / (samples.Length - 1.0f));
+            _samples[0] = 0;
+            for (int i = 1; i < _samples.Length; i++) {
+                Vector3 curP = GetPointNonUniform(i / (_samples.Length - 1.0f));
                 _length += Vector3.Distance(curP, lastP);
-                samples[i] = _length;
+                _samples[i] = _length;
                 lastP = curP;
             }
 
-            for (int i = 0; i < samples.Length; i++) {
-                samples[i] /= _length;
+            for (int i = 0; i < _samples.Length; i++) {
+                _samples[i] /= _length;
             }
 
-            samplesDirty = false;
+            _samplesDirty = false;
         }
 
         private float Normalize(float pos) {
@@ -132,10 +138,10 @@ namespace SBR {
             pos = Normalize(pos);
             RefreshSamples();
 
-            for (int i = 0; i < samples.Length - 1; i++) {
-                if (samples[i] <= pos && samples[i + 1] >= pos) {
-                    float f = (pos - samples[i]) / (samples[i + 1] - samples[i]);
-                    return Mathf.Lerp(i, i + 1, f) / (samples.Length - 1.0f);
+            for (int i = 0; i < _samples.Length - 1; i++) {
+                if (_samples[i] <= pos && _samples[i + 1] >= pos) {
+                    float f = (pos - _samples[i]) / (_samples[i + 1] - _samples[i]);
+                    return Mathf.Lerp(i, i + 1, f) / (_samples.Length - 1.0f);
                 }
             }
 
@@ -143,10 +149,10 @@ namespace SBR {
         }
 
         private float ScaleToLength(float pos) {
-            if (closed) {
-                return pos * points.Length;
+            if (_closed) {
+                return pos * _points.Length;
             } else {
-                return pos * Mathf.Max(0, points.Length - 1);
+                return pos * Mathf.Max(0, _points.Length - 1);
             }
         }
 
@@ -154,11 +160,11 @@ namespace SBR {
             pos = ScaleToLength(Normalize(pos));
             int rounded = Mathf.RoundToInt(pos);
             if (Mathf.Abs(pos - rounded) < 0.0001f) {
-                indexA = indexB = (rounded == points.Length) ? 0 : rounded;
+                indexA = indexB = (rounded == _points.Length) ? 0 : rounded;
             } else {
                 indexA = Mathf.FloorToInt(pos);
                 indexB = Mathf.CeilToInt(pos);
-                if (indexB >= points.Length) {
+                if (indexB >= _points.Length) {
                     indexB = 0;
                 }
             }
@@ -176,7 +182,7 @@ namespace SBR {
             Vector3 lastFwd = Vector3.forward;
 
             for (int i = 0; i <= index; i++) {
-                var fwd = points[i].tangent;
+                Vector3 fwd = _points[i]._tangent;
                 Quaternion temp = Quaternion.FromToRotation(lastFwd, fwd);
                 q = temp * q;
                 lastFwd = fwd;
@@ -191,22 +197,22 @@ namespace SBR {
         /// <param name="pos">The non-uniform position in range [0, 1].</param>
         /// <returns>The point on the spline.</returns>
         public Vector3 GetPointNonUniform(float pos) {
-            if (points.Length == 0)
+            if (_points.Length == 0)
                 return Vector3.zero;
             else {
                 int indexA, indexB;
                 pos = GetSegment(pos, out indexA, out indexB);
                 if (indexA == indexB) {
-                    return points[indexA].position;
+                    return _points[indexA]._position;
                 } else {
-                    var ptA = points[indexA];
-                    var ptB = points[indexB];
+                    Point ptA = _points[indexA];
+                    Point ptB = _points[indexB];
                     float t = pos - indexA;
                     float d = 1f - t;
-                    Vector3 ctrl1 = ptA.position + ptA.tangent;
-                    Vector3 ctrl2 = ptB.position - ptB.tangent;
-                    return d * d * d * ptA.position + 3f * d * d * t * ctrl1
-                        + 3f * d * t * t * ctrl2 + t * t * t * ptB.position;
+                    Vector3 ctrl1 = ptA._position + ptA._tangent;
+                    Vector3 ctrl2 = ptB._position - ptB._tangent;
+                    return d * d * d * ptA._position + 3f * d * d * t * ctrl1
+                        + 3f * d * t * t * ctrl2 + t * t * t * ptB._position;
                 }
             }
         }
@@ -226,22 +232,22 @@ namespace SBR {
         /// <param name="pos">The non-uniform position in range [0, 1].</param>
         /// <returns>The tangent on the spline.</returns>
         public Vector3 GetTangentNonUniform(float pos) {
-            if (points.Length == 0)
+            if (_points.Length == 0)
                 return Vector3.forward;
             else {
                 int indexA, indexB;
                 pos = GetSegment(pos, out indexA, out indexB);
                 if (indexA == indexB) {
-                    return points[indexA].tangent;
+                    return _points[indexA]._tangent;
                 } else {
-                    Point ptA = points[indexA];
-                    Point ptB = points[indexB];
+                    Point ptA = _points[indexA];
+                    Point ptB = _points[indexB];
                     float t = pos - indexA;
-                    Vector3 ctrl1 = ptA.position + ptA.tangent;
-                    Vector3 ctrl2 = ptB.position - ptB.tangent;
-                    return Vector3.Normalize((-3f * ptA.position + 9f * ctrl1 - 9f * ctrl2 + 3f * ptB.position) * t * t
-                        + (6f * ptA.position - 12f * ctrl1 + 6f * ctrl2) * t
-                        - 3f * ptA.position + 3f * ctrl1);
+                    Vector3 ctrl1 = ptA._position + ptA._tangent;
+                    Vector3 ctrl2 = ptB._position - ptB._tangent;
+                    return Vector3.Normalize((-3f * ptA._position + 9f * ctrl1 - 9f * ctrl2 + 3f * ptB._position) * t * t
+                        + (6f * ptA._position - 12f * ctrl1 + 6f * ctrl2) * t
+                        - 3f * ptA._position + 3f * ctrl1);
                 }
             }
         }
@@ -261,16 +267,16 @@ namespace SBR {
         /// <param name="pos">The non-uniform position in range [0, 1].</param>
         /// <returns>The roll on the spline.</returns>
         public float GetRollNonUniform(float pos) {
-            if (points.Length == 0) {
+            if (_points.Length == 0) {
                 return 0;
             } else {
                 int indexA, indexB;
                 pos = GetSegment(pos, out indexA, out indexB);
                 if (indexA == indexB) {
-                    return points[indexA].roll;
+                    return _points[indexA]._roll;
                 } else {
-                    float rollA = points[indexA].roll;
-                    float rollB = points[indexB].roll;
+                    float rollA = _points[indexA]._roll;
+                    float rollB = _points[indexB]._roll;
                     if (indexB == 0) {
                         rollA = rollA % 360;
                         rollB = rollB % 360;
@@ -295,7 +301,7 @@ namespace SBR {
         /// <param name="pos">The non-uniform position in range [0, 1].</param>
         /// <returns>The rotation on the spline.</returns>
         public Quaternion GetRotationNonUniform(float pos) {
-            if (points.Length == 0) {
+            if (_points.Length == 0) {
                 return Quaternion.identity;
             } else {
                 int indexA, indexB;
@@ -305,7 +311,7 @@ namespace SBR {
 
                 if (fwd.sqrMagnitude > 0.0001f) {
                     Quaternion from = GetPointRotation(indexA);
-                    Quaternion q = Quaternion.FromToRotation(points[indexA].tangent, fwd) * from;
+                    Quaternion q = Quaternion.FromToRotation(_points[indexA]._tangent, fwd) * from;
                     return q * Quaternion.AngleAxis(roll, Vector3.forward);
                 } else {
                     return Quaternion.identity;

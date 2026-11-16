@@ -24,16 +24,16 @@ using UnityEngine;
 
 namespace SBR {
     public class Projectile2D : Projectile {
-        protected override bool hitsTriggers =>
-            triggerInteraction == QueryTriggerInteraction.Collide ||
-            (triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics2D.queriesHitTriggers);
+        protected override bool HitsTriggers =>
+            _triggerInteraction == QueryTriggerInteraction.Collide ||
+            (_triggerInteraction == QueryTriggerInteraction.UseGlobal && Physics2D.queriesHitTriggers);
 
         protected virtual void OnHitCollider2D(Collider2D col, Vector2 position, Vector2 normal) {
-            if (hitsTriggers || !col.isTrigger) {
+            if (HitsTriggers || !col.isTrigger) {
                 OnHitObject(col.transform, position, normal);
             }
         }
 
-        protected override Vector3 gravityVector => gravity * Physics2D.gravity;
+        protected override Vector3 GravityVector => _gravity * Physics2D.gravity;
     }
 }

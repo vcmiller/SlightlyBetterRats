@@ -21,37 +21,45 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SBR.Menu {
     [RequireComponent(typeof(Button))]
     public class TabButton : MonoBehaviour {
-        public Button button;
-        public Text label;
-        public Image fill;
+        [FormerlySerializedAs("button")]
+        public Button _button;
+        [FormerlySerializedAs("label")]
+        public Text _label;
+        [FormerlySerializedAs("fill")]
+        public Image _fill;
         
-        public Color onLabelColor = Color.black;
-        public Color onImageColor = Color.green;
+        [FormerlySerializedAs("onLabelColor")]
+        public Color _onLabelColor = Color.black;
+        [FormerlySerializedAs("onImageColor")]
+        public Color _onImageColor = Color.green;
 
-        public Color offLabelColor = Color.black;
-        public Color offImageColor = Color.white;
+        [FormerlySerializedAs("offLabelColor")]
+        public Color _offLabelColor = Color.black;
+        [FormerlySerializedAs("offImageColor")]
+        public Color _offImageColor = Color.white;
 
         private bool _isOn;
-        public bool isOn {
+        public bool IsOn {
             get => _isOn;
             set {
                 if (_isOn != value) {
                     _isOn = value;
-                    if (label) label.color = _isOn ? onLabelColor : offLabelColor;
-                    if (fill) fill.color = _isOn ? onImageColor : offImageColor;
+                    if (_label) _label.color = _isOn ? _onLabelColor : _offLabelColor;
+                    if (_fill) _fill.color = _isOn ? _onImageColor : _offImageColor;
                 }
             }
         }
 
         private void Reset() {
-            button = GetComponent<Button>();
-            fill = GetComponent<Image>();
-            label = GetComponentInChildren<Text>();
+            _button = GetComponent<Button>();
+            _fill = GetComponent<Image>();
+            _label = GetComponentInChildren<Text>();
         }
     }
 

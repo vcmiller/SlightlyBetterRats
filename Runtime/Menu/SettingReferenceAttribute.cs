@@ -26,15 +26,15 @@ using UnityEngine;
 
 namespace SBR.Menu {
     public class SettingReferenceAttribute : PropertyAttribute {
-        public readonly Type[] settingTypes;
+        public readonly Type[] SettingTypes;
 
         public SettingReferenceAttribute() {
-            this.settingTypes = null;
+            this.SettingTypes = null;
         }
 
         public SettingReferenceAttribute(params Type[] settingTypes) {
             Array.Sort(settingTypes, new TypeArrayComparer());
-            this.settingTypes = settingTypes;
+            this.SettingTypes = settingTypes;
         }
 
         private class TypeArrayComparer : IComparer<Type> {

@@ -26,27 +26,27 @@ namespace SBR {
     /// such as bullets in a magazine that must be reloaded.
     /// </summary>
     public class Magazine {
-        public ExpirationTimer reloadTimer { get; private set; }
+        public ExpirationTimer ReloadTimer { get; private set; }
 
         /// <summary>
         /// How many uses remain before a reload is necessary.
         /// </summary>
-        public int remainingShots { get; private set; }
+        public int RemainingShots { get; private set; }
 
         /// <summary>
         /// How many times it can be used per reload.
         /// </summary>
-        public int clipSize { get; private set; }
+        public int ClipSize { get; private set; }
 
         /// <summary>
         /// Whether it can currently be used.
         /// </summary>
-        public bool canFire => remainingShots > 0 && reloadTimer.expired;
+        public bool CanFire => RemainingShots > 0 && ReloadTimer.Expired;
 
         /// <summary>
         /// Whether is currently reloading.
         /// </summary>
-        public bool reloading => !reloadTimer.expired;
+        public bool Reloading => !ReloadTimer.Expired;
 
         /// <summary>
         /// Construct a new Magazine with given size and reload time.
@@ -54,18 +54,18 @@ namespace SBR {
         /// <param name="size">Number of uses before reload.</param>
         /// <param name="reloadTime">Time it takes to reload.</param>
         public Magazine(int size, float reloadTime) {
-            reloadTimer = new ExpirationTimer(reloadTime);
-            remainingShots = size;
-            clipSize = size;
+            ReloadTimer = new ExpirationTimer(reloadTime);
+            RemainingShots = size;
+            ClipSize = size;
         }
 
         /// <summary>
         /// Manually reload.
         /// </summary>
         public void Reload() {
-            if (remainingShots < clipSize) {
-                remainingShots = clipSize;
-                reloadTimer.Set();
+            if (RemainingShots < ClipSize) {
+                RemainingShots = ClipSize;
+                ReloadTimer.Set();
             }
         }
 
@@ -76,10 +76,10 @@ namespace SBR {
         /// </summary>
         /// <returns>Whether it could be used.</returns>
         public bool Fire() {
-            if (canFire) {
-                remainingShots--;
+            if (CanFire) {
+                RemainingShots--;
 
-                if (remainingShots == 0) {
+                if (RemainingShots == 0) {
                     Reload();
                 }
 

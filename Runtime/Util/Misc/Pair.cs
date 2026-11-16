@@ -71,7 +71,7 @@ namespace SBR {
                 return false;
             }
 
-            var o = (Pair<T1, T2>)obj;
+            Pair<T1, T2> o = (Pair<T1, T2>)obj;
 
             return _item1.Equals(o._item1) && _item2.Equals(o._item2);
         }
@@ -157,7 +157,7 @@ namespace SBR {
                 return false;
             }
 
-            var o = (UnorderedPair<T>)obj;
+            UnorderedPair<T> o = (UnorderedPair<T>)obj;
 
             return (_item1.Equals(o._item1) && _item2.Equals(o._item2)) || (_item1.Equals(o._item2) && _item2.Equals(o._item1));
         }

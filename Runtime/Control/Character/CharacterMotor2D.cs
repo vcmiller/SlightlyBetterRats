@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /**
  * Motor class for a humanoid character. Enables movement and collision without the use of a Rigidbody.
@@ -31,75 +32,75 @@ namespace SBR {
     [RequireComponent(typeof(BoxCollider2D))]
     [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterMotor2D : Motor<CharacterChannels> {
-        public BoxCollider2D box { get; private set; }
-        new public Rigidbody2D rigidbody { get; private set; }
+        public BoxCollider2D Box { get; private set; }
+        new public Rigidbody2D Rigidbody { get; private set; }
 
-        public bool grounded { get; private set; }
-        public bool sliding { get; private set; }
-        public bool jumpedThisFrame { get; private set; }
-        public bool jumping { get; private set; }
-        public bool enableAirControl { get; set; }
+        public bool Grounded { get; private set; }
+        public bool Sliding { get; private set; }
+        public bool JumpedThisFrame { get; private set; }
+        public bool Jumping { get; private set; }
+        public bool EnableAirControl { get; set; }
 
-        public Collider2D ground { get; private set; }
+        public Collider2D Ground { get; private set; }
 
-        private Vector2 groundNormal;
-        private Vector2 groundLastPos;
+        private Vector2 _groundNormal;
+        private Vector2 _groundLastPos;
 
-        private PhysicsMaterial2D smoothAndSlippery;
+        private PhysicsMaterial2D _smoothAndSlippery;
 
-        [HideInInspector]
-        public Vector2 velocity;
+        [FormerlySerializedAs("velocity"),HideInInspector]
+        public Vector2 _velocity;
 
-        [Header("General")]
+        [FormerlySerializedAs("groundLayers"),Header("General")]
         [Tooltip("Layers that block the character. Should be the same as the layers the collider interacts with.")]
-        public LayerMask groundLayers = 1;
+        public LayerMask _groundLayers = 1;
 
-        [Header("Movement: Walking")]
+        [FormerlySerializedAs("walkSpeed"),Header("Movement: Walking")]
         [Tooltip("The max walk speed of the character.")]
-        public float walkSpeed = 10;
+        public float _walkSpeed = 10;
 
-        [Tooltip("The walking (ground) acceleration of the character.")]
-        public float walkAcceleration = 50;
+        [FormerlySerializedAs("walkAcceleration"),Tooltip("The walking (ground) acceleration of the character.")]
+        public float _walkAcceleration = 50;
 
-        [Tooltip("The maximum slope, in degrees, that the character can climb.")]
-        public float maxSlope = 45;
+        [FormerlySerializedAs("maxSlope"),Tooltip("The maximum slope, in degrees, that the character can climb.")]
+        public float _maxSlope = 45;
 
-        [Tooltip("Whether the player's movement should be aligned with the slope they are standing on.")]
-        public bool keepOnSlope = true;
+        [FormerlySerializedAs("keepOnSlope"),Tooltip("Whether the player's movement should be aligned with the slope they are standing on.")]
+        public bool _keepOnSlope = true;
 
-        [Tooltip("Whether the player will automatically stay on moving platforms.")]
-        public bool moveWithPlatforms = true;
+        [FormerlySerializedAs("moveWithPlatforms"),Tooltip("Whether the player will automatically stay on moving platforms.")]
+        public bool _moveWithPlatforms = true;
         
-        [Header("Jumping")]
+        [FormerlySerializedAs("jumpSpeed"),Header("Jumping")]
         [Tooltip("The speed at which the character jumps.")]
-        public float jumpSpeed = 10;
+        public float _jumpSpeed = 10;
 
-        [Tooltip("Whether releasing the jump button should immediately cancel the jump.")]
-        public bool enableJumpCancel = true;
+        [FormerlySerializedAs("enableJumpCancel"),Tooltip("Whether releasing the jump button should immediately cancel the jump.")]
+        public bool _enableJumpCancel = true;
 
-        [Tooltip("The value to multiply Physics.Gravity by.")]
-        public float gravityScale = 2;
+        [FormerlySerializedAs("gravityScale"),Tooltip("The value to multiply Physics.Gravity by.")]
+        public float _gravityScale = 2;
 
-        [Tooltip("Distance to query when checking if player is on the ground.")]
-        public float groundDist = 0.1f;
+        [FormerlySerializedAs("groundDist"),Tooltip("Distance to query when checking if player is on the ground.")]
+        public float _groundDist = 0.1f;
 
-        [Header("Movement: Falling")]
+        [FormerlySerializedAs("airControl"),Header("Movement: Falling")]
         [Tooltip("Air control multiplier (air acceleration is Air Control * Walk Acceleration.")]
-        public float airControl = 0.5f;
+        public float _airControl = 0.5f;
 
         protected override void Awake() {
             base.Awake();
 
-            box = GetComponent<BoxCollider2D>();
-            rigidbody = GetComponent<Rigidbody2D>();
-            enableAirControl = true;
+            Box = GetComponent<BoxCollider2D>();
+            Rigidbody = GetComponent<Rigidbody2D>();
+            EnableAirControl = true;
 
-            rigidbody.gravityScale = 0;
+            Rigidbody.gravityScale = 0;
 
-            smoothAndSlippery = new PhysicsMaterial2D();
-            smoothAndSlippery.bounciness = 0;
-            smoothAndSlippery.friction = 0;
-            box.sharedMaterial = smoothAndSlippery;
+            _smoothAndSlippery = new PhysicsMaterial2D();
+            _smoothAndSlippery.bounciness = 0;
+            _smoothAndSlippery.friction = 0;
+            Box.sharedMaterial = _smoothAndSlippery;
             
             Time.fixedDeltaTime = 1.0f / 60.0f;
         }
@@ -108,119 +109,119 @@ namespace SBR {
             Vector2 move = Vector2.zero;
 
             if (EnableInput) {
-                move = Vector3.Project(channels.Movement, transform.right) * walkSpeed;
+                move = Vector3.Project(channels.Movement, transform.right) * _walkSpeed;
             }
 
             //if (body.isGrounded) {
-            float accel = walkAcceleration;
-            if (!grounded) {
-                if (enableAirControl) {
-                    accel *= airControl;
+            float accel = _walkAcceleration;
+            if (!Grounded) {
+                if (EnableAirControl) {
+                    accel *= _airControl;
                 } else {
                     accel = 0;
                 }
             }
 
-            if (sliding) {
-                Vector2 n = Vector3.Project(groundNormal, transform.right);
+            if (Sliding) {
+                Vector2 n = Vector3.Project(_groundNormal, transform.right);
                 n = -n.normalized;
 
                 if (Vector2.Dot(move, n) > 0) {
                     Vector2 bad = Vector3.Project(move, n);
                     move -= bad;
                 }
-            } else if (grounded && keepOnSlope) {
-                Vector2 gOrtho = new Vector2(groundNormal.y, -groundNormal.x);
+            } else if (Grounded && _keepOnSlope) {
+                Vector2 gOrtho = new Vector2(_groundNormal.y, -_groundNormal.x);
                 move = Vector3.Project(move, gOrtho).normalized * move.magnitude;
             }
             
             Vector2 targetVel = move;
-            if (!grounded) {
-                targetVel += (Vector2)Vector3.Project(velocity, Physics2D.gravity);
+            if (!Grounded) {
+                targetVel += (Vector2)Vector3.Project(_velocity, Physics2D.gravity);
             }
-            velocity = Vector2.MoveTowards(velocity, targetVel, accel * Time.deltaTime);
+            _velocity = Vector2.MoveTowards(_velocity, targetVel, accel * Time.deltaTime);
 
-            jumpedThisFrame = false;
-            if (grounded && channels.Jump) {
-                jumpedThisFrame = true;
-                jumping = true;
-                velocity = Vector3.Project(velocity, transform.right) + transform.up * jumpSpeed;
+            JumpedThisFrame = false;
+            if (Grounded && channels.Jump) {
+                JumpedThisFrame = true;
+                Jumping = true;
+                _velocity = Vector3.Project(_velocity, transform.right) + transform.up * _jumpSpeed;
             }
 
-            if (Vector2.Dot(velocity, transform.up) <= 0) {
-                jumping = false;
+            if (Vector2.Dot(_velocity, transform.up) <= 0) {
+                Jumping = false;
                 channels.Jump = false;
             }
             
-            if (jumping && !channels.Jump && enableJumpCancel) {
-                jumping = false;
-                velocity.y = 0;
+            if (Jumping && !channels.Jump && _enableJumpCancel) {
+                Jumping = false;
+                _velocity.y = 0;
             }
         }
 
         private void UpdateGrounded() {
-            Vector2 c = box.transform.TransformPoint(box.offset);
-            Vector2 s = box.transform.TransformVector(box.size);
-            float a = box.transform.eulerAngles.z;
+            Vector2 c = Box.transform.TransformPoint(Box.offset);
+            Vector2 s = Box.transform.TransformVector(Box.size);
+            float a = Box.transform.eulerAngles.z;
 
-            var lastGround = ground;
+            Collider2D lastGround = Ground;
 
             bool tr = Physics2D.queriesHitTriggers;
             bool st = Physics2D.queriesStartInColliders;
             Physics2D.queriesHitTriggers = false;
             Physics2D.queriesStartInColliders = false;
-            RaycastHit2D hit = Physics2D.BoxCast(c, s, a, -transform.up, groundDist, groundLayers);
+            RaycastHit2D hit = Physics2D.BoxCast(c, s, a, -transform.up, _groundDist, _groundLayers);
             Physics2D.queriesHitTriggers = tr;
             Physics2D.queriesStartInColliders = st;
 
-            bool g = hit && !jumping;
+            bool g = hit && !Jumping;
             
-            grounded = g && Vector2.Angle(hit.normal, transform.up) <= maxSlope;
-            sliding = g && !grounded;
+            Grounded = g && Vector2.Angle(hit.normal, transform.up) <= _maxSlope;
+            Sliding = g && !Grounded;
 
             if (g) {
-                groundNormal = hit.normal;
+                _groundNormal = hit.normal;
             }
 
-            if (grounded) {
-                ground = hit.collider;
+            if (Grounded) {
+                Ground = hit.collider;
 
-                if (lastGround != ground) {
-                    groundLastPos = ground.transform.position;
+                if (lastGround != Ground) {
+                    _groundLastPos = Ground.transform.position;
                 }
             } else {
-                ground = null;
+                Ground = null;
             }
         }
         
         private void Update() {
             UpdateGrounded();
             
-            if (!grounded) {
-                velocity += Physics2D.gravity * gravityScale * Time.deltaTime;
+            if (!Grounded) {
+                _velocity += Physics2D.gravity * _gravityScale * Time.deltaTime;
             }
 
-            rigidbody.linearVelocity = Vector2.zero;
+            Rigidbody.linearVelocity = Vector2.zero;
         }
 
         private void FixedUpdate() {
             Vector2 theGroundIsMoving = Vector2.zero;
 
-            if (ground) {
-                if (moveWithPlatforms) theGroundIsMoving = (Vector2)ground.transform.position - groundLastPos;
-                groundLastPos = ground.transform.position;
+            if (Ground) {
+                if (_moveWithPlatforms) theGroundIsMoving = (Vector2)Ground.transform.position - _groundLastPos;
+                _groundLastPos = Ground.transform.position;
             }
             
-            rigidbody.MovePosition(rigidbody.position + velocity * Time.fixedDeltaTime + theGroundIsMoving);
+            Rigidbody.MovePosition(Rigidbody.position + _velocity * Time.fixedDeltaTime + theGroundIsMoving);
         }
 
         private void OnCollisionStay2D(Collision2D other) {
-            var normal = other.contacts[0].normal;
+            Vector2 normal = other.contacts[0].normal;
             print(normal);
 
-            if (Vector2.Dot(velocity, normal) >= 0) return;
+            if (Vector2.Dot(_velocity, normal) >= 0) return;
 
-            velocity += (Vector2)Vector3.Project(-velocity, normal);
+            _velocity += (Vector2)Vector3.Project(-_velocity, normal);
         }
     }
 }

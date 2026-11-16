@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,6 +24,7 @@ using System;
 using Infohazard.Core;
 using Infohazard.Sequencing;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -76,7 +77,7 @@ namespace SBR {
         /// The current health value.
         /// </summary>
         public float CurrentHealth {
-            get => State?.Health ?? maxHealth;
+            get => State?.Health ?? _maxHealth;
             set {
                 value = Mathf.Max(value, 0);
                 if (State.Health == value) return;
@@ -96,44 +97,53 @@ namespace SBR {
         /// <summary>
         /// Maximum health value.
         /// </summary>
+        [FormerlySerializedAs("maxHealth")]
         [Tooltip("Maximum health value.")]
-        public float maxHealth = 100;
+        public float _maxHealth = 100;
 
         /// <summary>
         /// On hit, become invulnerable for this amount of time.
         /// </summary>
+        [FormerlySerializedAs("hitInvuln")]
         [Tooltip("On hit, become invulnerable for this amount of time.")]
-        public float hitInvuln = 0;
+        public float _hitInvuln = 0;
 
         /// <summary>
         /// Rate at which health regenerates (zero for no regen).
         /// </summary>
+        [FormerlySerializedAs("healthRegenRate")]
         [Tooltip("Rate at which health regenerates (zero for no regen).")]
-        public float healthRegenRate = 0;
+        public float _healthRegenRate = 0;
 
         /// <summary>
         /// Delay after taking damage before health starts regenerating.
         /// </summary>
+        [FormerlySerializedAs("healthRegenDelay")]
         [Tooltip("Delay after taking damage before health starts regenerating.")]
-        public float healthRegenDelay = 0;
+        public float _healthRegenDelay = 0;
 
-        public float healthRegenThreshold = 0.3f;
+        [FormerlySerializedAs("healthRegenThreshold")]
+        public float _healthRegenThreshold = 0.3f;
 
         /// <summary>
         /// Whether to allow revival by healing after health has reached zero.
         /// </summary>
+        [FormerlySerializedAs("allowRevival")]
         [Tooltip("Whether to allow revival by healing after health has reached zero.")]
-        public bool allowRevival = true;
+        public bool _allowRevival = true;
 
-        public bool persisted = true;
+        [FormerlySerializedAs("persisted")]
+        public bool _persisted = true;
 
-        public float damageMultiplier = 1;
+        [FormerlySerializedAs("damageMultiplier")]
+        public float _damageMultiplier = 1;
 
         /// <summary>
         /// Sound to play when damaged.
         /// </summary>
+        [FormerlySerializedAs("damageSound")]
         [Tooltip("Sound to play when damaged")]
-        public AudioParameters damageSound;
+        public AudioParameters _damageSound;
 
         /// <summary>
         /// Timer used for regeneration delay.
@@ -160,29 +170,29 @@ namespace SBR {
                 State.NotifyStateChanged();
             }
         }
-        
+
         public delegate void Modifier<T>(ref T input);
 
         protected virtual void Awake() {
-            if (!persisted) CreateFakeState();
+            if (!_persisted) CreateFakeState();
         }
 
         protected virtual void OnSpawned() {
-            if (!persisted) CreateFakeState();
+            if (!_persisted) CreateFakeState();
         }
 
         public override void LoadDefaultState() {
             TimeUntilRegen = 0;
             TimeUntilNotInvuln = 0;
-            CurrentHealth = maxHealth;
+            CurrentHealth = _maxHealth;
         }
 
         public override void LoadState() {
             base.LoadState();
-            if (!persisted) LoadDefaultState();
+            if (!_persisted) LoadDefaultState();
 
-            State.Health = Mathf.Clamp(State.Health, 0, maxHealth);
-            
+            State.Health = Mathf.Clamp(State.Health, 0, _maxHealth);
+
             if (Dead) SendDeathMessage(true);
         }
 
@@ -191,13 +201,13 @@ namespace SBR {
         }
 
         protected virtual void Update() {
-            float healthRatio = CurrentHealth / maxHealth;
+            float healthRatio = CurrentHealth / _maxHealth;
 
             if (TimeUntilRegen > 0) TimeUntilRegen -= Time.deltaTime;
             if (TimeUntilNotInvuln > 0) TimeUntilNotInvuln -= Time.deltaTime;
-            
-            if (TimeUntilRegen == 0 && !Dead && healthRegenRate > 0 && healthRatio < healthRegenThreshold) {
-                float healing = Mathf.Min(healthRegenThreshold * maxHealth - CurrentHealth, healthRegenRate * Time.deltaTime);
+
+            if (TimeUntilRegen == 0 && !Dead && _healthRegenRate > 0 && healthRatio < _healthRegenThreshold) {
+                float healing = Mathf.Min(_healthRegenThreshold * _maxHealth - CurrentHealth, _healthRegenRate * Time.deltaTime);
                 Heal(healing);
             }
         }
@@ -205,7 +215,7 @@ namespace SBR {
         protected virtual void OnDestroy() {
             Destroyed?.Invoke(this);
         }
-        
+
         private void SendDamageMessage(Damage dmg) {
             SendMessage("OnDamage", dmg, SendMessageOptions.DontRequireReceiver);
             Damaged?.Invoke(dmg);
@@ -223,26 +233,26 @@ namespace SBR {
         /// <returns>The actual damage amount dealt.</returns>
         public virtual float Damage(Damage dmg) {
             if (enabled && dmg.Amount > 0 && TimeUntilNotInvuln == 0) {
-                dmg.Amount *= damageMultiplier;
+                dmg.Amount *= _damageMultiplier;
                 DamageModifier?.Invoke(ref dmg);
 
                 dmg.Amount = Mathf.Min(dmg.Amount, CurrentHealth);
                 if (dmg.Amount == 0) return 0;
-                
+
                 State.Health -= dmg.Amount;
                 State.NotifyStateChanged();
-                
+
                 SendDamageMessage(dmg);
-                
+
                 if (State.Health == 0) {
                     SendDeathMessage(false);
                 }
-                
-                TimeUntilNotInvuln = hitInvuln;
-                TimeUntilRegen = healthRegenDelay;
-                
-                if (damageSound) {
-                    damageSound.Play();
+
+                TimeUntilNotInvuln = _hitInvuln;
+                TimeUntilRegen = _healthRegenDelay;
+
+                if (_damageSound) {
+                    _damageSound.Play();
                 }
 
             } else {
@@ -258,13 +268,13 @@ namespace SBR {
         /// <param name="amount">The amount of healing.</param>
         /// <returns>The actual healing amount applied.</returns>
         public virtual float Heal(float amount) {
-            if (enabled && (!Dead || allowRevival) && amount > 0) {
+            if (enabled && (!Dead || _allowRevival) && amount > 0) {
                 HealingModifier?.Invoke(ref amount);
 
                 float prevHealth = CurrentHealth;
                 bool prevDead = Dead;
                 CurrentHealth += amount;
-                CurrentHealth = Mathf.Min(CurrentHealth, maxHealth);
+                CurrentHealth = Mathf.Min(CurrentHealth, _maxHealth);
                 amount = CurrentHealth - prevHealth;
                 SendMessage("OnHeal", amount, SendMessageOptions.DontRequireReceiver);
                 Healed?.Invoke(amount);
@@ -279,7 +289,7 @@ namespace SBR {
 
             return amount;
         }
-        
+
         [Serializable]
         public class StateInfo : PersistedData {
             public float TimeUntilRegen { get; set; }
@@ -326,7 +336,7 @@ namespace SBR {
         /// <param name="health">Health value in object's (or parent's) Health component, or zero.</param>
         /// <returns>Whether there was a Health component.</returns>
         public static bool TryGetHealth(this GameObject obj, out float health) {
-            if (obj.TryGetComponentInParent<Health>(out var h)) {
+            if (obj.TryGetComponentInParent<Health>(out Health h)) {
                 health = h.CurrentHealth;
                 return true;
             } else {
@@ -342,7 +352,7 @@ namespace SBR {
         /// <returns>Health value in object's (or parent's) Health component.</returns>
         /// <exception cref="MissingComponentException">If there is no Health component.</exception>
         public static float GetHealth(this GameObject obj) {
-            if (TryGetHealth(obj, out var health)) {
+            if (TryGetHealth(obj, out float health)) {
                 return health;
             } else {
                 throw new MissingComponentException($"{obj} has no Health component.");
@@ -355,7 +365,7 @@ namespace SBR {
         /// <param name="obj">The object to test.</param>
         /// <returns>True if the object has a health component with a health value > 0, or has no health component. False otherwise.</returns>
         public static bool IsAlive(this GameObject obj) {
-            if (TryGetHealth(obj, out var health)) {
+            if (TryGetHealth(obj, out float health)) {
                 return health > 0;
             } else {
                 return true;

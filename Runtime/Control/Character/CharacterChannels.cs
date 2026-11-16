@@ -4,36 +4,36 @@ using System.Collections.Generic;
 
 public class CharacterChannels : SBR.Channels {
 
-    private Vector3 _Movement;
+    private Vector3 _movement;
     public Vector3 Movement {
-        get { return _Movement; }
+        get { return _movement; }
         set {
-            _Movement = value.sqrMagnitude > 1f ? value.normalized * 1f : value;
+            _movement = value.sqrMagnitude > 1f ? value.normalized * 1f : value;
         }
     }
 
-    private Quaternion _Rotation;
+    private Quaternion _rotation;
     public Quaternion Rotation {
-        get { return _Rotation; }
+        get { return _rotation; }
         set {
-            _Rotation = value;
+            _rotation = value;
         }
     }
 
-    private bool _Jump;
+    private bool _jump;
     public bool Jump {
-        get { return _Jump; }
+        get { return _jump; }
         set {
-            _Jump = value;
+            _jump = value;
         }
     }
 
 
     public override void ClearInput(bool force = false) {
         base.ClearInput(force);
-        _Movement = new Vector3(0f, 0f, 0f);
-        if (force) _Rotation = new Quaternion(0f, 0f, 0f, 1f);
-        if (force) _Jump = false;
+        _movement = new Vector3(0f, 0f, 0f);
+        if (force) _rotation = new Quaternion(0f, 0f, 0f, 1f);
+        if (force) _jump = false;
 
     }
 

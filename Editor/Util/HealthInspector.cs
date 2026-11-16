@@ -34,8 +34,8 @@ namespace SBR {
             EditorGUI.BeginDisabledGroup(!Application.isPlaying);
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Damage (" + amt + ")")) {
-                foreach (var t in targets) {
-                    var health = t as Health;
+                foreach (Object t in targets) {
+                    Health health = t as Health;
                     health.Damage(amt);
                 }
             }

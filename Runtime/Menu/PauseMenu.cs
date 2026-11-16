@@ -23,53 +23,61 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace SBR.Menu {
     public class PauseMenu : MonoBehaviour {
-        public ShowHideUI target;
-        public bool ungrabMouse = true;
-        public float pauseCooldown = 0.1f;
+        [FormerlySerializedAs("target")]
+        public ShowHideUI _target;
+        [FormerlySerializedAs("ungrabMouse")]
+        public bool _ungrabMouse = true;
+        [FormerlySerializedAs("pauseCooldown")]
+        public float _pauseCooldown = 0.1f;
 
-        public InputActionReference pauseAction;
-        public InputActionReference resumeAction;
+        [FormerlySerializedAs("pauseAction")]
+        public InputActionReference _pauseAction;
+        [FormerlySerializedAs("resumeAction")]
+        public InputActionReference _resumeAction;
 
-        public UnityEvent onOpen;
-        public UnityEvent onClose;
+        [FormerlySerializedAs("onOpen")]
+        public UnityEvent _onOpen;
+        [FormerlySerializedAs("onClose")]
+        public UnityEvent _onClose;
 
         public bool IsOpen { get; private set; }
 
-        private CursorLockMode cursorLockState;
-        private bool cursorVisible;
-        private CooldownTimer pauseTimer;
+        private CursorLockMode _cursorLockState;
+        private bool _cursorVisible;
+        private CooldownTimer _pauseTimer;
 
         private void Reset() {
-            target = GetComponentInChildren<ShowHideUI>();
+            _target = GetComponentInChildren<ShowHideUI>();
         }
 
         private void Awake() {
-            if (pauseCooldown > 0) {
-                pauseTimer = new CooldownTimer(pauseCooldown) {unscaled = true};
-                pauseTimer.Clear();
+            if (_pauseCooldown > 0) {
+                _pauseTimer = new CooldownTimer(_pauseCooldown) {Unscaled = true};
+                _pauseTimer.Clear();
             }
-            if (target) target.show = false;
-            if (pauseAction) pauseAction.action.Enable();
-            if (resumeAction) resumeAction.action.Enable();
+            if (_target) _target.Show = false;
+            if (_pauseAction) _pauseAction.action.Enable();
+            if (_resumeAction) _resumeAction.action.Enable();
             IsOpen = false;
         }
 
         private void Update() {
-            if (pauseAction != null &&
-                pauseAction.action.WasPerformedThisFrame() &&
+            if (_pauseAction != null &&
+                _pauseAction.action.WasPerformedThisFrame() &&
                 !Infohazard.Core.Pause.Paused &&
                 !IsOpen &&
-                pauseTimer.canUse) {
+                _pauseTimer.CanUse) {
 
                 Pause();
-            } else if (resumeAction != null &&
-                resumeAction.action.WasPerformedThisFrame() &&
+            } else if (_resumeAction != null &&
+                _resumeAction.action.WasPerformedThisFrame() &&
                 Infohazard.Core.Pause.Paused &&
                 IsOpen &&
-                pauseTimer.canUse) {
+                _pauseTimer.CanUse) {
 
                 Unpause();
             }
@@ -80,7 +88,7 @@ namespace SBR.Menu {
             IsOpen = true;
             if (Infohazard.Core.Pause.Paused) return;
             Infohazard.Core.Pause.Paused = true;
-            pauseTimer.Reset();
+            _pauseTimer.Reset();
             Paused();
         }
 
@@ -89,16 +97,16 @@ namespace SBR.Menu {
             IsOpen = false;
             if (!Infohazard.Core.Pause.Paused) return;
             Infohazard.Core.Pause.Paused = false;
-            pauseTimer.Reset();
+            _pauseTimer.Reset();
             Unpaused();
         }
 
         private void Paused() {
-            if (target) target.show = true;
-            onOpen?.Invoke();
-            if (ungrabMouse) {
-                cursorLockState = Cursor.lockState;
-                cursorVisible = Cursor.visible;
+            if (_target) _target.Show = true;
+            _onOpen?.Invoke();
+            if (_ungrabMouse) {
+                _cursorLockState = Cursor.lockState;
+                _cursorVisible = Cursor.visible;
 
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
@@ -106,11 +114,11 @@ namespace SBR.Menu {
         }
 
         private void Unpaused() {
-            if (target) target.show = false;
-            onClose?.Invoke();
-            if (ungrabMouse) {
-                Cursor.lockState = cursorLockState;
-                Cursor.visible = cursorVisible;
+            if (_target) _target.Show = false;
+            _onClose?.Invoke();
+            if (_ungrabMouse) {
+                Cursor.lockState = _cursorLockState;
+                Cursor.visible = _cursorVisible;
             }
         }
     }

@@ -40,7 +40,7 @@ namespace SBR.Editor {
 
         public MoveStateOperation(StateMachineDefinition def, StateMachineEditorWindow window, StateMachineDefinition.State state) : base(def, window, state) {
             showBaseGUI = true;
-            start = state.position;
+            start = state._position;
             move = Vector2.zero;
 
             children = new List<StateMachineDefinition.State>();
@@ -49,20 +49,20 @@ namespace SBR.Editor {
         }
 
         private void CalcParentRect() {
-            var parent = definition.GetState(state.parent);
+            StateMachineDefinition.State parent = definition.GetState(state._parent);
             if (parent != null) {
-                parentOrigPos = parent.position;
+                parentOrigPos = parent._position;
 
-                fittingParentRect = parent.rect;
+                fittingParentRect = parent.Rect;
             }
         }
 
         private void AddChildren(StateMachineDefinition.State state) {
-            if (state.hasChildren) {
-                var c = definition.GetChildren(state.name);
+            if (state._hasChildren) {
+                List<StateMachineDefinition.State> c = definition.GetChildren(state._name);
                 children.AddRange(c);
 
-                foreach (var child in c) {
+                foreach (StateMachineDefinition.State child in c) {
                     if (child != state) {
                         AddChildren(child);
                     }
@@ -71,7 +71,7 @@ namespace SBR.Editor {
         }
 
         public override void Update() {
-            var evt = Event.current;
+            Event evt = Event.current;
             if (evt.type == EventType.MouseUp && evt.button == 0) {
                 done = true;
             } else if (evt.type == EventType.MouseDrag && evt.button == 0 && evt.mousePosition != mouseLastPos) {
@@ -80,35 +80,35 @@ namespace SBR.Editor {
 
                 Undo.RecordObject(definition, "Move State");
 
-                Vector2 oldPos = state.position;
-                state.position = start + move;
-                Snap(ref state.position);
+                Vector2 oldPos = state._position;
+                state._position = start + move;
+                Snap(ref state._position);
 
-                Vector2 actDelta = state.position - oldPos;
+                Vector2 actDelta = state._position - oldPos;
 
                 if (children != null) {
-                    foreach (var child in children) {
-                        child.position += actDelta;
+                    foreach (StateMachineDefinition.State child in children) {
+                        child._position += actDelta;
                     }
                 }
                 
                 StateMachineDefinition.State newParent = null;
 
-                foreach (var s in definition.states) {
-                    if (s != state && s.hasChildren && state.rect.Overlaps(s.rect)) {
+                foreach (StateMachineDefinition.State s in definition._states) {
+                    if (s != state && s._hasChildren && state.Rect.Overlaps(s.Rect)) {
                         newParent = s;
                     }
                 }
 
                 if (definition.SetStateParent(state, newParent, snap)) {
                     CalcParentRect();
-                } else if (state.parent != null && state.parent.Length > 0) {
-                    if (state.rect.Overlaps(fittingParentRect)) {
+                } else if (state._parent != null && state._parent.Length > 0) {
+                    if (state.Rect.Overlaps(fittingParentRect)) {
                         definition.FitStateToChildren(newParent, snap * 2);
                     } else {
-                        var parent = definition.GetState(state.parent);
-                        if (definition.SetStateParent(state, null, snap) && definition.GetChildren(parent.name).Count == 0) {
-                            parent.position = parentOrigPos;
+                        StateMachineDefinition.State parent = definition.GetState(state._parent);
+                        if (definition.SetStateParent(state, null, snap) && definition.GetChildren(parent._name).Count == 0) {
+                            parent._position = parentOrigPos;
                         }
                     }
                 }
@@ -119,7 +119,7 @@ namespace SBR.Editor {
         }
 
         public override void Cancel() {
-            state.position = start;
+            state._position = start;
         }
 
         public override void Confirm() {

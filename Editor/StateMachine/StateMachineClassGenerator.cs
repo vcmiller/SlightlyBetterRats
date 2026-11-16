@@ -84,7 +84,7 @@ public abstract class {5} {{
         public static void GenerateImplClass(StateMachineDefinition def, string path) {
             string newClassName = Path.GetFileNameWithoutExtension(path);
             string abstractClassName = def.name;
-            Type baseType = GetType(def.baseClass);
+            Type baseType = GetType(def._baseClass);
             if (baseType.ContainsGenericParameters) {
                 abstractClassName += "`1";
             }
@@ -106,7 +106,7 @@ public abstract class {5} {{
                 GetStateInitializers(def), 
                 GetTransitionInitializers(def), 
                 GetFunctionDeclarations(def), 
-                GetClassDeclaration(def.baseClass, def.name),
+                GetClassDeclaration(def._baseClass, def.name),
                 GetTriggerDeclarations(def));
 
             string defPath = AssetDatabase.GetAssetPath(def);
@@ -128,15 +128,15 @@ public abstract class {5} {{
         private static string GetClassDeclaration(string baseClass, string className) {
             Type type = GetType(baseClass);
             if (type.ContainsGenericParameters) {
-                var args = type.GetGenericArguments();
+                Type[] args = type.GetGenericArguments();
                 if (args.Length > 1) {
                     throw new UnityException("StateMachine base class may only have one type parameter.");
                 } else {
                     className += "<T>";
                     baseClass = baseClass.Substring(0, baseClass.IndexOf('`'));
 
-                    var param = args[0];
-                    var constraints = param.GetGenericParameterConstraints();
+                    Type param = args[0];
+                    Type[] constraints = param.GetGenericParameterConstraints();
                     if (constraints.Length > 0) {
                         baseClass += "<T> where T : " + string.Join(", ", constraints.Select(c => c.FullName)) + ", new()";
                     }
@@ -149,10 +149,10 @@ public abstract class {5} {{
         private static string GetStateEnums(StateMachineDefinition def) {
             string str = "";
 
-            for (int i = 0; i < def.states.Count; i++) {
-                str += def.states[i].name;
+            for (int i = 0; i < def._states.Count; i++) {
+                str += def._states[i]._name;
 
-                if (i < def.states.Count - 1) {
+                if (i < def._states.Count - 1) {
                     str += ", ";
                 }
             }
@@ -161,18 +161,18 @@ public abstract class {5} {{
         }
 
         public static string GetStateInitializers(StateMachineDefinition def) {
-            string str = "        allStates = new State[" + def.states.Count + "];" + nl + nl;
-            for (int i = 0; i < def.states.Count; i++) {
+            string str = "        allStates = new State[" + def._states.Count + "];" + nl + nl;
+            for (int i = 0; i < def._states.Count; i++) {
                 str += GetStateInitializer(def, i);
             }
 
-            if (def.defaultState != null && def.defaultState.Length > 0 && def.GetState(def.defaultState) != null) {
-                str += "        rootMachine.defaultState = state" + def.defaultState + ";" + nl;
+            if (def._defaultState != null && def._defaultState.Length > 0 && def.GetState(def._defaultState) != null) {
+                str += "        rootMachine.defaultState = state" + def._defaultState + ";" + nl;
             } else {
                 str += "        rootMachine.defaultState = allStates[0];" + nl;
             }
 
-            for (int i = 0; i < def.states.Count; i++) {
+            for (int i = 0; i < def._states.Count; i++) {
                 str += GetStateParentChildInitializer(def, i);
             }
 
@@ -180,29 +180,29 @@ public abstract class {5} {{
         }
 
         public static string GetStateInitializer(StateMachineDefinition def, int index) {
-            var state = def.states[index];
-            string variable = "state" + state.name;
+            StateMachineDefinition.State state = def._states[index];
+            string variable = "state" + state._name;
 
             string str = "        State " + variable + " = new State() {" + nl;
-            str += "            id = StateID." + state.name + "," + nl;
+            str += "            id = StateID." + state._name + "," + nl;
 
-            if (state.hasEnter) {
-                str += "            enter = StateEnter_" + state.name + "," + nl;
+            if (state._hasEnter) {
+                str += "            enter = StateEnter_" + state._name + "," + nl;
             }
 
-            if (state.hasDuring) {
-                str += "            during = State_" + state.name + "," + nl;
+            if (state._hasDuring) {
+                str += "            during = State_" + state._name + "," + nl;
             }
 
-            if (state.hasExit) {
-                str += "            exit = StateExit_" + state.name + "," + nl;
+            if (state._hasExit) {
+                str += "            exit = StateExit_" + state._name + "," + nl;
             }
 
-            if (state.hasChildren && def.GetChildren(state.name).Count > 0) {
+            if (state._hasChildren && def.GetChildren(state._name).Count > 0) {
                 str += "            subMachine = new SubStateMachine()," + nl;
             }
 
-            str += "            transitions = new List<Transition>(" + (state.transitions == null ? 0 : state.transitions.Count) + ")" + nl;
+            str += "            transitions = new List<Transition>(" + (state._transitions == null ? 0 : state._transitions.Count) + ")" + nl;
             str += "        };" + nl;
             str += "        allStates[" + index + "] = " + variable + ";" + nl;
 
@@ -212,29 +212,29 @@ public abstract class {5} {{
 
         public static string GetStateParentChildInitializer(StateMachineDefinition def, int index) {
             string str = "";
-            var state = def.states[index];
-            string p = state.parent;
+            StateMachineDefinition.State state = def._states[index];
+            string p = state._parent;
 
             if (p != null && p.Length > 0) {
-                var parent = def.GetState(p);
-                if (parent != null && parent.hasChildren) {
-                    str += "        state" + state.name + ".parent = state" + p + ";" + nl;
-                    str += "        state" + state.name + ".parentMachine = state" + p + ".subMachine;" + nl;
+                StateMachineDefinition.State parent = def.GetState(p);
+                if (parent != null && parent._hasChildren) {
+                    str += "        state" + state._name + ".parent = state" + p + ";" + nl;
+                    str += "        state" + state._name + ".parentMachine = state" + p + ".subMachine;" + nl;
                 } else {
-                    Debug.LogWarning("State " + state.name + " has non-existant parent " + p + ".");
-                    str += "        state" + state.name + ".parentMachine = rootMachine;" + nl;
+                    Debug.LogWarning("State " + state._name + " has non-existant parent " + p + ".");
+                    str += "        state" + state._name + ".parentMachine = rootMachine;" + nl;
                 }
             } else {
-                str += "        state" + state.name + ".parentMachine = rootMachine;" + nl;
+                str += "        state" + state._name + ".parentMachine = rootMachine;" + nl;
             }
 
-            if (state.hasChildren) {
-                var children = def.GetChildren(state.name);
+            if (state._hasChildren) {
+                List<StateMachineDefinition.State> children = def.GetChildren(state._name);
 
                 if (children.Count > 0) {
                     StateMachineDefinition.State defState = null;
-                    foreach (var child in children) {
-                        if (child.name == state.localDefault) {
+                    foreach (StateMachineDefinition.State child in children) {
+                        if (child._name == state._localDefault) {
                             defState = child;
                             break;
                         }
@@ -244,7 +244,7 @@ public abstract class {5} {{
                         defState = children[0];
                     }
 
-                    str += "        state" + state.name + ".subMachine.defaultState = state" + defState.name + ";" + nl;
+                    str += "        state" + state._name + ".subMachine.defaultState = state" + defState._name + ";" + nl;
                 }
             }
 
@@ -253,15 +253,15 @@ public abstract class {5} {{
 
         public static string GetTransitionInitializers(StateMachineDefinition def) {
             string str = "";
-            foreach (var state in def.states) {
-                if (state.transitions != null) {
-                    for (int i = 0; i < state.transitions.Count; i++) {
-                        var t = state.transitions[i];
-                        var to = def.GetState(t.to);
+            foreach (StateMachineDefinition.State state in def._states) {
+                if (state._transitions != null) {
+                    for (int i = 0; i < state._transitions.Count; i++) {
+                        StateMachineDefinition.Transition t = state._transitions[i];
+                        StateMachineDefinition.State to = def.GetState(t._to);
                         if (to == null) {
-                            Debug.LogWarning("Ignoring transition from " + state.name + " to non-existant state " + t.to + ".");
+                            Debug.LogWarning("Ignoring transition from " + state._name + " to non-existant state " + t._to + ".");
                         } else if (def.IsAncestor(state, to) || def.IsAncestor(to, state)) {
-                            Debug.LogWarning("Ignoring transition from " + state.name + " to " + t.to + " because one state is a direct ancestor.");
+                            Debug.LogWarning("Ignoring transition from " + state._name + " to " + t._to + " because one state is a direct ancestor.");
                         } else {
                             str += GetTransitionInitializer(state, t, i);
                         }
@@ -272,29 +272,29 @@ public abstract class {5} {{
         }
 
         public static string GetTransitionInitializer(StateMachineDefinition.State from, StateMachineDefinition.Transition to, int index) {
-            string variable = "transition" + from.name + to.to;
+            string variable = "transition" + from._name + to._to;
 
             string str = "        Transition " + variable + " = new Transition() {" + nl;
-            str += "            from = state" + from.name + "," + nl;
-            str += "            to = state" + to.to + "," + nl;
-            str += "            exitTime = " + to.exitTime + "f," + nl;
-            str += "            cooldown = " + to.cooldown + "f," + nl;
-            str += "            mode = StateMachineDefinition.TransitionMode." + to.mode.ToString() + "," + nl;
+            str += "            from = state" + from._name + "," + nl;
+            str += "            to = state" + to._to + "," + nl;
+            str += "            exitTime = " + to._exitTime + "f," + nl;
+            str += "            cooldown = " + to._cooldown + "f," + nl;
+            str += "            mode = StateMachineDefinition.TransitionMode." + to._mode.ToString() + "," + nl;
 
-            if (to.hasNotify) {
-                str += "            notify = TransitionNotify_" + from.name + "_" + to.to + "," + nl;
+            if (to._hasNotify) {
+                str += "            notify = TransitionNotify_" + from._name + "_" + to._to + "," + nl;
             }
 
-            if (to.mode == StateMachineDefinition.TransitionMode.Condition) {
-                str += "            cond = TransitionCond_" + from.name + "_" + to.to + "," + nl;
-            } else if (to.mode == StateMachineDefinition.TransitionMode.Message) {
-                str += "            cond = trigger_" + to.message + ".Get," + nl;
-            } else if (to.mode == StateMachineDefinition.TransitionMode.Damage) {
+            if (to._mode == StateMachineDefinition.TransitionMode.Condition) {
+                str += "            cond = TransitionCond_" + from._name + "_" + to._to + "," + nl;
+            } else if (to._mode == StateMachineDefinition.TransitionMode.Message) {
+                str += "            cond = trigger_" + to._message + ".Get," + nl;
+            } else if (to._mode == StateMachineDefinition.TransitionMode.Damage) {
                 str += "            cond = trigger_OnDamage.Get," + nl;
             }
 
             str += "        };" + nl;
-            str += "        state" + from.name + ".transitions.Add(" + variable + ");" + nl;
+            str += "        state" + from._name + ".transitions.Add(" + variable + ");" + nl;
             str += nl;
             return str;
         }
@@ -302,11 +302,11 @@ public abstract class {5} {{
         public static string GetTriggerDeclarations(StateMachineDefinition def) {
             string str = "";
             HashSet<string> created = new HashSet<string>();
-            foreach (var state in def.states) {
-                foreach (var tr in state.transitions) {
-                    if (tr.mode == StateMachineDefinition.TransitionMode.Message && created.Add(tr.message)) {
-                        str += "    protected readonly Trigger trigger_" + tr.message + " = new Trigger();" + nl;
-                        str += "    public void " + tr.message + "() => trigger_" + tr.message + ".Set();" + nl;
+            foreach (StateMachineDefinition.State state in def._states) {
+                foreach (StateMachineDefinition.Transition tr in state._transitions) {
+                    if (tr._mode == StateMachineDefinition.TransitionMode.Message && created.Add(tr._message)) {
+                        str += "    protected readonly Trigger trigger_" + tr._message + " = new Trigger();" + nl;
+                        str += "    public void " + tr._message + "() => trigger_" + tr._message + ".Set();" + nl;
                     }
                 }
             }
@@ -319,31 +319,31 @@ public abstract class {5} {{
             string end2 = impl ? "() { return false; }" + nl : "();" + nl;
 
             string str = "";
-            foreach (var state in def.states) {
-                if (state.hasEnter) {
-                    str += "    protected " + vo + " void StateEnter_" + state.name + end;
+            foreach (StateMachineDefinition.State state in def._states) {
+                if (state._hasEnter) {
+                    str += "    protected " + vo + " void StateEnter_" + state._name + end;
                 }
 
-                if (state.hasDuring) {
-                    str += "    protected " + vo + " void State_" + state.name + end;
+                if (state._hasDuring) {
+                    str += "    protected " + vo + " void State_" + state._name + end;
                 }
 
-                if (state.hasExit) {
-                    str += "    protected " + vo + " void StateExit_" + state.name + end;
+                if (state._hasExit) {
+                    str += "    protected " + vo + " void StateExit_" + state._name + end;
                 }
             }
 
             str += "" + nl;
 
-            foreach (var state in def.states) {
-                if (state.transitions != null) {
-                    foreach (var trans in state.transitions) {
-                        if (trans.mode == StateMachineDefinition.TransitionMode.Condition) {
-                            str += "    protected " + vo + " bool TransitionCond_" + state.name + "_" + trans.to + end2;
+            foreach (StateMachineDefinition.State state in def._states) {
+                if (state._transitions != null) {
+                    foreach (StateMachineDefinition.Transition trans in state._transitions) {
+                        if (trans._mode == StateMachineDefinition.TransitionMode.Condition) {
+                            str += "    protected " + vo + " bool TransitionCond_" + state._name + "_" + trans._to + end2;
                         }
 
-                        if (trans.hasNotify) {
-                            str += "    protected " + vo + " void TransitionNotify_" + state.name + "_" + trans.to + end;
+                        if (trans._hasNotify) {
+                            str += "    protected " + vo + " void TransitionNotify_" + state._name + "_" + trans._to + end;
                         }
                     }
                 }

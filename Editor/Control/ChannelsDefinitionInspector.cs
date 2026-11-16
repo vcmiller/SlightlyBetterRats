@@ -39,7 +39,7 @@ namespace SBR.Editor {
         }
 
         private void DrawListElement(Rect rect, int index, bool isActive, bool isFocused) {
-            var element = channelList.serializedProperty.GetArrayElementAtIndex(index);
+            SerializedProperty element = channelList.serializedProperty.GetArrayElementAtIndex(index);
 
             rect.yMin += 4;
             EditorGUI.PropertyField(rect, element);
@@ -47,7 +47,7 @@ namespace SBR.Editor {
 
         public override void OnInspectorGUI() {
             if (GUILayout.Button("Generate Class")) {
-                var path = AssetDatabase.GetAssetPath(target);
+                string path = AssetDatabase.GetAssetPath(target);
                 if (path.Length > 0) {
                     ChannelsClassGenerator.GenerateClass(target as ChannelsDefinition);
                 }

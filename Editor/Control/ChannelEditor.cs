@@ -43,7 +43,7 @@ namespace SBR.Editor {
             EditorGUI.BeginProperty(position, label, property);
 
             // Don't make child fields be indented
-            var indent = EditorGUI.indentLevel;
+            int indent = EditorGUI.indentLevel;
 
             //EditorGUI.indentLevel = 0;
             position.height = 16;
@@ -98,7 +98,7 @@ namespace SBR.Editor {
                     EditorGUI.PropertyField(new Rect(r.x, r.y, r.width * 0.4f, r.height), property.FindPropertyRelative("floatMax"), GUIContent.none);
                 }
             } else if (type == ChannelsDefinition.ChannelType.Object) {
-                var prop = property.FindPropertyRelative("objectType");
+                SerializedProperty prop = property.FindPropertyRelative("objectType");
 
                 EditorGUI.PropertyField(position, prop, new GUIContent("Object Type"));
             } else if (type == ChannelsDefinition.ChannelType.Vector) {

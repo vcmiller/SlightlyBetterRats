@@ -22,6 +22,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -34,29 +35,34 @@ namespace SBR {
         /// <summary>
         /// The spline that controls the shape.
         /// </summary>
-        public Spline spline;
+        [FormerlySerializedAs("spline")]
+        public Spline _spline;
 
         /// <summary>
         /// The profile that controls the base meshes.
         /// </summary>
-        public SplineMeshProfile profile;
+        [FormerlySerializedAs("profile")]
+        public SplineMeshProfile _profile;
 
         /// <summary>
         /// Whether to generate the mesh in Awake(). Only needed if instantiating at runtime.
         /// </summary>
-        public bool updateMeshOnAwake;
+        [FormerlySerializedAs("updateMeshOnAwake")]
+        public bool _updateMeshOnAwake;
         
-        public MeshFilter[] filters;
-        public MeshCollider[] colliders;
+        [FormerlySerializedAs("filters")]
+        public MeshFilter[] _filters;
+        [FormerlySerializedAs("colliders")]
+        public MeshCollider[] _colliders;
 
         private Mesh _ownedMesh, _ownedCollision;
-        public Mesh ownedMesh => _ownedMesh;
-        public Mesh ownedCollision => _ownedCollision;
+        public Mesh OwnedMesh => _ownedMesh;
+        public Mesh OwnedCollision => _ownedCollision;
 
-        private bool needsUpdate = false;
+        private bool _needsUpdate = false;
 
         private SplineMeshProfile _subscribedProfile;
-        private SplineMeshProfile subscribedProfile {
+        private SplineMeshProfile SubscribedProfile {
             get { return _subscribedProfile; }
             set {
                 if (_subscribedProfile) _subscribedProfile.PropertyChanged -= MarkDirty;
@@ -66,7 +72,7 @@ namespace SBR {
         }
 
         private Spline _subscribedSpline;
-        private Spline subscribedSpline {
+        private Spline SubscribedSpline {
             get { return _subscribedSpline; }
             set {
                 if (_subscribedSpline) _subscribedSpline.PropertyChanged -= MarkDirty;
@@ -76,19 +82,19 @@ namespace SBR {
         }
 
         private void Awake() {
-            if (updateMeshOnAwake) {
+            if (_updateMeshOnAwake) {
                 MarkDirty(true);
             }
         }
 
         private void OnEnable() {
-            subscribedProfile = profile;
-            subscribedSpline = spline;
+            SubscribedProfile = _profile;
+            SubscribedSpline = _spline;
         }
 
         private void OnDisable() {
-            subscribedProfile = null;
-            subscribedSpline = null;
+            SubscribedProfile = null;
+            SubscribedSpline = null;
         }
 
         private void OnValidate() {
@@ -99,17 +105,17 @@ namespace SBR {
         }
 
         private void Reset() {
-            spline = GetComponent<Spline>();
+            _spline = GetComponent<Spline>();
             
-            var mf = GetComponent<MeshFilter>();
-            var mc = GetComponent<MeshCollider>();
+            MeshFilter mf = GetComponent<MeshFilter>();
+            MeshCollider mc = GetComponent<MeshCollider>();
             
-            if (mf) filters = new[] { mf };
-            if (mc) colliders = new[] { mc };
+            if (mf) _filters = new[] { mf };
+            if (mc) _colliders = new[] { mc };
         }
         
         private void MarkDirty(bool update) {
-            needsUpdate = true;
+            _needsUpdate = true;
 
             if (update) {
                 Update();
@@ -117,8 +123,8 @@ namespace SBR {
         }
 
         private void Update() {
-            if (needsUpdate && enabled) {
-                needsUpdate = false;
+            if (_needsUpdate && enabled) {
+                _needsUpdate = false;
                 UpdateMesh();
             }
         }
@@ -128,35 +134,35 @@ namespace SBR {
         /// </summary>
         public void UpdateMesh() {
             if (!this) {
-                subscribedProfile = null;
-                subscribedSpline = null;
+                SubscribedProfile = null;
+                SubscribedSpline = null;
                 return;
             }
 
-            if (ownedMesh) DestroyImmediate(ownedMesh);
-            if (ownedCollision) DestroyImmediate(ownedCollision);
+            if (OwnedMesh) DestroyImmediate(OwnedMesh);
+            if (OwnedCollision) DestroyImmediate(OwnedCollision);
 
-            if (profile && spline.spline.points.Length > 1) {
-                profile.CreateMeshes(spline.spline, out _ownedMesh, out _ownedCollision);
+            if (_profile && _spline._spline._points.Length > 1) {
+                _profile.CreateMeshes(_spline._spline, out _ownedMesh, out _ownedCollision);
 
 #if UNITY_EDITOR
                 if (gameObject.isStatic)
-                    UnityEditor.Unwrapping.GenerateSecondaryUVSet(ownedMesh);
+                    UnityEditor.Unwrapping.GenerateSecondaryUVSet(OwnedMesh);
 #endif
 
-                foreach (var mf in filters) {
-                    mf.sharedMesh = ownedMesh;
-                    var mr = mf.GetComponent<MeshRenderer>();
-                    var sm = mr.sharedMaterials;
-                    int smc = profile.GetSubmeshCount();
-                    if (sm.Length != profile.GetSubmeshCount()) {
+                foreach (MeshFilter mf in _filters) {
+                    mf.sharedMesh = OwnedMesh;
+                    MeshRenderer mr = mf.GetComponent<MeshRenderer>();
+                    Material[] sm = mr.sharedMaterials;
+                    int smc = _profile.GetSubmeshCount();
+                    if (sm.Length != _profile.GetSubmeshCount()) {
                         Array.Resize(ref sm, smc);
                         mr.sharedMaterials = sm;
                     }
                 }
 
-                foreach (var mc in colliders) {
-                    mc.sharedMesh = ownedCollision;
+                foreach (MeshCollider mc in _colliders) {
+                    mc.sharedMesh = OwnedCollision;
                 }
             }
         }

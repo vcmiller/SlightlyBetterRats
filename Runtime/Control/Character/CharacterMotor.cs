@@ -24,7 +24,9 @@ using System;
 using System.Linq;
 using Infohazard.Core;
 using Infohazard.StateSystem;
+using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -122,16 +124,16 @@ namespace SBR {
         /// <summary>
         /// World-space gravity acceleration on this Character.
         /// </summary>
-        public Vector3 Gravity => Physics.gravity * gravityScale;
+        public Vector3 Gravity => Physics.gravity * _gravityScale;
 
         /// <summary>
         /// Current movement-based acceleration factoring in air control.
         /// </summary>
         public float ActualMovementAcceleration =>
-            IsGrounded ? movementAcceleration : movementAcceleration * airAccelerationMultiplier;
+            IsGrounded ? _movementAcceleration : _movementAcceleration * _airAccelerationMultiplier;
 
         public float ActualMovementDeceleration =>
-            IsGrounded ? movementDeceleration : movementDeceleration * airAccelerationMultiplier;
+            IsGrounded ? _movementDeceleration : _movementDeceleration * _airAccelerationMultiplier;
 
         public RaycastHit[] GroundHitBuffer { get; private set; }
 
@@ -159,77 +161,96 @@ namespace SBR {
         /// <summary>
         /// How the character rotates in relation to its movement.
         /// </summary>
+        [FormerlySerializedAs("rotateMode")]
         [Header("Rotation")]
         [Tooltip("How the character rotates in relation to its movement.")]
-        public RotateMode rotateMode = RotateMode.Control;
+        public RotateMode _rotateMode = RotateMode.Control;
 
         /// <summary>
         /// Whether to rotate faster when further from target rotation.
         /// </summary>
+        [FormerlySerializedAs("useSmoothRotation")]
         [Tooltip("Whether to rotate faster when further from target rotation.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public bool useSmoothRotation = true;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public bool _useSmoothRotation = true;
 
         /// <summary>
         /// Speed at which the character rotates. Only used if rotate mode is set to Movement.
         /// </summary>
+        [FormerlySerializedAs("rotationSpeed")]
         [Tooltip("Speed at which the character rotates. Only used if rotate mode is set to Movement.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public float rotationSpeed = 15;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public float _rotationSpeed = 15;
 
         /// <summary>
         /// Whether to rotate on the local X axis.
         /// </summary>
+        [FormerlySerializedAs("rotateX")]
         [Tooltip("Whether to rotate on the local X axis.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public bool rotateX = false;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public bool _rotateX = false;
 
         /// <summary>
         /// Whether to rotate on the local Y axis.
         /// </summary>
+        [FormerlySerializedAs("rotateY")]
         [Tooltip("Whether to rotate on the local Y axis.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public bool rotateY = true;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public bool _rotateY = true;
 
         /// <summary>
         /// Whether to rotate on the local Z axis.
         /// </summary>
+        [FormerlySerializedAs("rotateZ")]
         [Tooltip("Whether to rotate on the local Z axis.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public bool rotateZ = false;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public bool _rotateZ = false;
+
+        [SerializeField]
+        [Tooltip("When using rotateY and not rotateX, this is the minimum pitch offset for the character to match Y.")]
+        private float _rotateYPitchMin = -80;
+
+        [SerializeField]
+        [Tooltip("When using rotateY and not rotateX, this is the maximum pitch offset for the character to match Y.")]
+        private float _rotateYPitchMax = 80;
 
         /// <summary>
         /// If angle between rotation and target is greater than this, will start rotating.
         /// </summary>
+        [FormerlySerializedAs("maxTargetAngle")]
         [Tooltip("If angle between rotation and target is greater than this, will start rotating.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public float maxTargetAngle = 0;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public float _maxTargetAngle = 0;
 
         /// <summary>
         /// If angle between rotation and target is less than this, will stop rotating.
         /// </summary>
+        [FormerlySerializedAs("minTargetAngle")]
         [Tooltip("If angle between rotation and target is less than this, will stop rotating.")]
-        [ConditionalDraw("rotateMode", RotateMode.None, false)]
-        public float minTargetAngle = 0;
+        [ConditionalDraw(nameof(_rotateMode), RotateMode.None, false)]
+        public float _minTargetAngle = 0;
 
         /// <summary>
         /// The max movement speed of the character.
         /// </summary>
+        [FormerlySerializedAs("movementSpeed")]
         [Tooltip("The max movement speed of the character.")]
         [Header("Walking")]
-        public float movementSpeed = 5;
+        public float _movementSpeed = 5;
 
         /// <summary>
         /// The walking (ground) acceleration of the character.
         /// </summary>
+        [FormerlySerializedAs("movementAcceleration")]
         [Tooltip("The walking (ground) acceleration of the character.")]
-        public float movementAcceleration = 25;
+        public float _movementAcceleration = 25;
 
         /// <summary>
         /// The walking (ground) deceleration of the character.
         /// </summary>
+        [FormerlySerializedAs("movementDeceleration")]
         [Tooltip("The walking (ground) deceleration of the character.")]
-        public float movementDeceleration = 20;
+        public float _movementDeceleration = 20;
 
         /// <summary>
         /// Delay in seconds between receiving input and character actually moving.
@@ -240,154 +261,184 @@ namespace SBR {
         /// <summary>
         /// Multiplier to apply to movement speed while not grounded.
         /// </summary>
+        [FormerlySerializedAs("airAccelerationMultiplier")]
         [Tooltip("Multiplier to apply to movement speed while not grounded.")]
-        public float airAccelerationMultiplier = 0.5f;
+        public float _airAccelerationMultiplier = 0.5f;
 
         /// <summary>
         /// How movement input affects the Motor's velocity.
         /// </summary>
+        [FormerlySerializedAs("inputAccelerationMode")]
         [Tooltip("How movement input affects the movement velocity.")]
-        public InputAccelerationMode inputAccelerationMode = InputAccelerationMode.MoveVelocity;
+        public InputAccelerationMode _inputAccelerationMode = InputAccelerationMode.MoveVelocity;
 
         /// <summary>
         /// Damping factor for movement velocity.
         /// </summary>
+        [FormerlySerializedAs("movementVelocityDamping")]
         [Tooltip("Damping factor for movement velocity.")]
-        public float movementVelocityDamping = 0;
+        public float _movementVelocityDamping = 0;
 
         /// <summary>
         /// How to project the movement input vector.
         /// </summary>
+        [FormerlySerializedAs("projectMovement")]
         [Tooltip("How to project the movement input vector.")]
-        public ProjectMovementMode projectMovement = ProjectMovementMode.GroundNormal;
+        public ProjectMovementMode _projectMovement = ProjectMovementMode.GroundNormal;
 
+        [FormerlySerializedAs("customProjectMovementNormal")]
         [Tooltip("Custom normal to project movement input onto.")]
-        [ConditionalDraw(nameof(projectMovement), ProjectMovementMode.Custom)]
-        public Vector3 customProjectMovementNormal = Vector3.up;
+        [ConditionalDraw(nameof(_projectMovement), ProjectMovementMode.Custom)]
+        public Vector3 _customProjectMovementNormal = Vector3.up;
 
         /// <summary>
         /// The maximum slope, in degrees, that the character can climb.
         /// </summary>
+        [FormerlySerializedAs("maxGroundAngle")]
         [Tooltip("The maximum slope, in degrees, that the character can climb.")]
-        public float maxGroundAngle = 45;
+        public float _maxGroundAngle = 45;
 
-        public bool slideOnSteepSlopes = true;
+        [FormerlySerializedAs("slideOnSteepSlopes")]
+        public bool _slideOnSteepSlopes = true;
 
         /// <summary>
         /// How much the player will stick to the ground.
         /// </summary>
+        [FormerlySerializedAs("groundStickiness")]
         [Range(0, 1)]
-        public float groundStickiness = 0.5f;
+        public float _groundStickiness = 0.5f;
 
         /// <summary>
         /// Whether the player will automatically stay on moving platforms.
         /// </summary>
+        [FormerlySerializedAs("moveWithPlatforms")]
         [Tooltip("Whether the character will automatically stay on moving platforms.")]
-        public bool moveWithPlatforms = true;
+        public bool _moveWithPlatforms = true;
 
         /// <summary>
         /// The speed at which the character jumps.
         /// </summary>
+        [FormerlySerializedAs("jumpVelocity")]
         [Header("Jumping / Falling")]
         [Tooltip("The local velocity at which the character jumps.")]
-        public Vector3 jumpVelocity = Vector3.up * 4;
+        public Vector3 _jumpVelocity = Vector3.up * 4;
 
         /// <summary>
         /// How jumping works in regards to press vs hold.
         /// </summary>
+        [FormerlySerializedAs("jumpMode")]
         [Tooltip("How jumping works in regards to press vs hold.")]
-        public JumpMode jumpMode = JumpMode.Press;
+        public JumpMode _jumpMode = JumpMode.Press;
 
         /// <summary>
         /// How long the jump button must be held for max charge.
         /// </summary>
+        [FormerlySerializedAs("jumpChargeTime")]
         [Tooltip("How long the jump button must be held for max charge.")]
-        [ConditionalDraw(nameof(jumpMode), JumpMode.Charge)]
-        public float jumpChargeTime = 0.5f;
+        [ConditionalDraw(nameof(_jumpMode), JumpMode.Charge)]
+        public float _jumpChargeTime = 0.5f;
 
         /// <summary>
         /// What fraction of the jump speed is used if the jump is not charged.
         /// </summary>
+        [FormerlySerializedAs("jumpChargeMinMultiplier")]
         [Tooltip("What fraction of the jump speed is used if the jump is not charged.")]
-        [ConditionalDraw(nameof(jumpMode), JumpMode.Charge)]
-        public float jumpChargeMinMultiplier = 0.2f;
+        [ConditionalDraw(nameof(_jumpMode), JumpMode.Charge)]
+        public float _jumpChargeMinMultiplier = 0.2f;
 
         /// <summary>
         /// The value to multiply Physics.Gravity by.
         /// </summary>
+        [FormerlySerializedAs("gravityScale")]
         [Tooltip("The value to multiply Physics.Gravity by.")]
-        public float gravityScale = 1;
+        public float _gravityScale = 1;
 
         /// <summary>
         /// Distance for ground checks. Should be about 0.05 * capsule height.
         /// </summary>
+        [FormerlySerializedAs("groundDist")]
         [Tooltip("Distance for ground checks. Should be about 0.05 * capsule height.")]
-        public float groundDist = 0.1f;
+        public float _groundDist = 0.1f;
 
-        public int groundHitBufferSize = 8;
+        [FormerlySerializedAs("groundHitBufferSize")]
+        public int _groundHitBufferSize = 8;
 
+        [FormerlySerializedAs("groundCheckRadiusShell")]
         [Range(0, 1)]
-        public float groundCheckRadiusShell = 0.05f;
+        public float _groundCheckRadiusShell = 0.05f;
 
         /// <summary>
         /// Layers that are considered ground.
         /// </summary>
+        [FormerlySerializedAs("groundLayers")]
         [Tooltip("Layers that are considered ground.")]
-        public LayerMask groundLayers = 1;
+        public LayerMask _groundLayers = 1;
 
         /// <summary>
         /// Whether to apply root motion from animations in the XZ plane.
         /// </summary>
+        [FormerlySerializedAs("useRootMotionXZ")]
         [Header("Root Motion")]
         [Tooltip("Whether to apply root motion from animations in the XZ plane.")]
-        public bool useRootMotionXZ = true;
+        public bool _useRootMotionXZ = true;
 
         /// <summary>
         /// Whether to apply root motion from animations in the Y axis.
         /// </summary>
+        [FormerlySerializedAs("useRootMotionY")]
         [Tooltip("Whether to apply root motions from animations in the Y axis.")]
-        public bool useRootMotionY = true;
+        public bool _useRootMotionY = true;
 
         /// <summary>
         /// Whether to apply root rotation from animations.
         /// </summary>
+        [FormerlySerializedAs("useRootMotionRotation")]
         [Tooltip("Whether to apply root rotation from animations.")]
-        public bool useRootMotionRotation = true;
+        public bool _useRootMotionRotation = true;
 
         /// <summary>
         /// Scale to apply to root motion, so it has more or less effect.
         /// </summary>
+        [FormerlySerializedAs("rootMotionScale")]
         [Tooltip("Scale to apply to root motion, so it has more or less effect.")]
-        public float rootMotionScale = 1.0f;
+        public float _rootMotionScale = 1.0f;
 
         /// <summary>
         /// StateManager to activate states on. If null, will only activate on self.
         /// </summary>
+        [FormerlySerializedAs("stateManager")]
         [Header("State system")]
         [Tooltip("StateManager to activate states on. If null, will only activate on self.")]
         [NoOverrides]
-        [SerializeField] private StateManager stateManager;
+        [SerializeField]
+        private StateManager _stateManager;
 
         /// <summary>
         /// State to activate when not grounded. Empty for no state.
         /// </summary>
+        [FormerlySerializedAs("notGroundedState")]
         [Tooltip("State to activate when not grounded. Empty for no state.")]
         [NoOverrides]
-        [SerializeField] private string notGroundedState = "Midair";
+        [SerializeField]
+        private string _notGroundedState = "Midair";
 
         /// <summary>
         /// State to activate when enableInput is false. Empty for no state.
         /// </summary>
+        [FormerlySerializedAs("noInputState")]
         [Tooltip("State to activate when enableInput is false. Empty for no state.")]
         [NoOverrides]
-        [SerializeField] private string noInputState = "NoInput";
+        [SerializeField]
+        private string _noInputState = "NoInput";
 
         /// <summary>
         /// State to activate when moving. Empty for no state.
         /// </summary>
+        [FormerlySerializedAs("movingState")]
         [Tooltip("State to activate when moving. Empty for no state.")]
         [NoOverrides]
-        [SerializeField] private string movingState = "Moving";
+        [SerializeField]
+        private string _movingState = "Moving";
 
         public enum RotateMode {
             None, Movement, Control, Manual,
@@ -424,10 +475,10 @@ namespace SBR {
             Capsule.sharedMaterial = frictionlessMaterial;
 
             Time.fixedDeltaTime = 1.0f / 60.0f;
-            GroundHitBuffer = new RaycastHit[groundHitBufferSize];
+            GroundHitBuffer = new RaycastHit[_groundHitBufferSize];
 
-            if (jumpMode == JumpMode.Charge) {
-                JumpChargeTimer = new ExpirationTimer(jumpChargeTime);
+            if (_jumpMode == JumpMode.Charge) {
+                JumpChargeTimer = new ExpirationTimer(_jumpChargeTime);
             }
 
             _movementDelay.Initialize();
@@ -437,22 +488,22 @@ namespace SBR {
 
         #region State Functions
         private void SetStateOnManagerOrSelf(string state, bool active) {
-            if (stateManager) {
-                stateManager.SetStateActive(state, active);
+            if (_stateManager) {
+                _stateManager.SetStateActive(state, active);
             } else {
                 SetStateActive(state, active);
             }
         }
 
         private void SetupStates() {
-            if (!string.IsNullOrEmpty(movingState)) Moving += SetMovingState;
-            if (!string.IsNullOrEmpty(notGroundedState)) Grounded += SetGroundedState;
-            if (!string.IsNullOrEmpty(noInputState)) EnableInputChanged += SetEnableInputState;
+            if (!string.IsNullOrEmpty(_movingState)) Moving += SetMovingState;
+            if (!string.IsNullOrEmpty(_notGroundedState)) Grounded += SetGroundedState;
+            if (!string.IsNullOrEmpty(_noInputState)) EnableInputChanged += SetEnableInputState;
         }
 
-        private void SetMovingState(bool moving) => SetStateOnManagerOrSelf(movingState, moving);
-        private void SetGroundedState(bool grounded) => SetStateOnManagerOrSelf(notGroundedState, !grounded);
-        private void SetEnableInputState(bool value) => SetStateOnManagerOrSelf(noInputState, !value);
+        private void SetMovingState(bool moving) => SetStateOnManagerOrSelf(_movingState, moving);
+        private void SetGroundedState(bool grounded) => SetStateOnManagerOrSelf(_notGroundedState, !grounded);
+        private void SetEnableInputState(bool value) => SetStateOnManagerOrSelf(_noInputState, !value);
         #endregion
 
         private void Start() {
@@ -460,11 +511,12 @@ namespace SBR {
         }
 
         private void Reset() {
-            stateManager = GetComponent<StateManager>();
+            _stateManager = GetComponent<StateManager>();
         }
 
+        [UsedImplicitly]
         private void OnZeroHealth(bool isLoading) {
-            stateManager.SetStateActive(movingState, false);
+            _stateManager.SetStateActive(_movingState, false);
         }
 
         public void ApplyRootMotion(Vector3 deltaPosition, Quaternion deltaRotation) {
@@ -483,15 +535,21 @@ namespace SBR {
             UpdateGrounded();
             UpdateJumping();
 
-            _hasInput = EnableInput && Controllers.Any(c => c.enabled);
+            _hasInput = EnableInput && Controllers.Any(c => c.Enabled);
         }
 
         public void MoveTargetRotationTowards(Quaternion rotation) {
-            if (!(rotateX && rotateY && rotateZ)) {
+            if (!(_rotateX && _rotateY && _rotateZ)) {
                 Vector3 euler = (Quaternion.Inverse(transform.rotation) * rotation).eulerAngles;
-                if (!rotateX) euler.x = 0;
-                if (!rotateY) euler.y = 0;
-                if (!rotateZ) euler.z = 0;
+                float eulerX = MathUtility.NormalizeInnerAngle(euler.x);
+                if (!_rotateX) euler.x = 0;
+                if (!_rotateY) euler.y = 0;
+                if (!_rotateZ) euler.z = 0;
+
+                if (_rotateY && !_rotateX && (eulerX < _rotateYPitchMin || eulerX > _rotateYPitchMax)) {
+                    euler.y = 0;
+                }
+
                 _targetRotation = transform.rotation * Quaternion.Euler(euler);
             } else {
                 _targetRotation = rotation;
@@ -501,17 +559,17 @@ namespace SBR {
         }
 
         private void DoRotationOutput(CharacterChannels channels) {
-            if (rotateMode == RotateMode.Movement) {
+            if (_rotateMode == RotateMode.Movement) {
                 if (channels.Movement.sqrMagnitude > 0) {
                     MoveTargetRotationTowards(Quaternion.LookRotation(channels.Movement, transform.up));
                 }
-            } else if (rotateMode == RotateMode.Control) {
+            } else if (_rotateMode == RotateMode.Control) {
                 MoveTargetRotationTowards(channels.Rotation);
             }
         }
 
         private bool TryGetPlaneNormalForMovementProjection(out Vector3 normal) {
-            switch (projectMovement) {
+            switch (_projectMovement) {
                 case ProjectMovementMode.GroundNormal when IsGrounded:
                     normal = _groundNormal;
                     return true;
@@ -523,7 +581,7 @@ namespace SBR {
                     normal = -Physics.gravity;
                     return true;
                 case ProjectMovementMode.Custom:
-                    normal =  customProjectMovementNormal;
+                    normal =  _customProjectMovementNormal;
                     return true;
                 default:
                     normal = Vector3.zero;
@@ -567,9 +625,13 @@ namespace SBR {
             _snapEndRotation = rotation;
 
             if (SnapPositionTimer == null) SnapPositionTimer = new ExpirationTimer(time);
-            else SnapPositionTimer.expiration = time;
+            else SnapPositionTimer.Expiration = time;
 
             SnapPositionTimer.Set();
+        }
+
+        public void CancelSnapPosition() {
+            SnapPositionTimer?.Clear();
         }
 
         protected override void DoOutput(CharacterChannels channels) {
@@ -579,17 +641,17 @@ namespace SBR {
         }
 
         private void DoJumpOutput(CharacterChannels channels) {
-            if (IsGrounded && EnableInput && jumpVelocity.sqrMagnitude > 0) {
+            if (IsGrounded && EnableInput && _jumpVelocity.sqrMagnitude > 0) {
                 if (channels.Jump) {
-                    if (jumpMode == JumpMode.Press) {
+                    if (_jumpMode == JumpMode.Press) {
                         DoJump(1);
-                    } else if (jumpMode == JumpMode.Charge && !JumpCharging) {
+                    } else if (_jumpMode == JumpMode.Charge && !JumpCharging) {
                         JumpCharging = true;
-                        JumpChargeTimer ??= new ExpirationTimer(jumpChargeTime);
+                        JumpChargeTimer ??= new ExpirationTimer(_jumpChargeTime);
                         JumpChargeTimer.Set();
                     }
                 } else if (JumpCharging) {
-                    float charge = 1.0f - JumpChargeTimer.remainingRatio;
+                    float charge = 1.0f - JumpChargeTimer.RemainingRatio;
                     DoJump(charge);
                 }
             }
@@ -600,7 +662,7 @@ namespace SBR {
         }
 
         public void DoJump(float charge) {
-            Vector3 vel = transform.TransformDirection(jumpVelocity) * Mathf.Lerp(jumpChargeMinMultiplier, 1, charge);
+            Vector3 vel = transform.TransformDirection(_jumpVelocity) * Mathf.Lerp(_jumpChargeMinMultiplier, 1, charge);
             DoJump(vel);
         }
 
@@ -614,20 +676,20 @@ namespace SBR {
             input = Vector3.ClampMagnitude(input, 1);
             input = AlignMovementInput(input);
 
-            Vector3 desiredVelocity = input * movementSpeed;
+            Vector3 desiredVelocity = input * _movementSpeed;
             bool activeInput = input.sqrMagnitude > 0.0001f;
-            float speedLimit = activeInput ? input.magnitude * movementSpeed : movementSpeed;
+            float speedLimit = activeInput ? input.magnitude * _movementSpeed : _movementSpeed;
 
             Vector3 currentMovementVelocity = MovementVelocity;
-            if (inputAccelerationMode == InputAccelerationMode.Instant) {
+            if (_inputAccelerationMode == InputAccelerationMode.Instant) {
                 currentMovementVelocity = desiredVelocity;
             } else {
                 if (activeInput && currentMovementVelocity.sqrMagnitude < speedLimit * speedLimit + 0.0001f) {
                     // Player is holding input in a direction, and is not moving faster than the speed limit.
-                    if (inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
+                    if (_inputAccelerationMode == InputAccelerationMode.MoveVelocity) {
                         currentMovementVelocity =
                             Vector3.MoveTowards(currentMovementVelocity, desiredVelocity, ActualMovementAcceleration * dt);
-                    } else if (inputAccelerationMode == InputAccelerationMode.Force) {
+                    } else if (_inputAccelerationMode == InputAccelerationMode.Force) {
                         currentMovementVelocity += input.normalized * (ActualMovementAcceleration * dt);
                         currentMovementVelocity = Vector3.ClampMagnitude(currentMovementVelocity, speedLimit);
                     }
@@ -656,11 +718,11 @@ namespace SBR {
 
             currentMovementVelocity = projectedVel;
 
-            if (movementVelocityDamping > 0) {
-                currentMovementVelocity *= Mathf.Clamp01(1 - movementVelocityDamping * dt);
+            if (_movementVelocityDamping > 0) {
+                currentMovementVelocity *= Mathf.Clamp01(1 - _movementVelocityDamping * dt);
             }
 
-            float minMoveSpeed = movementSpeed * 0.1f;
+            float minMoveSpeed = _movementSpeed * 0.1f;
             minMoveSpeed = minMoveSpeed * minMoveSpeed;
 
             bool newIsMoving = currentMovementVelocity.sqrMagnitude > minMoveSpeed;
@@ -674,7 +736,7 @@ namespace SBR {
 
         public void UpdateGrounded() {
             bool isFixedUpdate = Time.inFixedTimeStep;
-            var lastGround = Ground;
+            Collider lastGround = Ground;
             if (Jumping) {
                 IsGrounded = false;
                 Ground = null;
@@ -693,14 +755,14 @@ namespace SBR {
             Quaternion rotation = isFixedUpdate ? Rigidbody.rotation : transform.rotation;
             Vector3 up = rotation * Vector3.up;
 
-            int hits = Physics.SphereCastNonAlloc(pnt2 + up * groundDist, radius, -up,
-                GroundHitBuffer, groundDist * 2, groundLayers, QueryTriggerInteraction.Ignore);
+            int hits = Physics.SphereCastNonAlloc(pnt2 + up * _groundDist, radius, -up,
+                GroundHitBuffer, _groundDist * 2, _groundLayers, QueryTriggerInteraction.Ignore);
 
             bool anyHit = false;
             IsGrounded = false;
-            float maxPointDist = radius * (1 - groundCheckRadiusShell);
+            float maxPointDist = radius * (1 - _groundCheckRadiusShell);
             maxPointDist *= maxPointDist;
-            float maxGroundAngleDot = Mathf.Cos(maxGroundAngle);
+            float maxGroundAngleDot = Mathf.Cos(_maxGroundAngle);
             for (int i = 0; i < hits; i++) {
                 RaycastHit hit = GroundHitBuffer[i];
                 Vector3 proj = Vector3.ProjectOnPlane(hit.point - pnt2, up);
@@ -716,8 +778,8 @@ namespace SBR {
                 anyHit = true;
             }
 
-            _groundHit.distance -= groundDist;
-            Sliding = anyHit && !IsGrounded && slideOnSteepSlopes;
+            _groundHit.distance -= _groundDist;
+            Sliding = anyHit && !IsGrounded && _slideOnSteepSlopes;
 
             if (anyHit) {
                 _groundNormal = GroundHit.normal;
@@ -751,20 +813,20 @@ namespace SBR {
             _targetRotation = _targetRotation.normalized;
             if (_isRotating) {
                 Quaternion q = Rigidbody.rotation;
-                if (rotationSpeed == 0) {
+                if (_rotationSpeed == 0) {
                     Rigidbody.MoveRotation(_targetRotation);
-                } else if (useSmoothRotation) {
-                    Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                } else if (_useSmoothRotation) {
+                    Rigidbody.MoveRotation(Quaternion.Slerp(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * _rotationSpeed));
                 } else {
-                    Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * rotationSpeed));
+                    Rigidbody.MoveRotation(Quaternion.RotateTowards(Rigidbody.rotation, _targetRotation, Time.fixedDeltaTime * _rotationSpeed));
                 }
                 RotationRates = MathUtility.NormalizeInnerAngles((Quaternion.Inverse(q) * Rigidbody.rotation).eulerAngles) / Time.fixedDeltaTime;
 
-                if (minTargetAngle > 0 && Quaternion.Angle(Rigidbody.rotation, _targetRotation) <= minTargetAngle) {
+                if (_minTargetAngle > 0 && Quaternion.Angle(Rigidbody.rotation, _targetRotation) <= _minTargetAngle) {
                     _isRotating = false;
                 }
             } else {
-                if (Quaternion.Angle(Rigidbody.rotation, _targetRotation) > maxTargetAngle) {
+                if (Quaternion.Angle(Rigidbody.rotation, _targetRotation) > _maxTargetAngle) {
                     _isRotating = true;
                 }
                 RotationRates = Vector3.zero;
@@ -774,10 +836,10 @@ namespace SBR {
         private void FixedUpdate() {
             float dt = Time.fixedDeltaTime;
 
-            if (SnapPositionTimer?.expired == false) {
+            if (SnapPositionTimer?.Expired == false) {
                 Rigidbody.SetLinearVelocity(Vector3.zero);
 
-                float t = _snapPositionCurve.Evaluate(1 - SnapPositionTimer.remainingRatio);
+                float t = _snapPositionCurve.Evaluate(1 - SnapPositionTimer.RemainingRatio);
                 Rigidbody.position = Vector3.Lerp(_snapStartPosition, _snapEndPosition, t);
                 Rigidbody.rotation = Quaternion.Slerp(_snapStartRotation, _snapEndRotation, t);
                 return;
@@ -807,29 +869,27 @@ namespace SBR {
 
             Rigidbody.MovePosition(Rigidbody.position + theGroundIsMoving + rootMovement);
 
-            if (rotateMode != RotateMode.None && EnableInput && _hasInitializedTargetRotation) {
+            if (_rotateMode != RotateMode.None && EnableInput && _hasInitializedTargetRotation) {
                 RotateTowardsTarget();
             }
         }
 
         private Vector3 GetRootMovement() {
-            Vector3 rootMovement = Vector3.zero;
-
-            rootMovement = _rootMotionMovement * rootMotionScale;
+            Vector3 rootMovement = _rootMotionMovement * _rootMotionScale;
 
             Vector3 up = Rigidbody.rotation * Vector3.up;
 
-            if (!useRootMotionY) {
+            if (!_useRootMotionY) {
                 rootMovement = Vector3.ProjectOnPlane(rootMovement, up);
             }
 
-            if (!useRootMotionXZ) {
+            if (!_useRootMotionXZ) {
                 rootMovement = Vector3.Project(rootMovement, up);
             }
 
             _rootMotionMovement = Vector3.zero;
 
-            if (useRootMotionRotation) {
+            if (_useRootMotionRotation) {
                 Rigidbody.MoveRotation(_rootMotionRotation * Rigidbody.rotation);
             }
 
@@ -845,16 +905,16 @@ namespace SBR {
             if (GroundRigidbody) {
                 Vector3 curGroundHitPos = GroundRigidbody.position + GroundRigidbody.rotation * _groundHitLocalPos;
 
-                if (moveWithPlatforms) theGroundIsMoving = curGroundHitPos - _groundLastPos;
+                if (_moveWithPlatforms) theGroundIsMoving = curGroundHitPos - _groundLastPos;
                 _groundLastPos = GroundHit.point;
 
                 _groundHitLocalPos = Quaternion.Inverse(GroundRigidbody.rotation) *
                                      (GroundHit.point - GroundRigidbody.position);
 
-                if (groundStickiness > 0 && !Jumping) {
-                    float d = Mathf.Lerp(_groundHit.distance - groundDist, 0, groundStickiness);
+                if (_groundStickiness > 0 && !Jumping) {
+                    float d = Mathf.Lerp(_groundHit.distance - _groundDist, 0, _groundStickiness);
                     Rigidbody.MovePosition(Rigidbody.position - (Rigidbody.rotation * Vector3.up) * (_groundHit.distance - d));
-                    _groundHit.distance = d + groundDist;
+                    _groundHit.distance = d + _groundDist;
                 }
             }
 

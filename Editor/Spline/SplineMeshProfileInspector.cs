@@ -47,7 +47,7 @@ namespace SBR.Editor {
         }
 
         private void DrawListElement(Rect rect, int index, bool isActive, bool isFocused) {
-            var element = meshList.serializedProperty.GetArrayElementAtIndex(index);
+            SerializedProperty element = meshList.serializedProperty.GetArrayElementAtIndex(index);
             float l = EditorGUIUtility.singleLineHeight;
             
             rect.y += 2;

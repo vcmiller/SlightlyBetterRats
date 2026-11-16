@@ -32,12 +32,12 @@ namespace SBR.Editor {
         }
 
         public override void Update() {
-            var evt = Event.current;
+            Event evt = Event.current;
             if (evt.type == EventType.MouseMove) {
                 target = evt.mousePosition;
                 repaint = true;
             } else if (evt.type == EventType.MouseDown) {
-                var targ = definition.SelectState(window.ToWorld(target));
+                StateMachineDefinition.State targ = definition.SelectState(window.ToWorld(target));
 
                 if (evt.button == 0 && targ != null && targ != state) {
                     done = true;
@@ -54,7 +54,7 @@ namespace SBR.Editor {
 
         public override void Confirm() {
             Undo.RecordObject(definition, "Add Transition");
-            var targ = definition.SelectState(window.ToWorld(target));
+            StateMachineDefinition.State targ = definition.SelectState(window.ToWorld(target));
 
             if (definition.TransitionValid(state, targ)) {
                 state.AddTransition(targ);
@@ -64,9 +64,9 @@ namespace SBR.Editor {
         public override void OnGUI() {
             Handles.BeginGUI();
 
-            Vector2 src = window.ToScreen(state.center);
+            Vector2 src = window.ToScreen(state.Center);
 
-            var targ = definition.SelectState(window.ToWorld(target));
+            StateMachineDefinition.State targ = definition.SelectState(window.ToWorld(target));
 
             if (targ == null) {
                 Handles.color = Color.red;
@@ -78,8 +78,8 @@ namespace SBR.Editor {
                     Handles.color = Color.red;
                 }
 
-                var fake = new StateMachineDefinition.Transition { to = targ.name };
-                var line = definition.GetTransitionPoints(state, fake);
+                StateMachineDefinition.Transition fake = new StateMachineDefinition.Transition { _to = targ._name };
+                Pair<Vector2, Vector2> line = definition.GetTransitionPoints(state, fake);
 
                 Handles.DrawAAPolyLine(3, window.ToScreen(line.Item1), window.ToScreen(line.Item2));
             }

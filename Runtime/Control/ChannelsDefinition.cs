@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using Infohazard.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -39,104 +40,104 @@ namespace SBR {
             /// <summary>
             /// Name of the property for accessing the channel.
             /// </summary>
-            [Tooltip("Name of the property for accessing the channel.")]
-            public string name;
+            [FormerlySerializedAs("name"),Tooltip("Name of the property for accessing the channel.")]
+            public string _name;
 
             /// <summary>
             /// Type of data stored in the channel.
             /// </summary>
-            [Tooltip("Type of data stored in the channel.")]
-            public ChannelType type;
+            [FormerlySerializedAs("type"),Tooltip("Type of data stored in the channel.")]
+            public ChannelType _type;
 
             /// <summary>
             /// Whether the channel's value should reset to the default every frame.
             /// </summary>
-            [Tooltip("Whether the channel's value should reset to the default every frame.")]
-            public bool clears = false;
+            [FormerlySerializedAs("clears"),Tooltip("Whether the channel's value should reset to the default every frame.")]
+            public bool _clears = false;
 
             /// <summary>
             /// Whether the float value of this channel has a limited range.
             /// </summary>
-            [Tooltip("Whether the float value of this channel has a limited range.")]
-            public bool floatHasRange = false;
+            [FormerlySerializedAs("floatHasRange"),Tooltip("Whether the float value of this channel has a limited range.")]
+            public bool _floatHasRange = false;
 
             /// <summary>
             /// Minimum value of the float range of this channel.
             /// </summary>
-            [Tooltip("Minimum value of the float range of this channel.")]
-            public float floatMin = float.NegativeInfinity;
+            [FormerlySerializedAs("floatMin"),Tooltip("Minimum value of the float range of this channel.")]
+            public float _floatMin = float.NegativeInfinity;
             
             /// <summary>
             /// Maximum value of the float range of this channel.
             /// </summary>
-            [Tooltip("Maximum value of the float range of this channel.")]
-            public float floatMax = float.PositiveInfinity;
+            [FormerlySerializedAs("floatMax"),Tooltip("Maximum value of the float range of this channel.")]
+            public float _floatMax = float.PositiveInfinity;
 
             /// <summary>
             /// Default float value of this channel.
             /// </summary>
-            [Tooltip("Default float value of this channel.")]
-            public float defaultFloat = 0;
+            [FormerlySerializedAs("defaultFloat"),Tooltip("Default float value of this channel.")]
+            public float _defaultFloat = 0;
 
             /// <summary>
             /// Whether the int value of this channel has a limited range.
             /// </summary>
-            [Tooltip("Whether the int value of this channel has a limited range.")]
-            public bool intHasRange = false;
+            [FormerlySerializedAs("intHasRange"),Tooltip("Whether the int value of this channel has a limited range.")]
+            public bool _intHasRange = false;
 
             /// <summary>
             /// Minimum value of the int range of this channel.
             /// </summary>
-            [Tooltip("Minimum value of the int range of this channel.")]
-            public int intMin = int.MaxValue;
+            [FormerlySerializedAs("intMin"),Tooltip("Minimum value of the int range of this channel.")]
+            public int _intMin = int.MaxValue;
 
             /// <summary>
             /// Maximum value of the int range of this channel.
             /// </summary>
-            [Tooltip("Maximum value of the int range of this channel.")]
-            public int intMax = int.MinValue;
+            [FormerlySerializedAs("intMax"),Tooltip("Maximum value of the int range of this channel.")]
+            public int _intMax = int.MinValue;
 
             /// <summary>
             /// Default int value of this channel.
             /// </summary>
-            [Tooltip("Default int value of this channel.")]
-            public int defaultInt = 0;
+            [FormerlySerializedAs("defaultInt"),Tooltip("Default int value of this channel.")]
+            public int _defaultInt = 0;
 
             /// <summary>
             /// Default bool value of this channel.
             /// </summary>
-            [Tooltip("Default bool value of this channel.")]
-            public bool defaultBool = false;
+            [FormerlySerializedAs("defaultBool"),Tooltip("Default bool value of this channel.")]
+            public bool _defaultBool = false;
 
             /// <summary>
             /// Whether the int value of this channel has a limited length.
             /// </summary>
-            [Tooltip("Whether the Vector value of this channel has a limited range.")]
-            public bool vectorHasMax = false;
+            [FormerlySerializedAs("vectorHasMax"),Tooltip("Whether the Vector value of this channel has a limited range.")]
+            public bool _vectorHasMax = false;
 
             /// <summary>
             /// Maximum length of the vector of this channel.
             /// </summary>
-            [Tooltip("Maximum length of the vector of this channel.")]
-            public float vectorMax;
+            [FormerlySerializedAs("vectorMax"),Tooltip("Maximum length of the vector of this channel.")]
+            public float _vectorMax;
 
             /// <summary>
             /// Default Vector value of this channel.
             /// </summary>
-            [Tooltip("Default Vector value of this channel.")]
-            public Vector3 defaultVector = Vector3.zero;
+            [FormerlySerializedAs("defaultVector"),Tooltip("Default Vector value of this channel.")]
+            public Vector3 _defaultVector = Vector3.zero;
 
             /// <summary>
             /// Default rotation value of this channel (euler).
             /// </summary>
-            [Tooltip("Default rotation value of this channel (euler).")]
-            public Vector3 defaultRotation = Vector3.zero;
+            [FormerlySerializedAs("defaultRotation"),Tooltip("Default rotation value of this channel (euler).")]
+            public Vector3 _defaultRotation = Vector3.zero;
 
             /// <summary>
             /// Custom object type for this channel.
             /// </summary>
-            [Tooltip("Custom object type for this channel.")]
-            public string objectType;
+            [FormerlySerializedAs("objectType"),Tooltip("Custom object type for this channel.")]
+            public string _objectType;
         }
 
         public enum ChannelType {
@@ -146,12 +147,13 @@ namespace SBR {
         /// <summary>
         /// Base class to use when generating class.
         /// </summary>
-        [TypeSelect(typeof(Channels), true)]
-        public string baseClass;
+        [FormerlySerializedAs("baseClass"),TypeSelect(typeof(Channels), true)]
+        public string _baseClass;
 
         /// <summary>
         /// All input channels.
         /// </summary>
-        public List<Channel> channels;
+        [FormerlySerializedAs("channels")]
+        public List<Channel> _channels;
     }
 }

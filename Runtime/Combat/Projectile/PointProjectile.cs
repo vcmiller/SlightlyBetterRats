@@ -1,7 +1,7 @@
 // The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -30,53 +31,51 @@ namespace SBR {
         /// <summary>
         /// Layers that the projectile collides with.
         /// </summary>
+        [FormerlySerializedAs("hitMask")]
         [Tooltip("Layers that the projectile collides with.")]
-        public LayerMask hitMask = 1;
+        public LayerMask _hitMask = 1;
 
         /// <summary>
         /// Extra length to raycast each frame, to compensate for other objects' velocity.
         /// </summary>
+        [FormerlySerializedAs("offset")]
         [Tooltip("Extra length to raycast each frame, to compensate for other objects' velocity.")]
-        public float offset = 0;
+        public float _offset = 0;
 
         /// <summary>
         /// Radius of the projectile. If > 0, movement will use a SphereCast (otherwise LineCast).
         /// </summary>
+        [FormerlySerializedAs("radius")]
         [Tooltip("Radius of the projectile. If > 0, movement will use a SphereCast (otherwise LineCast).")]
-        public float radius;
+        public float _radius;
 
         /// <summary>
         /// Maximum number of objects that can be hit in a single step.
         /// </summary>
+        [FormerlySerializedAs("maxHits")]
         [Tooltip("Maximum number of objects that can be hit in a single step.")]
-        public int maxHits = 8;
-
-        private RaycastHit[] hitArray;
-
-        private void Awake() {
-            hitArray = new RaycastHit[maxHits];
-        }
+        public int _maxHits = 8;
 
         protected override void Update() {
             base.Update();
-            Vector3 dir = velocity.normalized;
-            if (velocity.sqrMagnitude > 0) {
-                Vector3 position = transform.position - dir * offset;
-                float distance = velocity.magnitude * Time.deltaTime + offset;
+            Vector3 dir = Velocity.normalized;
+            if (Velocity.sqrMagnitude > 0) {
+                Vector3 position = transform.position - dir * _offset;
+                float distance = Velocity.magnitude * Time.deltaTime + _offset;
 
                 while (distance > 0) {
                     bool didHit;
                     RaycastHit hit;
-                    if (radius <= 0) {
-                        didHit = Physics.Raycast(position, dir, out hit, distance, hitMask, triggerInteraction);
+                    if (_radius <= 0) {
+                        didHit = Physics.Raycast(position, dir, out hit, distance, _hitMask, _triggerInteraction);
                     } else {
-                        didHit = Physics.SphereCast(position, radius, dir, out hit, distance, hitMask, triggerInteraction);
+                        didHit = Physics.SphereCast(position, _radius, dir, out hit, distance, _hitMask, _triggerInteraction);
                     }
 
                     if (didHit) {
                         position += dir * (hit.distance + 0.01f);
                         distance -= hit.distance;
-                        if (OnHitCollider(hit.collider, hit.point, hit.normal) && (stopOnHit || destroyOnHit)) {
+                        if (OnHitCollider(hit.collider, hit.point, hit.normal) && (_stopOnHit || _destroyOnHit)) {
                             break;
                         }
                     } else {

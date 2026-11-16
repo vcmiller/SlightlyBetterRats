@@ -31,17 +31,17 @@ namespace SBR {
         /// <summary>
         /// Camera that is controlled by this ViewTarget.
         /// </summary>
-        new public Camera camera { get; private set; }
+        new public Camera Camera { get; private set; }
 
         /// <summary>
         /// AudioListener that is controlled by this ViewTarget.
         /// </summary>
-        public AudioListener listener { get; private set; }
+        public AudioListener Listener { get; private set; }
 
         /// <summary>
         /// A normalized Vector3 aligned with the ground plane for forward movement.
         /// </summary>
-        public Vector3 flatForward {
+        public Vector3 FlatForward {
             get {
                 Vector3 fwd = transform.forward;
                 fwd.y = 0;
@@ -59,7 +59,7 @@ namespace SBR {
         /// <summary>
         /// A normalized vector aligned with the ground plane for right movement.
         /// </summary>
-        public Vector3 flatRight => GetAlignedRight(Vector3.up);
+        public Vector3 FlatRight => GetAlignedRight(Vector3.up);
 
         /// <summary>
         /// Get the forward vector of this ViewTarget, flattened and normalized on the given plane.
@@ -92,27 +92,27 @@ namespace SBR {
         }
 
         private void Awake() {
-            camera = GetComponent<Camera>();
-            listener = GetComponent<AudioListener>();
+            Camera = GetComponent<Camera>();
+            Listener = GetComponent<AudioListener>();
         }
 
         private void OnEnable() {
-            if (camera) {
-                camera.enabled = true;
+            if (Camera) {
+                Camera.enabled = true;
             }
 
-            if (listener) {
-                listener.enabled = true;
+            if (Listener) {
+                Listener.enabled = true;
             }
         }
 
         private void OnDisable() {
-            if (camera) {
-                camera.enabled = false;
+            if (Camera) {
+                Camera.enabled = false;
             }
 
-            if (listener) {
-                listener.enabled = false;
+            if (Listener) {
+                Listener.enabled = false;
             }
         }
     }

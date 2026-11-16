@@ -31,7 +31,7 @@ namespace SBR.Editor {
         [InitializeOnLoadMethod]
         private static void Register() {
             // Force instance to be created immediately.
-            var temp = inst;
+            SBRProjectSettings temp = inst;
         }
 
         [MenuItem("Tools/Infohazard/Select/SBR Settings...")]

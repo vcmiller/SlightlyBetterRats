@@ -49,11 +49,25 @@ namespace SBR {
         [SerializeField] private bool _alignInput = true;
 
         [Header("Input Names")]
-        [NoOverrides, SerializeField] private string _horizontalAxisName = "Horizontal";
-        [NoOverrides, SerializeField] private string _verticalAxisName = "Vertical";
-        [NoOverrides, SerializeField] private string _mouseXAxisName = "Mouse X";
-        [NoOverrides, SerializeField] private string _mouseYAxisName = "Mouse Y";
-        [NoOverrides, SerializeField] private string _jumpButtonName = "Jump";
+        [NoOverrides]
+        [SerializeField]
+        private string _horizontalAxisName = "Horizontal";
+
+        [NoOverrides]
+        [SerializeField]
+        private string _verticalAxisName = "Vertical";
+
+        [NoOverrides]
+        [SerializeField]
+        private string _mouseXAxisName = "Mouse X";
+
+        [NoOverrides]
+        [SerializeField]
+        private string _mouseYAxisName = "Mouse Y";
+
+        [NoOverrides]
+        [SerializeField]
+        private string _jumpButtonName = "Jump";
 
         private Vector3 _angles;
 
@@ -68,12 +82,12 @@ namespace SBR {
         }
 
         protected virtual void Axis_Horizontal(float value) {
-            Vector3 right = ViewTarget ? (_alignInput ? ViewTarget.flatRight : ViewTarget.transform.right) : Vector3.right;
+            Vector3 right = ViewTarget ? (_alignInput ? ViewTarget.FlatRight : ViewTarget.transform.right) : Vector3.right;
             Channels.Movement += right * value;
         }
 
         protected virtual void Axis_Vertical(float value) {
-            Vector3 fwd = ViewTarget ? (_alignInput ? ViewTarget.flatForward : ViewTarget.transform.forward) : Vector3.forward;
+            Vector3 fwd = ViewTarget ? (_alignInput ? ViewTarget.FlatForward : ViewTarget.transform.forward) : Vector3.forward;
             Channels.Movement += fwd * value;
         }
 

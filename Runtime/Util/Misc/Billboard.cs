@@ -23,6 +23,7 @@
 using Infohazard.Core;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -33,40 +34,40 @@ namespace SBR {
         /// <summary>
         /// How the rotation of this object is controlled.
         /// </summary>
-        [Tooltip("How the rotation of this object is controlled.")]
-        public Mode mode;
+        [FormerlySerializedAs("mode"),Tooltip("How the rotation of this object is controlled.")]
+        public Mode _mode;
 
         /// <summary>
         /// Whether this object faces the main camera or another object.
         /// </summary>
-        [Tooltip("Whether this object faces the main camera or another object.")]
-        public TargetMode targetMode;
+        [FormerlySerializedAs("targetMode"),Tooltip("Whether this object faces the main camera or another object.")]
+        public TargetMode _targetMode;
 
         /// <summary>
         /// Whether to scale the Billboard based on distance from the target.
         /// </summary>
-        [Tooltip("Whether to scale the Billboard based on distance from the target.")]
-        public bool scaleWithDistance;
+        [FormerlySerializedAs("scaleWithDistance"),Tooltip("Whether to scale the Billboard based on distance from the target.")]
+        public bool _scaleWithDistance;
 
         /// <summary>
         /// Curve to follow when scaling with distance.
         /// </summary>
-        [Tooltip("Curve to follow when scaling with distance.")]
-        [ConditionalDraw(nameof(scaleWithDistance))]
-        public AnimationCurve scaleOverDistanceCurve = AnimationCurve.Constant(0, 1, 1);
+        [FormerlySerializedAs("scaleOverDistanceCurve"),Tooltip("Curve to follow when scaling with distance.")]
+        [ConditionalDraw(nameof(_scaleWithDistance))]
+        public AnimationCurve _scaleOverDistanceCurve = AnimationCurve.Constant(0, 1, 1);
 
         /// <summary>
         /// Whether the Billboard should function in the editor when the game isn't running.
         /// </summary>
-        [Tooltip("Whether the Billboard should function in the editor when the game isn't running.")]
-        public bool editorPreview = true;
+        [FormerlySerializedAs("editorPreview"),Tooltip("Whether the Billboard should function in the editor when the game isn't running.")]
+        public bool _editorPreview = true;
 
         /// <summary>
         /// The other object to face, if using TargetMode.TargetObject.
         /// </summary>
-        [Tooltip("The other object to face.")]
-        [ConditionalDraw(nameof(targetMode), TargetMode.TargetObject, true)]
-        public Transform targetObject;
+        [FormerlySerializedAs("targetObject"),Tooltip("The other object to face.")]
+        [ConditionalDraw(nameof(_targetMode), TargetMode.TargetObject, true)]
+        public Transform _targetObject;
 
         private void OnEnable() {
             Camera.onPreCull -= Camera_OnPreCull;
@@ -84,9 +85,9 @@ namespace SBR {
         }
 
         void Camera_OnPreCull(Camera currentCamera) {
-            if (!editorPreview && !Application.isPlaying) return;
+            if (!_editorPreview && !Application.isPlaying) return;
 
-            if (targetMode == TargetMode.Camera) {
+            if (_targetMode == TargetMode.Camera) {
                 LookAt(currentCamera.transform);
             }
         }
@@ -97,28 +98,28 @@ namespace SBR {
         }
 
         void LateUpdate() {
-            if (!editorPreview && !Application.isPlaying) return;
+            if (!_editorPreview && !Application.isPlaying) return;
 
-            if (targetMode == TargetMode.TargetObject && targetObject) {
-                LookAt(targetObject);
+            if (_targetMode == TargetMode.TargetObject && _targetObject) {
+                LookAt(_targetObject);
             }
         }
 
         private void LookAt(Transform t) {
             if (!t) return;
 
-            if (mode == Mode.CopyRotation) {
+            if (_mode == Mode.CopyRotation) {
                 transform.rotation = t.rotation;
-            } else if (mode == Mode.LookAt) {
+            } else if (_mode == Mode.LookAt) {
                 transform.rotation = Quaternion.LookRotation(t.position - transform.position);
-            } else if (mode == Mode.LookAtYaw) {
+            } else if (_mode == Mode.LookAtYaw) {
                 Vector3 right = Vector3.Cross(Vector3.up, t.position - transform.position);
                 Vector3 fwd = Vector3.Cross(right, Vector3.up).normalized;
                 transform.rotation = Quaternion.LookRotation(fwd);
             }
 
-            if (scaleWithDistance) {
-                float f = scaleOverDistanceCurve.Evaluate(Vector3.Distance(transform.position, t.position));
+            if (_scaleWithDistance) {
+                float f = _scaleOverDistanceCurve.Evaluate(Vector3.Distance(transform.position, t.position));
                 transform.localScale = Vector3.one * f;
             }
         }

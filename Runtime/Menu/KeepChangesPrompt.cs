@@ -21,42 +21,47 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SBR.Menu {
     public class KeepChangesPrompt : MonoBehaviour {
-        public float time;
-        private string textTemplate;
-        public Text text;
-        public SettingsSubMenu settings;
-        public Selectable select;
+        [FormerlySerializedAs("time")]
+        public float _time;
+        private string _textTemplate;
+        [FormerlySerializedAs("text")]
+        public Text _text;
+        [FormerlySerializedAs("settings")]
+        public SettingsSubMenu _settings;
+        [FormerlySerializedAs("select")]
+        public Selectable _select;
 
-        private ExpirationTimer timer;
+        private ExpirationTimer _timer;
 
         private void Awake() {
-            textTemplate = text.text;
+            _textTemplate = _text.text;
         }
 
         private void OnEnable() {
-            timer = new ExpirationTimer(time);
-            timer.Set();
-            select.Select();
+            _timer = new ExpirationTimer(_time);
+            _timer.Set();
+            _select.Select();
         }
 
         private void Update() {
-            if (text) text.text = string.Format(textTemplate, Mathf.CeilToInt(timer.remaining));
-            if (timer.expiredThisFrame) {
+            if (_text) _text.text = string.Format(_textTemplate, Mathf.CeilToInt(_timer.Remaining));
+            if (_timer.ExpiredThisFrame) {
                 Revert();
             }
         }
 
         public void Revert() {
-            settings.Revert();
+            _settings.Revert();
             gameObject.SetActive(false);
         }
 
         public void Confirm() {
-            settings.Save();
+            _settings.Save();
             gameObject.SetActive(false);
         }
     }

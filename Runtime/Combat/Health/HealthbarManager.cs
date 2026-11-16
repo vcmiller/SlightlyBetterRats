@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,25 +23,28 @@
 using System.Collections.Generic;
 using Infohazard.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
     /// Used to automatically create Healthbars for all Health components that match a given tag.
     /// </summary>
     public class HealthbarManager : MonoBehaviour {
-        private Dictionary<Health, Healthbar> healthbars = new Dictionary<Health, Healthbar>();
+        private Dictionary<Health, Healthbar> _healthbars = new Dictionary<Health, Healthbar>();
 
         /// <summary>
         /// Healthbar prefab to spawn for each Health.
         /// </summary>
+        [FormerlySerializedAs("healthbarPrefab")]
         [Tooltip("Healthbar prefab to spawn for each Health.")]
-        public Healthbar healthbarPrefab;
+        public Healthbar _healthbarPrefab;
 
         /// <summary>
         /// Tags which this HealthbarManager applies to.
         /// </summary>
+        [FormerlySerializedAs("shownTags")]
         [Tooltip("Tags which this HealthbarManager applies to.")]
-        public TagMask shownTags;
+        public TagMask _shownTags;
 
         private void Awake() {
             Health.Created += HealthCreated;
@@ -49,7 +52,7 @@ namespace SBR {
         }
 
         private void Start() {
-            foreach (var health in FindObjectsOfType<Health>()) {
+            foreach (Health health in FindObjectsOfType<Health>()) {
                 HealthCreated(health);
             }
         }
@@ -58,7 +61,7 @@ namespace SBR {
             Health.Created -= HealthCreated;
             Health.Destroyed -= HealthDestroyed;
 
-            foreach (var hb in healthbars) {
+            foreach (KeyValuePair<Health, Healthbar> hb in _healthbars) {
                 if (hb.Value) {
                     Destroy(hb.Value.gameObject);
                 }
@@ -66,7 +69,7 @@ namespace SBR {
         }
 
         private void OnEnable() {
-            foreach (var hb in healthbars) {
+            foreach (KeyValuePair<Health, Healthbar> hb in _healthbars) {
                 if (hb.Value) {
                     hb.Value.gameObject.SetActive(true);
                 }
@@ -74,7 +77,7 @@ namespace SBR {
         }
 
         private void OnDisable() {
-            foreach (var hb in healthbars) {
+            foreach (KeyValuePair<Health, Healthbar> hb in _healthbars) {
                 if (hb.Value) {
                     hb.Value.gameObject.SetActive(false);
                 }
@@ -82,22 +85,22 @@ namespace SBR {
         }
 
         private bool ShouldCreate(Health health) {
-            return healthbarPrefab && health.gameObject.CompareTagMask(shownTags) && !healthbars.ContainsKey(health);
+            return _healthbarPrefab && health.gameObject.CompareTagMask(_shownTags) && !_healthbars.ContainsKey(health);
         }
 
         private void HealthCreated(Health health) {
             if (ShouldCreate(health)) {
-                var hb = Instantiate(healthbarPrefab, transform, false);
-                healthbars[health] = hb;
+                Healthbar hb = Instantiate(_healthbarPrefab, transform, false);
+                _healthbars[health] = hb;
                 hb.Target = health;
                 hb.gameObject.SetActive(enabled);
             }
         }
 
         private void HealthDestroyed(Health health) {
-            if (healthbars.ContainsKey(health) && healthbars[health]) {
-                Destroy(healthbars[health].gameObject);
-                healthbars[health] = null;
+            if (_healthbars.ContainsKey(health) && _healthbars[health]) {
+                Destroy(_healthbars[health].gameObject);
+                _healthbars[health] = null;
             }
         }
     }

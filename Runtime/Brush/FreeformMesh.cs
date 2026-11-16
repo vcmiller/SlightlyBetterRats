@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,19 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using Infohazard.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-namespace SBR.Geometry {
+namespace SBR {
     [Serializable]
     public class Vertex {
-        public Vector3 position;
+        [FormerlySerializedAs("position")]
+        public Vector3 _position;
 
         public Vertex(Vector3 position) {
-            this.position = position;
+            this._position = position;
         }
 
         public Vertex() { }
@@ -40,26 +41,27 @@ namespace SBR.Geometry {
 
     [Serializable]
     public class Face {
-        public List<int> vertices;
+        [FormerlySerializedAs("vertices")]
+        public List<int> _vertices;
 
         public Face(IEnumerable<int> vertices) {
-            this.vertices = new List<int>(vertices);
+            this._vertices = new List<int>(vertices);
         }
 
         public Face(params int[] vertices) : this((IEnumerable<int>)vertices) { }
 
         public Vector3 GetNormal(FreeformMesh mesh) {
-            if (vertices == null || vertices.Count < 3) {
+            if (_vertices == null || _vertices.Count < 3) {
                 return Vector3.zero;
             }
 
             Vector3 normal = Vector3.zero;
 
-            for (int i = 0; i < vertices.Count; i++) {
-                int j = (i + 1) % vertices.Count;
+            for (int i = 0; i < _vertices.Count; i++) {
+                int j = (i + 1) % _vertices.Count;
 
-                Vector3 v1 = mesh.vertices[vertices[i]].position;
-                Vector3 v2 = mesh.vertices[vertices[j]].position;
+                Vector3 v1 = mesh._vertices[_vertices[i]]._position;
+                Vector3 v2 = mesh._vertices[_vertices[j]]._position;
 
                 normal.x += (v1.y - v2.y) * (v1.z + v2.z);
                 normal.y += (v1.z - v2.z) * (v1.x + v2.x);
@@ -68,12 +70,12 @@ namespace SBR.Geometry {
 
             return normal.normalized;
         }
-        
+
         public Vector3[] GetPointsArray(Transform transform, FreeformMesh mesh) {
             List<Vector3> points = new List<Vector3>();
 
-            foreach (var v in vertices) {
-                Vector3 pos = mesh.vertices[v].position;
+            foreach (int v in _vertices) {
+                Vector3 pos = mesh._vertices[v]._position;
                 pos = transform.TransformPoint(pos);
                 points.Add(pos);
             }
@@ -82,35 +84,35 @@ namespace SBR.Geometry {
         }
 
         public Vector3 GetCenter(FreeformMesh mesh) {
-            return mesh.GetVerticesCenter(vertices);
+            return mesh.GetVerticesCenter(_vertices);
         }
 
         public override bool Equals(object obj) {
-            var f = obj as Face;
+            Face f = obj as Face;
 
             if (f == null) {
                 return false;
             }
 
-            int s = f.vertices.IndexOf(vertices[0]);
+            int s = f._vertices.IndexOf(_vertices[0]);
 
-            if (vertices.Count != f.vertices.Count || s < 0) {
+            if (_vertices.Count != f._vertices.Count || s < 0) {
                 return false;
             }
 
             bool fwd = true, rev = true;
-            for (int i = 0; i < vertices.Count; i++) {
-                fwd &= vertices[i] == f.vertices[(s + i) % f.vertices.Count];
-                rev &= vertices[i] == f.vertices[(s - i + f.vertices.Count) % f.vertices.Count];
+            for (int i = 0; i < _vertices.Count; i++) {
+                fwd &= _vertices[i] == f._vertices[(s + i) % f._vertices.Count];
+                rev &= _vertices[i] == f._vertices[(s - i + f._vertices.Count) % f._vertices.Count];
             }
-            
+
             return fwd || rev;
         }
 
         public override int GetHashCode() {
             int code = 0;
 
-            foreach (int i in vertices) {
+            foreach (int i in _vertices) {
                 code ^= i.GetHashCode();
             }
 
@@ -122,86 +124,88 @@ namespace SBR.Geometry {
 
     [Serializable]
     public class FreeformMesh {
-        public List<Face> faces;
-        public List<Vertex> vertices;
+        [FormerlySerializedAs("faces")]
+        public List<Face> _faces;
+        [FormerlySerializedAs("vertices")]
+        public List<Vertex> _vertices;
 
         [NonSerialized]
-        private Dictionary<UnorderedPair<int>, List<int>> edgeFaces;
+        private Dictionary<UnorderedPair<int>, List<int>> _edgeFaces;
         [NonSerialized]
-        private Dictionary<int, HashSet<int>> vertexNeighbors;
+        private Dictionary<int, HashSet<int>> _vertexNeighbors;
         [NonSerialized]
-        private Dictionary<int, HashSet<int>> vertexFaces;
+        private Dictionary<int, HashSet<int>> _vertexFaces;
         [NonSerialized]
-        private Dictionary<int, HashSet<UnorderedPair<int>>> faceEdges;
+        private Dictionary<int, HashSet<UnorderedPair<int>>> _faceEdges;
 
         [NonSerialized]
-        private bool graphDirty = true;
+        private bool _graphDirty = true;
 
         public FreeformMesh() {
-            faces = new List<Face>();
-            vertices = new List<Vertex>();
+            _faces = new List<Face>();
+            _vertices = new List<Vertex>();
         }
 
         public void ForceGraphUpdate() {
-            graphDirty = true;
+            _graphDirty = true;
         }
 
         private void UpdateGraph() {
-            if (!graphDirty) return;
-            edgeFaces = new Dictionary<UnorderedPair<int>, List<int>>();
-            vertexNeighbors = new Dictionary<int, HashSet<int>>();
-            vertexFaces = new Dictionary<int, HashSet<int>>();
-            faceEdges = new Dictionary<int, HashSet<UnorderedPair<int>>>();
+            if (!_graphDirty) return;
+            _edgeFaces = new Dictionary<UnorderedPair<int>, List<int>>();
+            _vertexNeighbors = new Dictionary<int, HashSet<int>>();
+            _vertexFaces = new Dictionary<int, HashSet<int>>();
+            _faceEdges = new Dictionary<int, HashSet<UnorderedPair<int>>>();
 
-            for (int i = 0; i < faces.Count; i++) {
-                Face face = faces[i];
+            for (int i = 0; i < _faces.Count; i++) {
+                Face face = _faces[i];
 
-                for (int j = 0; j < face.vertices.Count; j++) {
-                    int next = face.vertices[(j + 1) % face.vertices.Count];
-                    int prev = face.vertices[((j - 1) + face.vertices.Count) % face.vertices.Count];
+                for (int j = 0; j < face._vertices.Count; j++) {
+                    int next = face._vertices[(j + 1) % face._vertices.Count];
+                    int prev = face._vertices[((j - 1) + face._vertices.Count) % face._vertices.Count];
 
-                    int vert = face.vertices[j];
-                    if (!vertexFaces.ContainsKey(vert)) {
-                        vertexFaces[vert] = new HashSet<int>();
+                    int vert = face._vertices[j];
+                    if (!_vertexFaces.ContainsKey(vert)) {
+                        _vertexFaces[vert] = new HashSet<int>();
                     }
 
-                    vertexFaces[vert].Add(i);
+                    _vertexFaces[vert].Add(i);
 
-                    if (!vertexNeighbors.ContainsKey(vert)) {
-                        vertexNeighbors[vert] = new HashSet<int>();
+                    if (!_vertexNeighbors.ContainsKey(vert)) {
+                        _vertexNeighbors[vert] = new HashSet<int>();
                     }
 
-                    vertexNeighbors[vert].Add(prev);
-                    vertexNeighbors[vert].Add(next);
+                    _vertexNeighbors[vert].Add(prev);
+                    _vertexNeighbors[vert].Add(next);
 
                     UnorderedPair<int> edge1 = new UnorderedPair<int>(prev, vert);
 
-                    if (!edgeFaces.ContainsKey(edge1)) {
-                        edgeFaces[edge1] = new List<int>();
+                    if (!_edgeFaces.ContainsKey(edge1)) {
+                        _edgeFaces[edge1] = new List<int>();
                     }
 
-                    edgeFaces[edge1].Add(i);
+                    _edgeFaces[edge1].Add(i);
                 }
             }
 
-            foreach (var pair in edgeFaces) {
-                foreach (var face in pair.Value) {
-                    if (!faceEdges.ContainsKey(face)) {
-                        faceEdges[face] = new HashSet<UnorderedPair<int>>();
+            foreach (KeyValuePair<UnorderedPair<int>, List<int>> pair in _edgeFaces) {
+                foreach (int face in pair.Value) {
+                    if (!_faceEdges.ContainsKey(face)) {
+                        _faceEdges[face] = new HashSet<UnorderedPair<int>>();
                     }
 
-                    faceEdges[face].Add(pair.Key);
+                    _faceEdges[face].Add(pair.Key);
                 }
             }
 
-            graphDirty = false;
+            _graphDirty = false;
         }
 
         private bool EdgesAreContiguous(ICollection<UnorderedPair<int>> edges, out List<int> vertices) {
             UpdateGraph();
-            var iter = edges.GetEnumerator();
+            IEnumerator<UnorderedPair<int>> iter = edges.GetEnumerator();
             iter.MoveNext();
-            var edge = iter.Current;
+            UnorderedPair<int> edge = iter.Current;
             iter.Dispose();
 
             int t1, t2;
@@ -215,16 +219,16 @@ namespace SBR.Geometry {
             for (int i = 1; i < edges.Count; i++) {
                 int prev = vertices[vertices.Count - 2];
                 int cur = vertices[vertices.Count - 1];
-                
-                var curEdge = new UnorderedPair<int>(prev, cur);
 
-                if (edgeFaces[curEdge].Count > 1) {
+                UnorderedPair<int> curEdge = new UnorderedPair<int>(prev, cur);
+
+                if (_edgeFaces[curEdge].Count > 1) {
                     vertices = null;
                     return false;
                 }
 
                 bool found = false;
-                foreach (var e in edges) {
+                foreach (UnorderedPair<int> e in edges) {
                     if (e == curEdge || (e.Item1 != cur && e.Item2 != cur)) continue;
                     int next = e.Not(cur);
 
@@ -236,7 +240,7 @@ namespace SBR.Geometry {
                             return false;
                         }
                     }
-                        
+
                     vertices.Add(next);
                     found = true;
                     break;
@@ -257,7 +261,7 @@ namespace SBR.Geometry {
             HashSet<int> faceSet = new HashSet<int>(faces);
             Queue<int> frontier = new Queue<int>();
 
-            var en = faces.GetEnumerator();
+            IEnumerator<int> en = faces.GetEnumerator();
             en.MoveNext();
             int first = en.Current;
             en.Dispose();
@@ -270,11 +274,11 @@ namespace SBR.Geometry {
                     return false;
                 }
 
-                var front = frontier.Dequeue();
-                var edges = faceEdges[front];
+                int front = frontier.Dequeue();
+                HashSet<UnorderedPair<int>> edges = _faceEdges[front];
 
-                foreach (var edge in edges) {
-                    foreach (var f in edgeFaces[edge]) {
+                foreach (UnorderedPair<int> edge in edges) {
+                    foreach (int f in _edgeFaces[edge]) {
                         if (faceSet.Remove(f)) {
                             frontier.Enqueue(f);
                         }
@@ -286,19 +290,19 @@ namespace SBR.Geometry {
         }
 
         public void Clear() {
-            vertices.Clear();
-            faces.Clear();
+            _vertices.Clear();
+            _faces.Clear();
         }
 
         public int AddVertex(Vector3 vertex) {
-            if (vertices == null) {
-                vertices = new List<Vertex>();
+            if (_vertices == null) {
+                _vertices = new List<Vertex>();
             }
 
-            graphDirty = true;
+            _graphDirty = true;
 
-            vertices.Add(new Vertex(vertex));
-            return vertices.Count - 1;
+            _vertices.Add(new Vertex(vertex));
+            return _vertices.Count - 1;
         }
 
         public bool AddFace(params int[] verts) {
@@ -306,15 +310,15 @@ namespace SBR.Geometry {
         }
 
         public bool AddFace(IEnumerable<int> verts) {
-            if (faces == null) {
-                faces = new List<Face>();
+            if (_faces == null) {
+                _faces = new List<Face>();
             }
 
             Face newFace = new Face(verts);
 
-            if (!faces.Contains(newFace)) {
-                faces.Add(new Face(verts));
-                graphDirty = true;
+            if (!_faces.Contains(newFace)) {
+                _faces.Add(new Face(verts));
+                _graphDirty = true;
                 return true;
             } else {
                 return false;
@@ -324,24 +328,24 @@ namespace SBR.Geometry {
         private bool GetEdgeOrder(UnorderedPair<int> edge, out int t1, out int t2) {
             UpdateGraph();
 
-            var n = edgeFaces[edge];
-            
+            List<int> n = _edgeFaces[edge];
+
             if (n.Count != 1) {
                 t1 = -1;
                 t2 = -1;
                 return false;
             }
 
-            Face f = faces[n[0]];
+            Face f = _faces[n[0]];
 
-            int ind1 = f.vertices.IndexOf(edge.Item1);
-            int ind2 = f.vertices.IndexOf(edge.Item2);
+            int ind1 = f._vertices.IndexOf(edge.Item1);
+            int ind2 = f._vertices.IndexOf(edge.Item2);
 
-            if (ind2 == (ind1 + 1) % f.vertices.Count) {
+            if (ind2 == (ind1 + 1) % f._vertices.Count) {
                 t1 = edge.Item2;
                 t2 = edge.Item1;
                 return true;
-            } else if (ind1 == (ind2 + 1) % f.vertices.Count) {
+            } else if (ind1 == (ind2 + 1) % f._vertices.Count) {
                 t1 = edge.Item1;
                 t2 = edge.Item2;
                 return true;
@@ -354,17 +358,17 @@ namespace SBR.Geometry {
 
         public bool AddFace(ICollection<UnorderedPair<int>> edges) {
             List<int> vertLoop;
-            
+
             if (edges.Count > 2 && EdgesAreContiguous(edges, out vertLoop)) {
                 return AddFace(vertLoop);
             } else if (edges.Count == 2) {
-                var iter = edges.GetEnumerator();
+                IEnumerator<UnorderedPair<int>> iter = edges.GetEnumerator();
                 iter.MoveNext();
-                var e1 = iter.Current;
+                UnorderedPair<int> e1 = iter.Current;
                 iter.MoveNext();
-                var e2 = iter.Current;
+                UnorderedPair<int> e2 = iter.Current;
                 iter.Dispose();
-                
+
                 int v1, v2, v3, v4;
                 if (GetEdgeOrder(e1, out v1, out v2) && GetEdgeOrder(e2, out v3, out v4)) {
                     if (v1 == v4) {
@@ -381,26 +385,26 @@ namespace SBR.Geometry {
         }
 
         public Vector3 GetVerticesCenter(ICollection<int> verts) {
-            Vector3 c = verts.Aggregate(Vector3.zero, (current, index) => current + vertices[index].position);
+            Vector3 c = verts.Aggregate(Vector3.zero, (current, index) => current + _vertices[index]._position);
 
             return c / verts.Count;
         }
 
         public Vector3 GetEdgeCenter(UnorderedPair<int> edge) {
-            return (vertices[edge.Item1].position + vertices[edge.Item2].position) / 2.0f;
+            return (_vertices[edge.Item1]._position + _vertices[edge.Item2]._position) / 2.0f;
         }
 
         public Vector3 GetFacesNormal(ICollection<int> faces) {
-            Vector3 n = faces.Aggregate(Vector3.zero, (current, index) => current + this.faces[index].GetNormal(this));
+            Vector3 n = faces.Aggregate(Vector3.zero, (current, index) => current + this._faces[index].GetNormal(this));
 
-            
+
             if (n.sqrMagnitude < 0.01f) {
-                var iter = faces.GetEnumerator();
+                IEnumerator<int> iter = faces.GetEnumerator();
                 iter.MoveNext();
                 int c = iter.Current;
                 iter.Dispose();
-                
-                return this.faces[c].GetNormal(this);
+
+                return this._faces[c].GetNormal(this);
             } else {
                 return n.normalized;
             }
@@ -410,7 +414,7 @@ namespace SBR.Geometry {
         public HashSet<int> GetUniqueVertexList(IEnumerable<UnorderedPair<int>> edges) {
             HashSet<int> result = new HashSet<int>();
 
-            foreach (var edge in edges) {
+            foreach (UnorderedPair<int> edge in edges) {
                 result.Add(edge.Item1);
                 result.Add(edge.Item2);
             }
@@ -422,7 +426,7 @@ namespace SBR.Geometry {
             HashSet<int> result = new HashSet<int>();
 
             foreach (int face in faces) {
-                foreach (int vertex in this.faces[face].vertices) {
+                foreach (int vertex in this._faces[face]._vertices) {
                     result.Add(vertex);
                 }
             }
@@ -433,11 +437,11 @@ namespace SBR.Geometry {
         public List<UnorderedPair<int>> GetEdges() {
             List<UnorderedPair<int>> edges = new List<UnorderedPair<int>>();
 
-            foreach (var f in faces) {
-                for (int i = 0; i < f.vertices.Count; i++) {
-                    int j = (i + 1) % f.vertices.Count;
+            foreach (Face f in _faces) {
+                for (int i = 0; i < f._vertices.Count; i++) {
+                    int j = (i + 1) % f._vertices.Count;
 
-                    UnorderedPair<int> edge = new UnorderedPair<int>(f.vertices[i], f.vertices[j]);
+                    UnorderedPair<int> edge = new UnorderedPair<int>(f._vertices[i], f._vertices[j]);
 
                     if (!edges.Contains(edge)) {
                         edges.Add(edge);
@@ -449,7 +453,7 @@ namespace SBR.Geometry {
         }
 
         private bool IsNotInnerEdge(UnorderedPair<int> edge, ICollection<int> faceIndices) {
-            foreach (var neighbor in edgeFaces[edge]) {
+            foreach (int neighbor in _edgeFaces[edge]) {
                 if (!faceIndices.Contains(neighbor)) {
                     return true;
                 }
@@ -461,7 +465,7 @@ namespace SBR.Geometry {
         private bool IsOuterEdge(UnorderedPair<int> edge, ICollection<int> faceIndices) {
             bool outer = false, inner = false;
 
-            foreach (var neighbor in edgeFaces[edge]) {
+            foreach (int neighbor in _edgeFaces[edge]) {
                 if (!faceIndices.Contains(neighbor)) {
                     outer = true;
                 } else {
@@ -479,7 +483,7 @@ namespace SBR.Geometry {
         private UnorderedPair<int> FindOuterEdge(ICollection<int> faceIndices) {
 
             foreach (int face in faceIndices) {
-                foreach (var edge in faceEdges[face]) {
+                foreach (UnorderedPair<int> edge in _faceEdges[face]) {
                     if (IsNotInnerEdge(edge, faceIndices)) {
                         return edge;
                     }
@@ -494,27 +498,27 @@ namespace SBR.Geometry {
             HashSet<int> affectedVerts = new HashSet<int>();
 
             foreach (int face in f) {
-                toRemove.Add(faces[face]);
-                
-                foreach (int vert in faces[face].vertices) {
+                toRemove.Add(_faces[face]);
+
+                foreach (int vert in _faces[face]._vertices) {
                     affectedVerts.Add(vert);
                 }
             }
 
-            faces.RemoveAll(face => toRemove.Contains(face));
+            _faces.RemoveAll(face => toRemove.Contains(face));
 
-            graphDirty = true;
+            _graphDirty = true;
 
 
-            DeleteVertices(affectedVerts, v => !vertexNeighbors.ContainsKey(v) || vertexNeighbors[v].Count == 0);
+            DeleteVertices(affectedVerts, v => !_vertexNeighbors.ContainsKey(v) || _vertexNeighbors[v].Count == 0);
         }
 
         public void DeleteEdges(IEnumerable<UnorderedPair<int>> edges) {
             UpdateGraph();
-            var affectedVertices = GetUniqueVertexList(edges);
+            HashSet<int> affectedVertices = GetUniqueVertexList(edges);
 
-            foreach (var edge in edges) {
-                var neighbors = edgeFaces[edge];
+            foreach (UnorderedPair<int> edge in edges) {
+                List<int> neighbors = _edgeFaces[edge];
 
                 // We only delete edges that have exactly two neighboring faces, because we need to merge those faces.
                 if (neighbors.Count != 2) continue;
@@ -524,20 +528,20 @@ namespace SBR.Geometry {
                 int delFace = f1;
                 int keepFace = f2;
 
-                int start = faces[delFace].vertices.IndexOf(edge.Item1);
-                int next = (start + 1) % faces[delFace].vertices.Count;
+                int start = _faces[delFace]._vertices.IndexOf(edge.Item1);
+                int next = (start + 1) % _faces[delFace]._vertices.Count;
 
-                if (faces[delFace].vertices[next] == edge.Item2) {
+                if (_faces[delFace]._vertices[next] == edge.Item2) {
                     delFace = f2;
                     keepFace = f1;
 
-                    start = faces[delFace].vertices.IndexOf(edge.Item1);
+                    start = _faces[delFace]._vertices.IndexOf(edge.Item1);
                 }
 
                 List<int> transfer = new List<int>();
 
-                var delVerts = faces[delFace].vertices;
-                var keepVerts = faces[keepFace].vertices;
+                List<int> delVerts = _faces[delFace]._vertices;
+                List<int> keepVerts = _faces[keepFace]._vertices;
 
                 for (int i = (start + 1) % delVerts.Count; delVerts[i] != edge.Item2; i = (i + 1) % delVerts.Count) {
                     transfer.Add(delVerts[i]);
@@ -547,12 +551,12 @@ namespace SBR.Geometry {
                 keepVerts.InsertRange(pos + 1, transfer);
 
                 // Mark face for deletion. This is easier than remembering the indices of marked faces.
-                faces[delFace].vertices = null;
+                _faces[delFace]._vertices = null;
 
                 // Do some cleanup. This allows us to delete a list of edges without completely rebuilding the graph each time.
-                edgeFaces.Remove(edge);
+                _edgeFaces.Remove(edge);
 
-                foreach (var ef in edgeFaces) {
+                foreach (KeyValuePair<UnorderedPair<int>, List<int>> ef in _edgeFaces) {
                     int i = ef.Value.IndexOf(delFace);
                     if (i >= 0) {
                         ef.Value[i] = keepFace;
@@ -560,39 +564,39 @@ namespace SBR.Geometry {
                 }
             }
 
-            faces.RemoveAll(face => face.vertices == null);
+            _faces.RemoveAll(face => face._vertices == null);
 
-            graphDirty = true;
-            DeleteVertices(affectedVertices, v => !vertexNeighbors.ContainsKey(v) || vertexNeighbors[v].Count == 2);
+            _graphDirty = true;
+            DeleteVertices(affectedVertices, v => !_vertexNeighbors.ContainsKey(v) || _vertexNeighbors[v].Count == 2);
         }
 
         private void DeleteVertices(IEnumerable<int> affectedVertices, Predicate<int> pred) {
             UpdateGraph();
 
             List<int> deleteVerts = new List<int>();
-            
+
             foreach (int vert in affectedVertices) {
 
                 if (pred(vert)) {
                     deleteVerts.Add(vert);
-                    if (vertexFaces.ContainsKey(vert)) {
-                        var vf = vertexFaces[vert];
+                    if (_vertexFaces.ContainsKey(vert)) {
+                        HashSet<int> vf = _vertexFaces[vert];
 
                         foreach (int face in vf) {
-                            faces[face].vertices.Remove(vert);
+                            _faces[face]._vertices.Remove(vert);
                         }
                     }
                 }
             }
-            
+
             // Delete vertices that are no longer needed.
             for (int i = 0; i < deleteVerts.Count; i++) {
-                vertices.RemoveAt(deleteVerts[i]);
+                _vertices.RemoveAt(deleteVerts[i]);
 
-                foreach (var face in faces) {
-                    for (int j = 0; j < face.vertices.Count; j++) {
-                        if (face.vertices[j] > deleteVerts[i]) {
-                            face.vertices[j]--;
+                foreach (Face face in _faces) {
+                    for (int j = 0; j < face._vertices.Count; j++) {
+                        if (face._vertices[j] > deleteVerts[i]) {
+                            face._vertices[j]--;
                         }
                     }
                 }
@@ -604,48 +608,48 @@ namespace SBR.Geometry {
                 }
             }
 
-            graphDirty = true;
+            _graphDirty = true;
         }
 
         public int WeldVertices(ICollection<int> selectedVertices) {
             int keep = AddVertex(GetVerticesCenter(selectedVertices));
 
-            foreach (var face in faces) {
-                for (int i = 0; i < face.vertices.Count; i++) {
-                    if (selectedVertices.Contains(face.vertices[i])) {
-                        face.vertices[i] = keep;
+            foreach (Face face in _faces) {
+                for (int i = 0; i < face._vertices.Count; i++) {
+                    if (selectedVertices.Contains(face._vertices[i])) {
+                        face._vertices[i] = keep;
                     }
                 }
             }
 
             DeleteVertices(selectedVertices, vert => true);
-            graphDirty = true;
+            _graphDirty = true;
 
-            return vertices.Count - 1;
+            return _vertices.Count - 1;
         }
 
         public bool InsertLoop(ICollection<UnorderedPair<int>> edges) {
             if (edges.Count != 1) {
                 return false;
             }
-            
+
             UpdateGraph();
 
-            var iter = edges.GetEnumerator();
+            IEnumerator<UnorderedPair<int>> iter = edges.GetEnumerator();
             iter.MoveNext();
-            var edge = iter.Current;
+            UnorderedPair<int> edge = iter.Current;
             iter.Dispose();
 
             List<UnorderedPair<int>> edgeLoop = new List<UnorderedPair<int>> {edge};
-            List<int> faceLoop = new List<int> {edgeFaces[edge][0]};
+            List<int> faceLoop = new List<int> {_edgeFaces[edge][0]};
 
             bool oneSide = false;
-            
+
             while (true) {
                 int cnt = faceLoop.Count;
                 int cur = faceLoop[cnt - 1];
 
-                foreach (var e in faceEdges[cur]) {
+                foreach (UnorderedPair<int> e in _faceEdges[cur]) {
                     if (!e.Adjacent(edgeLoop[edgeLoop.Count - 1])) {
                         edgeLoop.Add(e);
 
@@ -653,10 +657,10 @@ namespace SBR.Geometry {
                             break;
                         }
 
-                        var ef = edgeFaces[e];
+                        List<int> ef = _edgeFaces[e];
 
                         foreach (int f in ef) {
-                            if (f != cur && faceEdges[f].Count == 4 && f != faceLoop[0]) {
+                            if (f != cur && _faceEdges[f].Count == 4 && f != faceLoop[0]) {
                                 faceLoop.Add(f);
                                 break;
                             }
@@ -675,13 +679,13 @@ namespace SBR.Geometry {
             if (oneSide) {
                 while (true) {
                     int cnt = faceLoop.Count;
-                    var cur = edgeLoop[0];
+                    UnorderedPair<int> cur = edgeLoop[0];
 
-                    foreach (int f in edgeFaces[cur]) {
-                        if (f != faceLoop[0] && faceEdges[f].Count == 4) {
+                    foreach (int f in _edgeFaces[cur]) {
+                        if (f != faceLoop[0] && _faceEdges[f].Count == 4) {
                             faceLoop.Insert(0, f);
 
-                            foreach (var e in faceEdges[f]) {
+                            foreach (UnorderedPair<int> e in _faceEdges[f]) {
                                 if (!e.Adjacent(cur)) {
                                     edgeLoop.Insert(0, e);
                                     break;
@@ -699,9 +703,9 @@ namespace SBR.Geometry {
             }
 
             List<int> addedVerts = new List<int>();
-            
+
             for (int i = 0; i < faceLoop.Count; i++) {
-                Face face = faces[faceLoop[i]];
+                Face face = _faces[faceLoop[i]];
                 UnorderedPair<int> edge1 = edgeLoop[i];
                 UnorderedPair<int> edge2 = edgeLoop[i + 1];
 
@@ -722,45 +726,45 @@ namespace SBR.Geometry {
                 }
 
                 Face newFace = new Face();
-                newFace.vertices = new List<int>();
-                
+                newFace._vertices = new List<int>();
+
                 InsertVertex(face, edge1, v1);
                 InsertVertex(face, edge2, v2);
 
-                int ind1 = face.vertices.IndexOf(v1);
-                int ind2 = face.vertices.IndexOf(v2);
+                int ind1 = face._vertices.IndexOf(v1);
+                int ind2 = face._vertices.IndexOf(v2);
 
                 if (ind1 == -1 || ind2 == -1) {
                     Debug.LogError("Could not insert vertex");
                     continue;
                 }
 
-                for (int j = ind1; j != (ind2 + 1) % face.vertices.Count; j = (j + 1) % face.vertices.Count) {
-                    newFace.vertices.Add(face.vertices[j]);
+                for (int j = ind1; j != (ind2 + 1) % face._vertices.Count; j = (j + 1) % face._vertices.Count) {
+                    newFace._vertices.Add(face._vertices[j]);
 
                     if (j != ind1 && j != ind2) {
-                        face.vertices[j] = -1;
+                        face._vertices[j] = -1;
                     }
                 }
 
-                face.vertices.RemoveAll(v => v < 0);
-                faces.Add(newFace);
+                face._vertices.RemoveAll(v => v < 0);
+                _faces.Add(newFace);
             }
 
-            graphDirty = true;
+            _graphDirty = true;
             return true;
         }
 
         private void InsertVertex(Face face, UnorderedPair<int> edge, int vertex) {
-            int i1 = face.vertices.IndexOf(edge.Item1);
-            int i2 = face.vertices.IndexOf(edge.Item2);
+            int i1 = face._vertices.IndexOf(edge.Item1);
+            int i2 = face._vertices.IndexOf(edge.Item2);
 
-            if (i2 == (i1 + 1) % face.vertices.Count) {
-                face.vertices.Insert(i1 + 1, vertex);
-                graphDirty = true;
-            } else if (i1 == (i2 + 1) % face.vertices.Count) {
-                face.vertices.Insert(i2 + 1, vertex);
-                graphDirty = true;
+            if (i2 == (i1 + 1) % face._vertices.Count) {
+                face._vertices.Insert(i1 + 1, vertex);
+                _graphDirty = true;
+            } else if (i1 == (i2 + 1) % face._vertices.Count) {
+                face._vertices.Insert(i2 + 1, vertex);
+                _graphDirty = true;
             } else {
                 Debug.Log("Vertex not inserted!");
             }
@@ -772,7 +776,7 @@ namespace SBR.Geometry {
                 return false;
             }
 
-            var startEdge = FindOuterEdge(selected);
+            UnorderedPair<int> startEdge = FindOuterEdge(selected);
 
             if (startEdge.Item1 == -1) {
                 Debug.LogError("Cannot Find Outer Edge");
@@ -780,12 +784,12 @@ namespace SBR.Geometry {
             }
 
             // Make sure the first two vertices are in the right order by comparing with a selected face
-            foreach (var f in edgeFaces[startEdge]) {
+            foreach (int f in _edgeFaces[startEdge]) {
                 if (!selected.Contains(f)) continue;
-                int t1index = faces[f].vertices.IndexOf(startEdge.Item1);
-                int t2index = faces[f].vertices.IndexOf(startEdge.Item2);
+                int t1Index = _faces[f]._vertices.IndexOf(startEdge.Item1);
+                int t2Index = _faces[f]._vertices.IndexOf(startEdge.Item2);
 
-                if (t1index == (t2index + 1) % faces[f].vertices.Count) {
+                if (t1Index == (t2Index + 1) % _faces[f]._vertices.Count) {
                     // Edge is in the wrong order. Fix it (this doesn't modify the orignal edge).
                     int temp = startEdge.Item2;
                     startEdge = new UnorderedPair<int>(temp, startEdge.Item1);
@@ -802,8 +806,8 @@ namespace SBR.Geometry {
                 int prev = edgeLoop[edgeLoop.Count - 2];
                 int next = -1;
 
-                foreach (int cand in vertexNeighbors[cur]) {
-                    var edge = new UnorderedPair<int>(cur, cand);
+                foreach (int cand in _vertexNeighbors[cur]) {
+                    UnorderedPair<int> edge = new UnorderedPair<int>(cur, cand);
 
                     if (cand == prev || !IsOuterEdge(edge, selected)) continue;
                     next = cand;
@@ -826,37 +830,37 @@ namespace SBR.Geometry {
 
             int v1 = -1, v2 = -1;
 
-            foreach (var v in edgeLoop) {
-                int newVert = AddVertex(vertices[v].position);
+            foreach (int v in edgeLoop) {
+                int newVert = AddVertex(_vertices[v]._position);
 
                 if (lastCreatedFace != null) {
-                    lastCreatedFace.vertices.Add(v);
-                    lastCreatedFace.vertices.Add(newVert);
+                    lastCreatedFace._vertices.Add(v);
+                    lastCreatedFace._vertices.Add(newVert);
                 } else {
                     v1 = v;
                     v2 = newVert;
                 }
 
                 lastCreatedFace = new Face(newVert, v);
-                faces.Add(lastCreatedFace);
+                _faces.Add(lastCreatedFace);
 
                 foreach (int face in selected) {
-                    for (int k = 0; k < faces[face].vertices.Count; k++) {
-                        if (faces[face].vertices[k] == v) {
-                            faces[face].vertices[k] = newVert;
+                    for (int k = 0; k < _faces[face]._vertices.Count; k++) {
+                        if (_faces[face]._vertices[k] == v) {
+                            _faces[face]._vertices[k] = newVert;
                         }
                     }
                 }
             }
 
-            lastCreatedFace.vertices.Add(v1);
-            lastCreatedFace.vertices.Add(v2);
+            lastCreatedFace._vertices.Add(v1);
+            lastCreatedFace._vertices.Add(v2);
 
             foreach (int v in GetUniqueVertexList(selected)) {
-                vertices[v].position += normal;
+                _vertices[v]._position += normal;
             }
 
-            graphDirty = true;
+            _graphDirty = true;
 
             return true;
         }
@@ -870,17 +874,17 @@ namespace SBR.Geometry {
             while (true) {
                 UnorderedPair<int> curEdge = new UnorderedPair<int>(prev, cur);
 
-                if (vertexNeighbors[cur].Count != 4) {
+                if (_vertexNeighbors[cur].Count != 4) {
                     break;
                 }
 
                 bool found = false;
-                foreach (var v in vertexNeighbors[cur]) {
-                    var e = new UnorderedPair<int>(cur, v);
+                foreach (int v in _vertexNeighbors[cur]) {
+                    UnorderedPair<int> e = new UnorderedPair<int>(cur, v);
 
                     bool ok = true;
-                    foreach (int f in edgeFaces[e]) {
-                        if (edgeFaces[curEdge].Contains(f)) {
+                    foreach (int f in _edgeFaces[e]) {
+                        if (_edgeFaces[curEdge].Contains(f)) {
                             ok = false;
                             break;
                         }
@@ -917,10 +921,10 @@ namespace SBR.Geometry {
             ray.origin = transform.InverseTransformPoint(ray.origin);
             ray.direction = transform.InverseTransformDirection(ray.direction);
 
-            for (int v = 0; v < vertices.Count; v++) {
-                Vertex vert = vertices[v];
+            for (int v = 0; v < _vertices.Count; v++) {
+                Vertex vert = _vertices[v];
 
-                Vector3 world = transform.TransformPoint(vert.position);
+                Vector3 world = transform.TransformPoint(vert._position);
                 Vector3 screen = camera.WorldToScreenPoint(world);
                 if (screen.z > 0) {
                     screen.z = 0;
@@ -934,14 +938,14 @@ namespace SBR.Geometry {
                 }
             }
 
-            foreach (var e in GetEdges()) {
-                Vertex vert1 = vertices[e.Item1];
-                Vertex vert2 = vertices[e.Item2];
+            foreach (UnorderedPair<int> e in GetEdges()) {
+                Vertex vert1 = _vertices[e.Item1];
+                Vertex vert2 = _vertices[e.Item2];
 
-                Vector3 v1 = vert1.position;
-                Vector3 v2 = vert2.position;
+                Vector3 v1 = vert1._position;
+                Vector3 v2 = vert2._position;
                 Vector3 segment = v2 - v1;
-               
+
                 Vector3 c = Vector3.Cross(camera.transform.forward, segment);
                 Vector3 n = Vector3.Cross(c, segment);
                 Plane plane = new Plane(n, v1);
@@ -960,10 +964,10 @@ namespace SBR.Geometry {
                 }
             }
 
-            for (int f = 0; f < faces.Count; f++) {
-                Face face = faces[f];
+            for (int f = 0; f < _faces.Count; f++) {
+                Face face = _faces[f];
                 Vector3 normal = face.GetNormal(this);
-                Plane plane = new Plane(normal, vertices[face.vertices[0]].position);
+                Plane plane = new Plane(normal, _vertices[face._vertices[0]]._position);
 
                 float dist;
                 if (plane.Raycast(ray, out dist) && dist < minDist) {
@@ -971,12 +975,12 @@ namespace SBR.Geometry {
 
                     bool inside = true;
 
-                    for (int i = 0; i < face.vertices.Count; i++) {
+                    for (int i = 0; i < face._vertices.Count; i++) {
 
-                        int j = (i + 1) % face.vertices.Count;
+                        int j = (i + 1) % face._vertices.Count;
 
-                        Vector3 v1 = vertices[face.vertices[i]].position;
-                        Vector3 v2 = vertices[face.vertices[j]].position;
+                        Vector3 v1 = _vertices[face._vertices[i]]._position;
+                        Vector3 v2 = _vertices[face._vertices[j]]._position;
 
                         Vector3 edge = v2 - v1;
                         Vector3 toHit = hitPos - v1;
@@ -999,7 +1003,7 @@ namespace SBR.Geometry {
         }
 
         public void GetMeshData(List<Vector3> vertexList, List<Vector2> uvList, List<int> indexList, Vector3 textureWorldScale, Vector2 textureLocalScale) {
-            foreach (Face face in faces) {
+            foreach (Face face in _faces) {
                 Vector3 normal = face.GetNormal(this);
 
                 float nx = Mathf.Abs(normal.x);
@@ -1024,8 +1028,8 @@ namespace SBR.Geometry {
 
                 int startIndex = vertexList.Count;
 
-                foreach (int index in face.vertices) {
-                    Vector3 vertex = vertices[index].position;
+                foreach (int index in face._vertices) {
+                    Vector3 vertex = _vertices[index]._position;
 
                     vertexList.Add(vertex);
 
@@ -1041,7 +1045,7 @@ namespace SBR.Geometry {
                     }
                 }
 
-                for (int i = 1; i < face.vertices.Count - 1; i++) {
+                for (int i = 1; i < face._vertices.Count - 1; i++) {
                     indexList.Add(startIndex);
                     indexList.Add(startIndex + i);
                     indexList.Add(startIndex + i + 1);

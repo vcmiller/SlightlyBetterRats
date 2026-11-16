@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 #pragma warning disable 649
 namespace SBR {
@@ -35,12 +36,12 @@ namespace SBR {
         /// <summary>
         /// Relative path to string or Object property to use for labels.
         /// </summary>
-        public string labelProperty;
+        public string LabelProperty { get; }
 
         /// <summary>
         /// Whether to show expander arrows on properties.
         /// </summary>
-        public bool showExpanders;
+        public bool ShowExpanders { get; }
 
         /// <summary>
         /// Constructor.
@@ -48,8 +49,8 @@ namespace SBR {
         /// <param name="labelProperty">Relative path to string or Object property to use for labels.</param>
         /// <param name="showExpanders">Whether to show exapander arrows.</param>
         public DraggableListDisplayAttribute(string labelProperty = null, bool showExpanders = true) {
-            this.labelProperty = labelProperty;
-            this.showExpanders = showExpanders;
+            LabelProperty = labelProperty;
+            ShowExpanders = showExpanders;
         }
     }
 
@@ -60,10 +61,9 @@ namespace SBR {
     /// <typeparam name="T"></typeparam>
     [Serializable]
     public class DraggableList<T> : Internal.DraggableList, IEnumerable<T> {
-        /// <summary>
-        /// Directly access the backing array.
-        /// </summary>
-        public T[] items;
+        [FormerlySerializedAs("items")]
+        [SerializeField]
+        private T[] _items;
 
         /// <summary>
         /// Get or set item at position in array.
@@ -71,26 +71,21 @@ namespace SBR {
         /// <param name="i">The index</param>
         /// <returns>The value at that index.</returns>
         public T this[int i] {
-            get { return items[i]; }
-            set { items[i] = value; }
+            get => _items[i];
+            set => _items[i] = value;
         }
 
         /// <summary>
         /// Length of the array.
         /// </summary>
-        public int Length { get { return items.Length; } }
-
-        /// <summary>
-        /// Get a copy of the items array.
-        /// </summary>
-        public T[] itemsCopy { get { return (T[])items.Clone(); } }
+        public int Length => _items.Length;
 
         public IEnumerator<T> GetEnumerator() {
-            return ((IEnumerable<T>)items).GetEnumerator();
+            return ((IEnumerable<T>)_items).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() {
-            return items.GetEnumerator();
+            return _items.GetEnumerator();
         }
     }
 }

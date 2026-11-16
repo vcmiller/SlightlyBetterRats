@@ -22,6 +22,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -31,7 +32,8 @@ namespace SBR {
         /// <summary>
         /// Underlying spline data.
         /// </summary>
-        public SplineData spline = new SplineData();
+        [FormerlySerializedAs("spline")]
+        public SplineData _spline = new SplineData();
 
         /// <summary>
         /// Invoked when the spline changes and depending scripts, such as spline mesh, must update.
@@ -44,7 +46,7 @@ namespace SBR {
         /// <param name="pos">Position on the spline, in the range [0, 1].</param>
         /// <returns>The world space point on the spline.</returns>
         public Vector3 GetWorldPoint(float pos) {
-            return transform.TransformPoint(spline.GetPoint(pos));
+            return transform.TransformPoint(_spline.GetPoint(pos));
         }
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace SBR {
         /// <param name="pos">Position on the spline, in the range [0, 1].</param>
         /// <returns>The world space tangent on the spline.</returns>
         public Vector3 GetWorldTangent(float pos) {
-            return transform.TransformVector(spline.GetTangent(pos));
+            return transform.TransformVector(_spline.GetTangent(pos));
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace SBR {
         /// <param name="pos">Position on the spline, in the range [0, 1].</param>
         /// <returns>The world space rotation on the spline.</returns>
         public Quaternion GetWorldRotation(float pos) {
-            return transform.rotation * spline.GetRotation(pos);
+            return transform.rotation * _spline.GetRotation(pos);
         }
 
         /// <summary>
@@ -84,11 +86,11 @@ namespace SBR {
         /// </summary>
         /// <param name="update">Whether to update depending components immediately.</param>
         public void OnChanged(bool update) {
-            if (spline == null) {
+            if (_spline == null) {
                 return;
             }
 
-            spline.InvalidateSamples();
+            _spline.InvalidateSamples();
 
             PropertyChanged?.Invoke(update);
         }

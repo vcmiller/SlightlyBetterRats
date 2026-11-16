@@ -40,11 +40,11 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Create/Line Spline", priority = 140)]
         [MenuItem("GameObject/3D Object/Spline/Line")]
         public static Spline CreateLineSpline() {
-            var spline = CreateEmptySpline();
+            Spline spline = CreateEmptySpline();
 
-            spline.spline.points = new SplineData.Point[] {
-                new SplineData.Point() { position = new Vector3(0, 0, 0), tangent = new Vector3(0, 0, 2) },
-                new SplineData.Point() { position = new Vector3(0, 0, 10), tangent = new Vector3(0, 0, 2) }
+            spline._spline._points = new SplineData.Point[] {
+                new SplineData.Point() { _position = new Vector3(0, 0, 0), _tangent = new Vector3(0, 0, 2) },
+                new SplineData.Point() { _position = new Vector3(0, 0, 10), _tangent = new Vector3(0, 0, 2) }
             };
 
             return spline;
@@ -53,15 +53,15 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Create/Circle Spline", priority = 140)]
         [MenuItem("GameObject/3D Object/Spline/Circle")]
         public static Spline CreateCircleSpline() {
-            var spline = CreateEmptySpline();
+            Spline spline = CreateEmptySpline();
 
-            spline.spline.points = new SplineData.Point[] {
-                new SplineData.Point() { position = new Vector3(10, 0, 0), tangent = new Vector3(0, 0, 5.5f) },
-                new SplineData.Point() { position = new Vector3(0, 0, 10), tangent = new Vector3(-5.5f, 0, 0) },
-                new SplineData.Point() { position = new Vector3(-10, 0, 0), tangent = new Vector3(0, 0, -5.5f) },
-                new SplineData.Point() { position = new Vector3(0, 0, -10), tangent = new Vector3(5.5f, 0, 0) },
+            spline._spline._points = new SplineData.Point[] {
+                new SplineData.Point() { _position = new Vector3(10, 0, 0), _tangent = new Vector3(0, 0, 5.5f) },
+                new SplineData.Point() { _position = new Vector3(0, 0, 10), _tangent = new Vector3(-5.5f, 0, 0) },
+                new SplineData.Point() { _position = new Vector3(-10, 0, 0), _tangent = new Vector3(0, 0, -5.5f) },
+                new SplineData.Point() { _position = new Vector3(0, 0, -10), _tangent = new Vector3(5.5f, 0, 0) },
             };
-            spline.spline.closed = true;
+            spline._spline._closed = true;
 
             return spline;
         }
@@ -69,15 +69,15 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Create/Spline Mesh", priority = 140)]
         [MenuItem("GameObject/3D Object/Spline/Mesh")]
         public static SplineMesh CreateSplineMesh() {
-            var spline = CreateLineSpline();
-            var mr = spline.gameObject.AddComponent<MeshRenderer>();
+            Spline spline = CreateLineSpline();
+            MeshRenderer mr = spline.gameObject.AddComponent<MeshRenderer>();
             spline.gameObject.AddComponent<MeshFilter>();
             spline.gameObject.AddComponent<MeshCollider>();
 
             mr.sharedMaterial = BrushCreator.defaultMat;
 
-            var mesh = spline.gameObject.AddComponent<SplineMesh>();
-            mesh.spline = spline;
+            SplineMesh mesh = spline.gameObject.AddComponent<SplineMesh>();
+            mesh._spline = spline;
             return mesh;
         }
     }

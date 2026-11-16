@@ -21,50 +21,56 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR.Menu {
     public class TabList : MonoBehaviour {
-        public TabButton buttonPrefab;
-        public ShowHideUI[] tabs;
-        public int currentTab;
+        [FormerlySerializedAs("buttonPrefab")]
+        public TabButton _buttonPrefab;
+        [FormerlySerializedAs("tabs")]
+        public ShowHideUI[] _tabs;
+        [FormerlySerializedAs("currentTab")]
+        public int _currentTab;
 
-        public string scrollAxis;
-        public float repeatDelay = 0.5f;
+        [FormerlySerializedAs("scrollAxis")]
+        public string _scrollAxis;
+        [FormerlySerializedAs("repeatDelay")]
+        public float _repeatDelay = 0.5f;
 
-        private TabButton[] buttons;
-        private CooldownTimer scrollTimer;
+        private TabButton[] _buttons;
+        private CooldownTimer _scrollTimer;
 
         private void UpdateActiveTab(int tab) {
-            currentTab = tab;
-            for (int i = 0; i < tabs.Length; i++) {
-                tabs[i].show = i == currentTab;
-                buttons[i].isOn = i == currentTab;
+            _currentTab = tab;
+            for (int i = 0; i < _tabs.Length; i++) {
+                _tabs[i].Show = i == _currentTab;
+                _buttons[i].IsOn = i == _currentTab;
             }
         }
 
         private void Awake() {
-            scrollTimer = new CooldownTimer(repeatDelay);
-            buttons = new TabButton[transform.childCount];
+            _scrollTimer = new CooldownTimer(_repeatDelay);
+            _buttons = new TabButton[transform.childCount];
             for (int i = 0; i < transform.childCount; i++) {
                 int cpy = i;
-                buttons[i] = transform.GetChild(i).GetComponent<TabButton>();
-                buttons[i].button.onClick.AddListener(() => UpdateActiveTab(cpy));
+                _buttons[i] = transform.GetChild(i).GetComponent<TabButton>();
+                _buttons[i]._button.onClick.AddListener(() => UpdateActiveTab(cpy));
             }
         }
 
         private void Start() {
-            UpdateActiveTab(currentTab);
+            UpdateActiveTab(_currentTab);
         }
 
         private void Update() {
-            if (!string.IsNullOrEmpty(scrollAxis)) {
-                float f = Input.GetAxis(scrollAxis);
-                if (f != 0 && scrollTimer.Use()) {
-                    int newTab = currentTab + (int)Mathf.Sign(f);
-                    newTab = (newTab + tabs.Length) % tabs.Length;
+            if (!string.IsNullOrEmpty(_scrollAxis)) {
+                float f = Input.GetAxis(_scrollAxis);
+                if (f != 0 && _scrollTimer.Use()) {
+                    int newTab = _currentTab + (int)Mathf.Sign(f);
+                    newTab = (newTab + _tabs.Length) % _tabs.Length;
                     UpdateActiveTab(newTab);
                 } else if (f == 0) {
-                    scrollTimer.Clear();
+                    _scrollTimer.Clear();
                 }
             }
         }
@@ -79,10 +85,10 @@ namespace SBR.Menu {
         public void UpdateUI() {
             ClearUI();
 
-            for (int i = 0; i < tabs.Length; i++) {
-                var tab = tabs[i];
-                var b = (TabButton)UnityEditor.PrefabUtility.InstantiatePrefab(buttonPrefab);
-                if (b.label) b.label.text = tab.name;
+            for (int i = 0; i < _tabs.Length; i++) {
+                ShowHideUI tab = _tabs[i];
+                TabButton b = (TabButton)UnityEditor.PrefabUtility.InstantiatePrefab(_buttonPrefab);
+                if (b._label) b._label.text = tab.name;
                 b.transform.SetParent(transform, false);
             }
         }

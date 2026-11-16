@@ -34,10 +34,10 @@ namespace SBR {
 
         [SerializeField] private bool _kinematicOnHit;
 
-        public override Vector3 velocity {
-            get => base.velocity;
+        public override Vector3 Velocity {
+            get => base.Velocity;
             set {
-                base.velocity = value;
+                base.Velocity = value;
                 if (_rigidbody && !_rigidbody.isKinematic) _rigidbody.SetLinearVelocity(value);
             }
         }
@@ -52,25 +52,25 @@ namespace SBR {
             base.Update();
 
             if (_rigidbody && !_rigidbody.isKinematic) {
-                velocity = _rigidbody.GetLinearVelocity();
+                Velocity = _rigidbody.GetLinearVelocity();
             } else {
-                transform.position += velocity * Time.deltaTime;
+                transform.position += Velocity * Time.deltaTime;
             }
         }
 
         private void FixedUpdate() {
             if (_rigidbody && _rigidbody.isKinematic) {
-                _rigidbody.position += velocity * Time.fixedDeltaTime;
+                _rigidbody.position += Velocity * Time.fixedDeltaTime;
             }
         }
 
         private void OnCollisionEnter(Collision collision) {
-            var hit = collision.contacts[0];
+            ContactPoint hit = collision.contacts[0];
             OnHitCollider(collision.collider, hit.point, hit.normal);
         }
 
         private void OnTriggerEnter(Collider other) {
-            OnHitCollider(other, transform.position, velocity.normalized);
+            OnHitCollider(other, transform.position, Velocity.normalized);
         }
 
         protected override void OnHitObject(Transform col, Vector3 position, Vector3 normal) {

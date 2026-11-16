@@ -28,7 +28,10 @@ namespace SBR.Menu {
     public abstract class SettingControl : MonoBehaviour {
         [SerializeField] private TMP_Text _label;
         [SerializeField] private TMP_Text _descriptionLabel;
-        [SettingReference, SerializeField] private string _settingKey;
+
+        [SettingReference]
+        [SerializeField]
+        private string _settingKey;
 
         public string SettingKey => _settingKey;
         public ISetting Setting => SettingsManager.GetSetting(_settingKey);

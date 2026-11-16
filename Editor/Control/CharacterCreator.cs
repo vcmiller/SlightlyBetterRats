@@ -40,7 +40,7 @@ namespace SBR.Editor {
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            var arrow = CreateArrow(true);
+            GameObject arrow = CreateArrow(true);
             arrow.transform.parent = charObj.transform;
             arrow.transform.localPosition = new Vector3(0, 0, 0);
 
@@ -48,7 +48,7 @@ namespace SBR.Editor {
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
-            motor.rotateMode = CharacterMotor.RotateMode.Movement;
+            motor._rotateMode = CharacterMotor.RotateMode.Movement;
 
             GameObject armObj = new GameObject("Camera Arm");
             armObj.transform.parent = charObj.transform;
@@ -58,7 +58,7 @@ namespace SBR.Editor {
             GameObject camObj = new GameObject("Camera");
             camObj.tag = "MainCamera";
             camObj.transform.parent = armObj.transform;
-            camObj.transform.localPosition = new Vector3(0, 0, -arm.targetLength);
+            camObj.transform.localPosition = new Vector3(0, 0, -arm._targetLength);
             camObj.AddComponent<Camera>();
             camObj.AddComponent<FlareLayer>();
             camObj.AddComponent<AudioListener>();
@@ -82,7 +82,7 @@ namespace SBR.Editor {
             rb.useGravity = false;
             rb.constraints = RigidbodyConstraints.FreezeRotation;
 
-            var arrow = CreateArrow(false);
+            GameObject arrow = CreateArrow(false);
             arrow.transform.parent = charObj.transform;
             arrow.transform.localPosition = new Vector3(0, 0, 0);
 
@@ -90,14 +90,14 @@ namespace SBR.Editor {
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
-            motor.rotateMode = CharacterMotor.RotateMode.Control;
+            motor._rotateMode = CharacterMotor.RotateMode.Control;
 
             GameObject headObj = new GameObject("Head");
             headObj.transform.parent = charObj.transform;
             headObj.transform.localPosition = new Vector3(0, 0.5f, 0);
             CameraArm arm = headObj.AddComponent<CameraArm>();
-            arm.blocking = 0;
-            arm.targetLength = 0;
+            arm._blocking = 0;
+            arm._targetLength = 0;
 
             GameObject camObj = new GameObject("Camera");
             camObj.tag = "MainCamera";
@@ -149,12 +149,12 @@ namespace SBR.Editor {
             Material arrowShaftMat = Resources.Load<Material>("SBR_ArrowShaft");
 
             GameObject arrow = new GameObject();
-            var mf = arrow.AddComponent<MeshFilter>();
-            var mr = arrow.AddComponent<MeshRenderer>();
-            arrow.AddComponent<EditorViewMesh>().hideInGame = !visibleInGame;
+            MeshFilter mf = arrow.AddComponent<MeshFilter>();
+            MeshRenderer mr = arrow.AddComponent<MeshRenderer>();
+            arrow.AddComponent<EditorViewMesh>()._hideInGame = !visibleInGame;
 
             mf.mesh = arrowMesh;
-            var mats = new Material[2];
+            Material[] mats = new Material[2];
             mats[0] = arrowShaftMat;
             mats[1] = arrowHeadMat;
             mr.sharedMaterials = mats;

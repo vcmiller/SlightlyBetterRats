@@ -23,6 +23,7 @@
 using SBR.StateMachines;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -34,64 +35,64 @@ namespace SBR {
         /// <summary>
         /// Transform to follow constantly.
         /// </summary>
-        [Tooltip("Transform to follow constantly.")]
-        public Transform followTarget;
+        [FormerlySerializedAs("followTarget"),Tooltip("Transform to follow constantly.")]
+        public Transform _followTarget;
 
         /// <summary>
         /// Radius in which to consider the target reached when checking if arrived.
         /// </summary>
-        [Tooltip("Radius in which to consider the target reached when checking if arrived.")]
-        public float acceptance = 1;
+        [FormerlySerializedAs("acceptance"),Tooltip("Radius in which to consider the target reached when checking if arrived.")]
+        public float _acceptance = 1;
 
         /// <summary>
         /// NavMeshAgent component reference.
         /// </summary>
-        public NavMeshAgent agent { get; private set; }
+        public NavMeshAgent Agent { get; private set; }
 
         /// <summary>
         /// Desired movement speed. Will be used to multiply Channels.movement value.
         /// </summary>
-        public float desiredSpeed { get; set; }
+        public float DesiredSpeed { get; set; }
         
         /// <summary>
         /// Whether the character has reached its destination.
         /// </summary>
-        public virtual bool arrived {
+        public virtual bool Arrived {
             get {
-                if (agent.pathPending) {
+                if (Agent.pathPending) {
                     return false;
                 } else {
-                    return !agent.hasPath || agent.remainingDistance <= acceptance;
+                    return !Agent.hasPath || Agent.remainingDistance <= _acceptance;
                 }
             }
         }
 
         protected virtual void OnEnable() {
-            agent = GetComponent<NavMeshAgent>();
+            Agent = GetComponent<NavMeshAgent>();
             
-            if (!agent) {
+            if (!Agent) {
                 Debug.LogError("Character navigator requires NavMeshAgent component.");
             }
 
-            agent.updatePosition = false;
-            agent.updateRotation = false;
-            agent.updateUpAxis = false;
-            agent.autoTraverseOffMeshLink = false;
+            Agent.updatePosition = false;
+            Agent.updateRotation = false;
+            Agent.updateUpAxis = false;
+            Agent.autoTraverseOffMeshLink = false;
         }
 
         protected override void DoInput() {
             base.DoInput();
 
-            agent.nextPosition = transform.position;
+            Agent.nextPosition = transform.position;
 
-            if (followTarget) {
-                agent.destination = followTarget.position;
+            if (_followTarget) {
+                Agent.destination = _followTarget.position;
             }
 
-            if (agent.hasPath) {
-                Channels.Movement = Vector3.ClampMagnitude(agent.desiredVelocity, 1) * desiredSpeed;
+            if (Agent.hasPath) {
+                Channels.Movement = Vector3.ClampMagnitude(Agent.desiredVelocity, 1) * DesiredSpeed;
 
-                if (agent.isOnOffMeshLink && agent.currentOffMeshLinkData.linkType == OffMeshLinkType.LinkTypeJumpAcross) {
+                if (Agent.isOnOffMeshLink && Agent.currentOffMeshLinkData.linkType == OffMeshLinkType.LinkTypeJumpAcross) {
                     Channels.Jump = true;
                 } 
             }
@@ -102,8 +103,8 @@ namespace SBR {
         /// </summary>
         /// <param name="destination">Destination to move to.</param>
         public virtual void MoveTo(Vector3 destination) {
-            agent.destination = destination;
-            followTarget = null;
+            Agent.destination = destination;
+            _followTarget = null;
         }
 
         /// <summary>
@@ -111,16 +112,16 @@ namespace SBR {
         /// </summary>
         /// <param name="destination">The Transform to follow.</param>
         public virtual void MoveTo(Transform destination) {
-            agent.destination = destination.position;
-            followTarget = destination;
+            Agent.destination = destination.position;
+            _followTarget = destination;
         }
 
         /// <summary>
         /// Stop moving and clear target transform if set.
         /// </summary>
         public virtual void Stop() {
-            agent.destination = agent.transform.position;
-            followTarget = null;
+            Agent.destination = Agent.transform.position;
+            _followTarget = null;
         }
     }
 }

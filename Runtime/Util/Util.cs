@@ -53,7 +53,7 @@ namespace SBR {
             obj.transform.parent = attach;
             obj.transform.position = point;
 
-            var src = obj.AddComponent<AudioSource>();
+            AudioSource src = obj.AddComponent<AudioSource>();
             src.clip = clip;
             src.loop = loop;
             src.spatialBlend = spatial;
@@ -70,9 +70,9 @@ namespace SBR {
         }
 
         public static T DeepCopy<T>(this T obj) {
-            using var ms = new MemoryStream();
+            using MemoryStream ms = new MemoryStream();
 
-            var formatter = new BinaryFormatter();
+            BinaryFormatter formatter = new BinaryFormatter();
             formatter.Serialize(ms, obj);
             ms.Position = 0;
 

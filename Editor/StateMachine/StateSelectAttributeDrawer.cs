@@ -33,7 +33,7 @@ namespace SBR.Editor {
                 EditorGUI.PropertyField(position, property, label);
             } else {
                 StateMachineDefinition sm = property.serializedObject.targetObject as StateMachineDefinition;
-                GUIContent[] options = sm.states?.Select(s => new GUIContent(s.name)).Prepend(new GUIContent("(none)")).ToArray();
+                GUIContent[] options = sm._states?.Select(s => new GUIContent(s._name)).Prepend(new GUIContent("(none)")).ToArray();
 
                 if (options != null) {
                     int index = Array.FindIndex(options, c => c.text == property.stringValue);

@@ -28,12 +28,12 @@ namespace SBR.Editor {
         private string name;
 
         public RenameStateOperation(StateMachineDefinition def, StateMachineEditorWindow window, StateMachineDefinition.State state) : base(def, window, state) {
-            name = state.name;
+            name = state._name;
             showBaseGUI = false;
         }
 
         public override void Update() {
-            var evt = Event.current;
+            Event evt = Event.current;
             if (evt.type == EventType.KeyDown) {
                 if (evt.keyCode == KeyCode.Return) {
                     Confirm();
@@ -57,7 +57,7 @@ namespace SBR.Editor {
         }
 
         public override void Cancel() {
-            if (state.name == null || state.name.Length == 0) {
+            if (state._name == null || state._name.Length == 0) {
                 Confirm();
             } else {
                 GUI.FocusControl("StateButton");
@@ -72,7 +72,7 @@ namespace SBR.Editor {
         }
 
         public override void OnGUI() {
-            Rect rect = state.rect;
+            Rect rect = state.Rect;
             rect.position = window.ToScreen(rect.position);
             name = GUI.TextField(rect, name);
         }

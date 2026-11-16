@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -39,22 +40,22 @@ namespace SBR {
         /// <summary>
         /// Whether to build a separate mesh for the collision, or just use the render mesh.
         /// </summary>
-        [Tooltip("Whether to build a separate mesh for the collision, or just use the render mesh.")]
-        public bool separateCollisionMesh;
+        [FormerlySerializedAs("separateCollisionMesh"),Tooltip("Whether to build a separate mesh for the collision, or just use the render mesh.")]
+        public bool _separateCollisionMesh;
 
         /// <summary>
         /// Whether to separate all materials in the MeshRenderer, or combine them all into one material slot.
         /// </summary>
-        [Tooltip("Whether to separate all materials in the MeshRenderer, or combine them all into one material slot.")]
-        public bool keepSeparateMaterials;
+        [FormerlySerializedAs("keepSeparateMaterials"),Tooltip("Whether to separate all materials in the MeshRenderer, or combine them all into one material slot.")]
+        public bool _keepSeparateMaterials;
 
         /// <summary>
         /// The sequence of meshes that is repeated along the spline.
         /// </summary>
-        [Tooltip("The sequence of meshes that is repeated along the spline.")]
-        public MeshInfo[] meshes = new MeshInfo[0];
+        [FormerlySerializedAs("meshes"),Tooltip("The sequence of meshes that is repeated along the spline.")]
+        public MeshInfo[] _meshes = new MeshInfo[0];
 
-        private int[] submeshStartIndices;
+        private int[] _submeshStartIndices;
 
         [Flags]
         public enum StretchMode {
@@ -78,59 +79,59 @@ namespace SBR {
             /// <summary>
             /// Mesh used to create render mesh. Also used for collision if separateCollisionMesh is false.
             /// </summary>
-            [Tooltip("Mesh used to create render mesh. Also used for collision if separateCollisionMesh is false.")]
-            public Mesh render;
+            [FormerlySerializedAs("render"),Tooltip("Mesh used to create render mesh. Also used for collision if separateCollisionMesh is false.")]
+            public Mesh _render;
 
             /// <summary>
             /// Mesh used for collision if separateCollisionMesh is true.
             /// </summary>
-            [Tooltip("Mesh used for collision if separateCollisionMesh is true.")]
-            public Mesh collision;
+            [FormerlySerializedAs("collision"),Tooltip("Mesh used for collision if separateCollisionMesh is true.")]
+            public Mesh _collision;
 
             /// <summary>
             /// Number of times to repeat the mesh before moving to the next.
             /// </summary>
-            [Tooltip("Number of times to repeat the mesh before moving to the next.")]
-            public int repeat = 1;
+            [FormerlySerializedAs("repeat"),Tooltip("Number of times to repeat the mesh before moving to the next.")]
+            public int _repeat = 1;
 
             /// <summary>
             /// How the mesh is stretched along the spline in order to perfectly reach the end.
             /// </summary>
-            [Tooltip("How the mesh is stretched along the spline in order to perfectly reach the end.")]
-            public StretchMode stretchMode = StretchMode.Nothing;
+            [FormerlySerializedAs("stretchMode"),Tooltip("How the mesh is stretched along the spline in order to perfectly reach the end.")]
+            public StretchMode _stretchMode = StretchMode.Nothing;
 
             /// <summary>
             /// How the mesh is aligned and deformed along the spline.
             /// </summary>
-            [Tooltip("How the mesh is aligned and deformed along the spline.")]
-            public AlignMode alignMode = AlignMode.Deform;
+            [FormerlySerializedAs("alignMode"),Tooltip("How the mesh is aligned and deformed along the spline.")]
+            public AlignMode _alignMode = AlignMode.Deform;
 
             /// <summary>
             /// Empty space before each occurance of the mesh.
             /// </summary>
-            [Tooltip("Empty space before each occurance of the mesh.")]
-            public float gapBefore;
+            [FormerlySerializedAs("gapBefore"),Tooltip("Empty space before each occurance of the mesh.")]
+            public float _gapBefore;
 
             /// <summary>
             /// Empty space after each occurance of the mesh.
             /// </summary>
-            [Tooltip("Empty space after each occurance of the mesh.")]
-            public float gapAfter;
+            [FormerlySerializedAs("gapAfter"),Tooltip("Empty space after each occurance of the mesh.")]
+            public float _gapAfter;
 
             /// <summary>
             /// Length of the mesh along the spline.
             /// </summary>
-            public float meshLength { get { return render != null ? render.bounds.size.z : 0; } }
+            public float MeshLength { get { return _render != null ? _render.bounds.size.z : 0; } }
 
             /// <summary>
             /// Length of the gaps along the spline.
             /// </summary>
-            public float gapLength { get { return gapBefore + gapAfter; } }
+            public float GapLength { get { return _gapBefore + _gapAfter; } }
 
             /// <summary>
             /// Length of mesh + gaps along the spline.
             /// </summary>
-            public float totalLength { get { return meshLength + gapLength; } }
+            public float TotalLength { get { return MeshLength + GapLength; } }
         }
 
         private void OnValidate() {
@@ -146,7 +147,7 @@ namespace SBR {
         /// <param name="mesh">The resulting render mesh.</param>
         /// <param name="collisionMesh">The resulting collision mesh.</param>
         public virtual void CreateMeshes(SplineData spline, out Mesh mesh, out Mesh collisionMesh) {
-            if (meshes.Length == 0) {
+            if (_meshes.Length == 0) {
                 Debug.LogError("SplineMeshProfile needs at least one mesh!");
             }
 
@@ -161,13 +162,13 @@ namespace SBR {
             List<Vector3> collisionNormals = null;
             List<int> collisionTriangles = null;
             
-            if (separateCollisionMesh) {
+            if (_separateCollisionMesh) {
                 collisionVertices = new List<Vector3>();
                 collisionNormals = new List<Vector3>();
                 collisionTriangles = new List<int>();
             }
 
-            if (meshes.Any(m => m.totalLength > 0)) {
+            if (_meshes.Any(m => m.TotalLength > 0)) {
                 float f = 0;
                 int meshIndex = 0;
                 int rep = 0;
@@ -175,16 +176,16 @@ namespace SBR {
                 float stretch = CalculateStretch(spline);
 
                 while (f < 1) {
-                    if (meshes[meshIndex].render) {
+                    if (_meshes[meshIndex]._render) {
                         f = AddMesh(spline, meshIndex, stretch, f, vertices, normals, uvs, triangles, collisionVertices, collisionNormals, collisionTriangles);
                     } else {
-                        f += meshes[meshIndex].gapLength / spline.length;
+                        f += _meshes[meshIndex].GapLength / spline.Length;
                     }
 
                     rep++;
-                    if (rep >= meshes[meshIndex].repeat) {
+                    if (rep >= _meshes[meshIndex]._repeat) {
                         rep = 0;
-                        meshIndex = (meshIndex + 1) % meshes.Length;
+                        meshIndex = (meshIndex + 1) % _meshes.Length;
                     }
                 }
             } else {
@@ -203,7 +204,7 @@ namespace SBR {
             mesh.RecalculateTangents();
             mesh.RecalculateBounds();
             
-            if (separateCollisionMesh) {
+            if (_separateCollisionMesh) {
                 collisionMesh = new Mesh();
                 collisionMesh.name = "Spline Collision";
                 collisionMesh.SetVertices(collisionVertices);
@@ -222,16 +223,16 @@ namespace SBR {
         /// </summary>
         /// <returns>The number of submeshes.</returns>
         public int GetSubmeshCount() {
-            if (keepSeparateMaterials) {
+            if (_keepSeparateMaterials) {
                 int submeshCount = 0;
-                if (submeshStartIndices == null || submeshStartIndices.Length != meshes.Length) {
-                    submeshStartIndices = new int[meshes.Length];
+                if (_submeshStartIndices == null || _submeshStartIndices.Length != _meshes.Length) {
+                    _submeshStartIndices = new int[_meshes.Length];
                 }
 
-                for (int i = 0; i < meshes.Length; i++) {
-                    submeshStartIndices[i] = submeshCount;
-                    if (meshes[i].render) {
-                        submeshCount += meshes[i].render.subMeshCount;
+                for (int i = 0; i < _meshes.Length; i++) {
+                    _submeshStartIndices[i] = submeshCount;
+                    if (_meshes[i]._render) {
+                        submeshCount += _meshes[i]._render.subMeshCount;
                     }
                 }
 
@@ -242,7 +243,7 @@ namespace SBR {
         }
 
         protected virtual float CalculateStretch(SplineData spline) {
-            float length = spline.length;
+            float length = spline.Length;
 
             float meshLength = 0;
             float stretchable = 0;
@@ -250,17 +251,17 @@ namespace SBR {
             int meshIndex = 0;
             int rep = 0;
             while (true) {
-                float sz = meshes[meshIndex].meshLength;
-                float gap = meshes[meshIndex].gapLength;
+                float sz = _meshes[meshIndex].MeshLength;
+                float gap = _meshes[meshIndex].GapLength;
 
                 if (meshLength + sz + gap <= length) {
                     meshLength += sz + gap;
 
-                    if ((meshes[meshIndex].stretchMode & StretchMode.Mesh) == StretchMode.Mesh) {
+                    if ((_meshes[meshIndex]._stretchMode & StretchMode.Mesh) == StretchMode.Mesh) {
                         stretchable += sz;
                     }
 
-                    if ((meshes[meshIndex].stretchMode & StretchMode.Gaps) == StretchMode.Gaps) {
+                    if ((_meshes[meshIndex]._stretchMode & StretchMode.Gaps) == StretchMode.Gaps) {
                         stretchable += gap;
                     }
                 } else {
@@ -268,9 +269,9 @@ namespace SBR {
                 }
 
                 rep++;
-                if (rep >= meshes[meshIndex].repeat) {
+                if (rep >= _meshes[meshIndex]._repeat) {
                     rep = 0;
-                    meshIndex = (meshIndex + 1) % meshes.Length;
+                    meshIndex = (meshIndex + 1) % _meshes.Length;
                 }
             }
 
@@ -284,16 +285,16 @@ namespace SBR {
         protected virtual float AddMesh(SplineData spline, int meshIndex, float stretchFactor, float meshStart, 
             List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int>[] triangles,
             List<Vector3> collisionVertices, List<Vector3> collisionNormals, List<int> collisionTriangles) {
-            var mesh = meshes[meshIndex];
-            var toAdd = mesh.render;
-            var toAddC = mesh.collision;
+            MeshInfo mesh = _meshes[meshIndex];
+            Mesh toAdd = mesh._render;
+            Mesh toAddC = mesh._collision;
 
-            var stretch = mesh.stretchMode;
-            var align = mesh.alignMode;
+            StretchMode stretch = mesh._stretchMode;
+            AlignMode align = mesh._alignMode;
 
-            float sizeZ = mesh.meshLength;
-            float startGap = meshes[meshIndex].gapBefore;
-            float endGap = meshes[meshIndex].gapAfter;
+            float sizeZ = mesh.MeshLength;
+            float startGap = _meshes[meshIndex]._gapBefore;
+            float endGap = _meshes[meshIndex]._gapAfter;
 
             if ((stretch & StretchMode.Mesh) == StretchMode.Mesh) {
                 sizeZ *= stretchFactor;
@@ -304,19 +305,19 @@ namespace SBR {
                 endGap *= stretchFactor;
             }
 
-            meshStart += startGap / spline.length;
-            float meshEnd = meshStart + (sizeZ + endGap) / spline.length;
+            meshStart += startGap / spline.Length;
+            float meshEnd = meshStart + (sizeZ + endGap) / spline.Length;
 
-            if (meshEnd <= 1 + (0.1f / spline.length)) {
+            if (meshEnd <= 1 + (0.1f / spline.Length)) {
                 int vCount = vertices.Count;
                 float minZ = toAdd.bounds.min.z;
-                var center = toAdd.bounds.center;
+                Vector3 center = toAdd.bounds.center;
                 AddVertexDataDeformed(spline, toAdd, stretch, align, stretchFactor, meshStart, minZ, center, vertices, normals, uvs);
             
                 for (int i = 0; i < toAdd.subMeshCount; i++) {
                     int destList = 0;
-                    if (keepSeparateMaterials) {
-                        destList = submeshStartIndices[meshIndex] + i;
+                    if (_keepSeparateMaterials) {
+                        destList = _submeshStartIndices[meshIndex] + i;
                     }
 
                     if (triangles[destList] == null) {
@@ -326,7 +327,7 @@ namespace SBR {
                     AddTriangleData(toAdd, i, vCount, triangles[destList]);
                 }
 
-                if (separateCollisionMesh && toAddC) {
+                if (_separateCollisionMesh && toAddC) {
                     int cvCount = collisionVertices.Count;
                     AddVertexDataDeformed(spline, toAddC, stretch, align, stretchFactor, meshStart, minZ, center, collisionVertices, collisionNormals, null);
                     AddTriangleData(toAddC, 0, cvCount, collisionTriangles);
@@ -345,8 +346,8 @@ namespace SBR {
             Vector3[] inNormals = mesh.normals;
             Vector2[] inUvs = uvs != null ? mesh.uv : null;
             
-            float centerPos = Mathf.Clamp01(meshStart + (center.z - minZ) / spline.length);
-            var centerRotation = spline.GetRotation(centerPos);
+            float centerPos = Mathf.Clamp01(meshStart + (center.z - minZ) / spline.Length);
+            Quaternion centerRotation = spline.GetRotation(centerPos);
 
             if (align == AlignMode.ForceUpright) {
                 centerRotation = Quaternion.Euler(0, centerRotation.eulerAngles.y, 0);
@@ -359,9 +360,9 @@ namespace SBR {
             Matrix4x4 alignMatrix = Matrix4x4.TRS(centerOffset, centerRotation, Vector3.one);
 
             for (int i = 0; i < inVerts.Length; i++) {
-                var vert = inVerts[i];
-                var normal = inNormals[i];
-                var uv = Vector2.zero;
+                Vector3 vert = inVerts[i];
+                Vector3 normal = inNormals[i];
+                Vector2 uv = Vector2.zero;
                 if (inUvs != null && inUvs.Length > i) {
                     uv = inUvs[i];
                 }
@@ -372,9 +373,9 @@ namespace SBR {
                 }
 
                 if (align == AlignMode.Deform) {
-                    float pos = Mathf.Clamp01(meshStart + (vert.z / spline.length));
-                    var srot = spline.GetRotation(pos);
-                    var spos = spline.GetPoint(pos);
+                    float pos = Mathf.Clamp01(meshStart + (vert.z / spline.Length));
+                    Quaternion srot = spline.GetRotation(pos);
+                    Vector3 spos = spline.GetPoint(pos);
 
                     vert = spos + (srot * Vector3.ProjectOnPlane(vert, Vector3.forward));
                     normal = srot * normal;

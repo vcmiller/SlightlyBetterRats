@@ -25,6 +25,7 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace SBR.Editor {
     public class StateMachineEditorWindow : EditorWindow {
@@ -106,7 +107,7 @@ namespace SBR.Editor {
         }
 
         void OnGUI() {
-            foreach (var obj in Selection.objects) {
+            foreach (Object obj in Selection.objects) {
                 if (obj is StateMachineDefinition) {
                     def = (StateMachineDefinition)obj;
                     break;
@@ -152,8 +153,8 @@ namespace SBR.Editor {
                             }
                         }
                     } else {
-                        var selected = def.SelectState(ToWorld(cur.mousePosition));
-                        var selectedTr = def.SelectTransition(ToWorld(cur.mousePosition));
+                        StateMachineDefinition.State selected = def.SelectState(ToWorld(cur.mousePosition));
+                        Pair<StateMachineDefinition.State, StateMachineDefinition.Transition> selectedTr = def.SelectTransition(ToWorld(cur.mousePosition));
 
                         if (selectedTr.Item1 == null) {
                             if (selected != lastSelectedState) {
@@ -204,9 +205,9 @@ namespace SBR.Editor {
 
                                     menu.AddItem(new GUIContent("Create State"), false, () => {
                                         Undo.RecordObject(def, "Create State");
-                                        var s = def.AddState();
-                                        s.position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
-                                        MoveStateOperation.Snap(ref s.position);
+                                        StateMachineDefinition.State s = def.AddState();
+                                        s._position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
+                                        MoveStateOperation.Snap(ref s._position);
                                         op = new RenameStateOperation(def, this, s);
                                         EditorUtility.SetDirty(def);
                                         dirty = true;
@@ -248,29 +249,29 @@ namespace SBR.Editor {
                                         op = new MakeTransitionOperation(def, this, selected);
                                     });
 
-                                    StateMachineDefinition.State parent = def.GetState(selected.parent);
+                                    StateMachineDefinition.State parent = def.GetState(selected._parent);
 
                                     if (parent == null) {
-                                        if (selected.name != def.defaultState) {
+                                        if (selected._name != def._defaultState) {
                                             menu.AddItem(new GUIContent("Make Default State"), false, () => {
                                                 Undo.RecordObject(def, "Set Default State");
-                                                def.defaultState = selected.name;
+                                                def._defaultState = selected._name;
                                                 dirty = true;
                                                 repaint = true;
                                             });
                                         }
                                     } else {
-                                        if (selected.name != parent.localDefault) {
+                                        if (selected._name != parent._localDefault) {
                                             menu.AddItem(new GUIContent("Make Local Default"), false, () => {
                                                 Undo.RecordObject(def, "Set Local Default");
-                                                parent.localDefault = selected.name;
+                                                parent._localDefault = selected._name;
                                                 dirty = true;
                                                 repaint = true;
                                             });
                                         }
                                     }
 
-                                    if (selected.hasChildren) {
+                                    if (selected._hasChildren) {
                                         menu.AddItem(new GUIContent("Remove Sub-Machine"), false, () => {
                                             Undo.RecordObject(def, "Remove Sub-Machine");
                                             def.RemoveSub(selected, MoveStateOperation.snap * 2);
@@ -278,10 +279,10 @@ namespace SBR.Editor {
 
                                         menu.AddItem(new GUIContent("Create Child State"), false, () => {
                                             Undo.RecordObject(def, "Create Child State");
-                                            var s = def.AddState();
-                                            s.position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
+                                            StateMachineDefinition.State s = def.AddState();
+                                            s._position = ToWorld((cur.mousePosition - Vector2.up * editorWindowTabHeight) / zoom);
                                             def.SetStateParent(s, selected, MoveStateOperation.snap);
-                                            MoveStateOperation.Snap(ref s.position);
+                                            MoveStateOperation.Snap(ref s._position);
                                             op = new RenameStateOperation(def, this, s);
                                             EditorUtility.SetDirty(def);
                                             dirty = true;
@@ -342,8 +343,8 @@ namespace SBR.Editor {
                 }
 
                 if (Application.isPlaying) {
-                    var observingObject = observing as UnityEngine.Object;
-                    if (!observingObject || observing.gameObject != Selection.activeGameObject) {
+                    Object observingObject = observing as UnityEngine.Object;
+                    if (!observingObject || observing.GameObject != Selection.activeGameObject) {
                         if (Selection.activeGameObject) {
                             observing = Selection.activeGameObject.GetComponent<IStateMachine>();
                         }
@@ -353,40 +354,40 @@ namespace SBR.Editor {
                 }
                 Color oldColor = GUI.color;
 
-                if (def.states != null) {
+                if (def._states != null) {
                     EditorGUI.BeginDisabledGroup(op != null && op is RenameStateOperation);
-                    foreach (var state in def.states) {
+                    foreach (StateMachineDefinition.State state in def._states) {
                         if (op == null || op.state != state || op.showBaseGUI) {
-                            string s = state.name;
-                            var parent = def.GetState(state.parent);
-                            if (parent == null && def.defaultState == s) {
+                            string s = state._name;
+                            StateMachineDefinition.State parent = def.GetState(state._parent);
+                            if (parent == null && def._defaultState == s) {
                                 s += "\n<default state>";
-                            } else if (parent != null && parent.localDefault == s) {
+                            } else if (parent != null && parent._localDefault == s) {
                                 s += "\n<local default>";
                             }
 
-                            Rect rect = state.rect;
+                            Rect rect = state.Rect;
                             rect.position = ToScreen(rect.position);
 
                             GUI.SetNextControlName("StateButton");
                             
                             if (observing != null && cur.type == EventType.Repaint) {
-                                if (observing.IsStateActive(state.name)) {
+                                if (observing.IsStateActive(state._name)) {
                                     GUI.color = new Color(0.5f, 0.7f, 1.0f);
-                                } else if (observing.IsStateRemembered(state.name)) {
+                                } else if (observing.IsStateRemembered(state._name)) {
                                     GUI.color = new Color(0.9f, 0.8f, 1.0f);
                                 } else {
                                     GUI.color = oldColor;
                                 }
                             }
 
-                            if (!state.hasChildren) {
+                            if (!state._hasChildren) {
                                 if (state != editingState) {
                                     GUI.Button(rect, s);
                                 } else {
                                     GUI.Button(rect, "");
 
-                                    var style = new GUIStyle(GUI.skin.label);
+                                    GUIStyle style = new GUIStyle(GUI.skin.label);
                                     style.alignment = TextAnchor.MiddleCenter;
                                     style.normal.textColor = Color.blue;
                                     style.fontStyle = FontStyle.Bold;
@@ -396,7 +397,7 @@ namespace SBR.Editor {
                             } else {
                                 GUI.Button(rect, "");
 
-                                var style = new GUIStyle(GUI.skin.label);
+                                GUIStyle style = new GUIStyle(GUI.skin.label);
                                 style.alignment = TextAnchor.UpperCenter;
 
                                 if (state == editingState) {
@@ -434,13 +435,13 @@ namespace SBR.Editor {
                         op.OnGUI();
                     }
 
-                    foreach (var from in def.states) {
-                        if (from.transitions != null) {
-                            foreach (var tr in from.transitions) {
+                    foreach (StateMachineDefinition.State from in def._states) {
+                        if (from._transitions != null) {
+                            foreach (StateMachineDefinition.Transition tr in from._transitions) {
                                 if (Application.isPlaying) {
                                     Handles.color = Color.black;
                                     if (observing != null) {
-                                        float t = Time.unscaledTime - observing.TransitionLastTime(from.name, tr.to);
+                                        float t = Time.unscaledTime - observing.TransitionLastTime(from._name, tr._to);
                                         if (t < 0.5f) {
                                             Handles.color = Color.Lerp(Color.black, Color.green, 1.0f - t * 2);
                                         }
@@ -453,8 +454,8 @@ namespace SBR.Editor {
                                     }
                                 }
 
-                                if (def.GetState(tr.to) != null) {
-                                    var line = def.GetTransitionPoints(from, tr);
+                                if (def.GetState(tr._to) != null) {
+                                    Pair<Vector2, Vector2> line = def.GetTransitionPoints(from, tr);
                                     Vector2 src = ToScreen(line.Item1);
                                     Vector2 dest = ToScreen(line.Item2);
 
@@ -483,18 +484,18 @@ namespace SBR.Editor {
 
         private void UpdateView(ref bool repaint) {
             Rect viewportRect = new Rect(0, 0, position.width - sideWidth, position.height);
-            var cur = Event.current;
+            Event cur = Event.current;
             if (cur.type == EventType.MouseDrag && cur.button == 2) {
                 scroll -= cur.delta * zoom;
                 repaint = true;
             } else if (cur.type == EventType.KeyDown && cur.keyCode == KeyCode.F && !(op is RenameStateOperation)) {
-                var state = def.GetState(def.defaultState);
-                if (state == null && def.states.Count > 0) {
-                    state = def.states[0];
+                StateMachineDefinition.State state = def.GetState(def._defaultState);
+                if (state == null && def._states.Count > 0) {
+                    state = def._states[0];
                 }
 
                 if (state != null) {
-                    scroll = state.position - viewportRect.size / 2 + state.size / 2;
+                    scroll = state._position - viewportRect.size / 2 + state._size / 2;
                     repaint = true;
                     zoom = 1;
                 } else {
@@ -537,7 +538,7 @@ namespace SBR.Editor {
                 }
 
                 if (GUILayout.Button("New Impl Class...")) {
-                    var path = EditorUtility.SaveFilePanelInProject("Save new class", def.name + "Impl.cs", "cs", "Enter a name for the new impl class");
+                    string path = EditorUtility.SaveFilePanelInProject("Save new class", def.name + "Impl.cs", "cs", "Enter a name for the new impl class");
                     if (path.Length > 0) {
                         StateMachineClassGenerator.GenerateImplClass(def, path);
                     }
@@ -559,7 +560,7 @@ namespace SBR.Editor {
                     }).ToArray();
                 }
 
-                int index = Array.IndexOf(types, def.baseClass);
+                int index = Array.IndexOf(types, def._baseClass);
                 if (index < 0) {
                     index = Array.IndexOf(types, typeof(StateMachine<>).FullName);
                 }
@@ -574,50 +575,50 @@ namespace SBR.Editor {
                 }
 
                 EditorGUILayout.EndHorizontal();
-                def.baseClass = types[index];
+                def._baseClass = types[index];
 
                 if (editingState != null) {
-                    EditorGUILayout.LabelField("State " + editingState.name);
+                    EditorGUILayout.LabelField("State " + editingState._name);
                     EditorGUILayout.LabelField("State Events", EditorStyles.boldLabel);
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Enter: ");
-                    bool enter = EditorGUILayout.Toggle(editingState.hasEnter);
+                    bool enter = EditorGUILayout.Toggle(editingState._hasEnter);
                     EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("During: ");
-                    bool during = EditorGUILayout.Toggle(editingState.hasDuring);
+                    bool during = EditorGUILayout.Toggle(editingState._hasDuring);
                     EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Exit: ");
-                    bool exit = EditorGUILayout.Toggle(editingState.hasExit);
+                    bool exit = EditorGUILayout.Toggle(editingState._hasExit);
                     EditorGUILayout.EndHorizontal();
 
 
-                    if (enter != editingState.hasEnter || during != editingState.hasDuring || exit != editingState.hasExit) {
+                    if (enter != editingState._hasEnter || during != editingState._hasDuring || exit != editingState._hasExit) {
                         Undo.RecordObject(def, "Edit State");
-                        editingState.hasEnter = enter;
-                        editingState.hasDuring = during;
-                        editingState.hasExit = exit;
+                        editingState._hasEnter = enter;
+                        editingState._hasDuring = during;
+                        editingState._hasExit = exit;
 
                         dirty = true;
                         EditorUtility.SetDirty(def);
                     }
 
                 } else if (editingTransition.Item1 != null) {
-                    EditorGUILayout.LabelField("Transition From " + editingTransition.Item1.name + " To " + editingTransition.Item2.to);
+                    EditorGUILayout.LabelField("Transition From " + editingTransition.Item1._name + " To " + editingTransition.Item2._to);
                     EditorGUILayout.LabelField("Transition Events", EditorStyles.boldLabel);
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Notify: ");
-                    bool notify = EditorGUILayout.Toggle("Notify: ", editingTransition.Item2.hasNotify);
+                    bool notify = EditorGUILayout.Toggle("Notify: ", editingTransition.Item2._hasNotify);
                     EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.LabelField("Conditions", EditorStyles.boldLabel);
 
-                    float cooldown = editingTransition.Item2.cooldown;
+                    float cooldown = editingTransition.Item2._cooldown;
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Cooldown:");
                     cooldown = EditorGUILayout.FloatField(cooldown);
@@ -625,34 +626,34 @@ namespace SBR.Editor {
 
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Mode: ");
-                    var mode = (StateMachineDefinition.TransitionMode)EditorGUILayout.EnumPopup(editingTransition.Item2.mode);
+                    StateMachineDefinition.TransitionMode mode = (StateMachineDefinition.TransitionMode)EditorGUILayout.EnumPopup(editingTransition.Item2._mode);
                     EditorGUILayout.EndHorizontal();
 
-                    float exitTime = editingTransition.Item2.exitTime;
-                    string message = editingTransition.Item2.message;
-                    if (editingTransition.Item2.mode == StateMachineDefinition.TransitionMode.Time) {
+                    float exitTime = editingTransition.Item2._exitTime;
+                    string message = editingTransition.Item2._message;
+                    if (editingTransition.Item2._mode == StateMachineDefinition.TransitionMode.Time) {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField("Exit Time: ");
                         exitTime = EditorGUILayout.FloatField(exitTime);
                         EditorGUILayout.EndHorizontal();
-                    } else if (editingTransition.Item2.mode == StateMachineDefinition.TransitionMode.Message) {
+                    } else if (editingTransition.Item2._mode == StateMachineDefinition.TransitionMode.Message) {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField("Message: ");
-                        message = EditorGUILayout.TextField(editingTransition.Item2.message);
+                        message = EditorGUILayout.TextField(editingTransition.Item2._message);
                         EditorGUILayout.EndHorizontal();
                     }
 
-                    if (notify != editingTransition.Item2.hasNotify ||
-                        exitTime != editingTransition.Item2.exitTime ||
-                        message != editingTransition.Item2.message ||
-                        cooldown != editingTransition.Item2.cooldown ||
-                        mode != editingTransition.Item2.mode) {
+                    if (notify != editingTransition.Item2._hasNotify ||
+                        exitTime != editingTransition.Item2._exitTime ||
+                        message != editingTransition.Item2._message ||
+                        cooldown != editingTransition.Item2._cooldown ||
+                        mode != editingTransition.Item2._mode) {
                         Undo.RecordObject(def, "Edit Transition");
-                        editingTransition.Item2.hasNotify = notify;
-                        editingTransition.Item2.exitTime = exitTime;
-                        editingTransition.Item2.cooldown = cooldown;
-                        editingTransition.Item2.mode = mode;
-                        editingTransition.Item2.message = message;
+                        editingTransition.Item2._hasNotify = notify;
+                        editingTransition.Item2._exitTime = exitTime;
+                        editingTransition.Item2._cooldown = cooldown;
+                        editingTransition.Item2._mode = mode;
+                        editingTransition.Item2._message = message;
                         def.OnValidate();
                         dirty = true;
                         EditorUtility.SetDirty(def);

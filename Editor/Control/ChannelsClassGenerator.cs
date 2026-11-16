@@ -67,7 +67,7 @@ public class {0} : {1} {{
 ";
 
         public static void GenerateClass(ChannelsDefinition def) {
-            string generated = string.Format(ClassTemplate, def.name, def.baseClass, GetProperties(def), GetClears(def), GetAdds(def));
+            string generated = string.Format(ClassTemplate, def.name, def._baseClass, GetProperties(def), GetClears(def), GetAdds(def));
 
             string defPath = AssetDatabase.GetAssetPath(def);
 
@@ -82,39 +82,39 @@ public class {0} : {1} {{
         }
 
         private static string GetClears(ChannelsDefinition def) {
-            return string.Join("", def.channels.Select(GetClear));
+            return string.Join("", def._channels.Select(GetClear));
         }
 
         private static string GetClear(ChannelsDefinition.Channel channel) {
-            string template = channel.clears ? ClearTemplate : ClearTemplateIf;
-            return string.Format(template, channel.name, GetChannelDefault(channel));
+            string template = channel._clears ? ClearTemplate : ClearTemplateIf;
+            return string.Format(template, channel._name, GetChannelDefault(channel));
         }
 
         private static string GetAdds(ChannelsDefinition def) {
-            return string.Join("", def.channels.Select(GetAdd));
+            return string.Join("", def._channels.Select(GetAdd));
         }
 
         private static string GetAdd(ChannelsDefinition.Channel channel) {
-            return string.Format(AddToDictionaryTemplate, channel.name);
+            return string.Format(AddToDictionaryTemplate, channel._name);
         }
         
         private static string GetChannelDefault(ChannelsDefinition.Channel def) {
-            switch (def.type) {
+            switch (def._type) {
                 case ChannelsDefinition.ChannelType.Bool:
-                    return def.defaultBool.ToString().ToLower();
+                    return def._defaultBool.ToString().ToLower();
 
                 case ChannelsDefinition.ChannelType.Float:
-                    return def.defaultFloat.ToString() + "f";
+                    return def._defaultFloat.ToString() + "f";
 
                 case ChannelsDefinition.ChannelType.Int:
-                    return def.defaultInt.ToString();
+                    return def._defaultInt.ToString();
 
                 case ChannelsDefinition.ChannelType.Vector:
-                    Vector3 v = def.defaultVector;
+                    Vector3 v = def._defaultVector;
                     return "new Vector3(" + v.x + "f, " + v.y + "f, " + v.z + "f)";
 
                 case ChannelsDefinition.ChannelType.Quaternion:
-                    Quaternion q = Quaternion.Euler(def.defaultRotation);
+                    Quaternion q = Quaternion.Euler(def._defaultRotation);
                     return "new Quaternion(" + q.x + "f, " + q.y + "f, " + q.z + "f, " + q.w + "f)";
 
                 default:
@@ -123,37 +123,37 @@ public class {0} : {1} {{
         }
 
         private static string GetProperties(ChannelsDefinition def) {
-            return string.Join("", def.channels.Select(c => GetProperty(c)));
+            return string.Join("", def._channels.Select(c => GetProperty(c)));
         }
 
         private static string GetProperty(ChannelsDefinition.Channel channel) {
-            return string.Format(PropertyTemplate, GetType(channel), channel.name, GetSetter(channel));
+            return string.Format(PropertyTemplate, GetType(channel), channel._name, GetSetter(channel));
         }
 
         private static string GetType(ChannelsDefinition.Channel channel) {
-            if (channel.type == ChannelsDefinition.ChannelType.Object) {
-                if (channel.objectType.Length > 0) {
-                    return channel.objectType;
+            if (channel._type == ChannelsDefinition.ChannelType.Object) {
+                if (channel._objectType.Length > 0) {
+                    return channel._objectType;
                 } else {
                     return "object";
                 }
-            } else if (channel.type == ChannelsDefinition.ChannelType.Quaternion) {
+            } else if (channel._type == ChannelsDefinition.ChannelType.Quaternion) {
                 return "Quaternion";
-            } else if (channel.type == ChannelsDefinition.ChannelType.Vector) {
+            } else if (channel._type == ChannelsDefinition.ChannelType.Vector) {
                 return "Vector3";
             } else {
-                return channel.type.ToString().ToLower();
+                return channel._type.ToString().ToLower();
             }
         }
 
         private static string GetSetter(ChannelsDefinition.Channel channel) {
-            if (channel.type == ChannelsDefinition.ChannelType.Float && channel.floatHasRange) {
-                return "Mathf.Clamp(value, " + channel.floatMin + "f, " + channel.floatMax + "f)";
-            } else if (channel.type == ChannelsDefinition.ChannelType.Int && channel.intHasRange) {
-                return "Mathf.Clamp(value, " + channel.intMin + ", " + channel.intMax + ")";
-            } else if (channel.type == ChannelsDefinition.ChannelType.Vector && channel.vectorHasMax) {
-                float sqr = channel.vectorMax * channel.vectorMax;
-                return "value.sqrMagnitude > " + sqr + "f ? value.normalized * " + channel.vectorMax + "f : value";
+            if (channel._type == ChannelsDefinition.ChannelType.Float && channel._floatHasRange) {
+                return "Mathf.Clamp(value, " + channel._floatMin + "f, " + channel._floatMax + "f)";
+            } else if (channel._type == ChannelsDefinition.ChannelType.Int && channel._intHasRange) {
+                return "Mathf.Clamp(value, " + channel._intMin + ", " + channel._intMax + ")";
+            } else if (channel._type == ChannelsDefinition.ChannelType.Vector && channel._vectorHasMax) {
+                float sqr = channel._vectorMax * channel._vectorMax;
+                return "value.sqrMagnitude > " + sqr + "f ? value.normalized * " + channel._vectorMax + "f : value";
             } else {
                 return "value";
             }

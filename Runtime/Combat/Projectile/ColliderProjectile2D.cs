@@ -1,7 +1,7 @@
 // The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -30,16 +30,16 @@ namespace SBR {
     public class ColliderProjectile2D : Projectile2D {
         protected override void Update() {
             base.Update();
-            transform.position += velocity * Time.deltaTime;
+            transform.position += Velocity * Time.deltaTime;
         }
 
         private void OnCollisionEnter2D(Collision2D collision) {
-            var hit = collision.contacts[0];
+            ContactPoint2D hit = collision.contacts[0];
             OnHitCollider2D(collision.collider, hit.point, hit.normal);
         }
 
         private void OnTriggerEnter2D(Collider2D other) {
-            OnHitCollider2D(other, transform.position, velocity.normalized);
+            OnHitCollider2D(other, transform.position, Velocity.normalized);
         }
     }
 }

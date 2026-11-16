@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using SBR.Geometry;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace SBR.Editor {
     [CustomEditor(typeof(Brush))]
@@ -45,22 +45,22 @@ namespace SBR.Editor {
         public override void OnInspectorGUI() {
 
             if (GUILayout.Button("Export Mesh")) {
-                var path = EditorUtility.SaveFilePanelInProject("Save New Mesh", target.name + ".asset", "asset", "Save new asset to file");
+                string path = EditorUtility.SaveFilePanelInProject("Save New Mesh", target.name + ".asset", "asset", "Save new asset to file");
                 if (path.Length > 0) {
-                    AssetDatabase.CreateAsset(Instantiate(brush.filter.sharedMesh), path);
+                    AssetDatabase.CreateAsset(Instantiate(brush.Filter.sharedMesh), path);
                     AssetDatabase.Refresh();
                 }
             }
 
             serializedObject.Update();
 
-            if (brush.type == Brush.Type.Box || brush.type == Brush.Type.Slant) {
+            if (brush._type == Brush.Type.Box || brush._type == Brush.Type.Slant) {
                 DrawPropertiesExcluding(serializedObject, "complexity", "smooth", "mesh", "stepSeparation", "stepHeight", "addBottomStep");
-            } else if (brush.type == Brush.Type.Cyllinder) {
+            } else if (brush._type == Brush.Type.Cyllinder) {
                 DrawPropertiesExcluding(serializedObject, "stepSeparation", "stepHeight", "addBottomStep", "mesh");
-            } else if (brush.type == Brush.Type.BlockStair || brush.type == Brush.Type.SlantStair) {
+            } else if (brush._type == Brush.Type.BlockStair || brush._type == Brush.Type.SlantStair) {
                 DrawPropertiesExcluding(serializedObject, "complexity", "smooth", "mesh", "stepHeight");
-            } else if (brush.type == Brush.Type.SeparateStair) {
+            } else if (brush._type == Brush.Type.SeparateStair) {
                 DrawPropertiesExcluding(serializedObject, "complexity", "smooth", "mesh");
             } else {
                 DrawPropertiesExcluding(serializedObject, "separateMaterials", "size", "textureWorldScale", "textureLocalScale", "complexity", "smooth", "stepSeparation", "stepHeight", "addBottomStep", "mesh");
@@ -68,27 +68,27 @@ namespace SBR.Editor {
 
             serializedObject.ApplyModifiedProperties();
 
-            if (brush.type != Brush.Type.Freeform) {
+            if (brush._type != Brush.Type.Freeform) {
                 selectedFaces.Clear();
                 selectedVertices.Clear();
                 selectedEdges.Clear();
             }
 
             if (selectedFaces.Count > 0 || selectedVertices.Count > 0 || selectedEdges.Count > 0) {
-                selectedFaces.RemoveWhere(i => i < 0 || i >= brush.mesh.faces.Count);
-                selectedVertices.RemoveWhere(i => i < 0 || i >= brush.mesh.vertices.Count);
-                selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush.mesh.vertices.Count || e.Item2 < 0 || e.Item2 >= brush.mesh.vertices.Count);
+                selectedFaces.RemoveWhere(i => i < 0 || i >= brush._mesh._faces.Count);
+                selectedVertices.RemoveWhere(i => i < 0 || i >= brush._mesh._vertices.Count);
+                selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush._mesh._vertices.Count || e.Item2 < 0 || e.Item2 >= brush._mesh._vertices.Count);
                 
                 HashSet<int> vertices;
 
                 if (selectedFaces.Count > 0) {
-                    vertices = brush.mesh.GetUniqueVertexList(selectedFaces);
+                    vertices = brush._mesh.GetUniqueVertexList(selectedFaces);
                 } else if (selectedVertices.Count > 0) {
                     vertices = selectedVertices;
                 } else {
-                    vertices = brush.mesh.GetUniqueVertexList(selectedEdges);
+                    vertices = brush._mesh.GetUniqueVertexList(selectedEdges);
                 }
-                Vector3 vertexCenter = brush.mesh.GetVerticesCenter(vertices);
+                Vector3 vertexCenter = brush._mesh.GetVerticesCenter(vertices);
 
                 if (selectedFaces.Count > 0) {
                     EditorGUILayout.LabelField("Selected Faces", EditorStyles.boldLabel);
@@ -133,7 +133,7 @@ namespace SBR.Editor {
                 GUILayout.BeginHorizontal();
 
                 if (selectedFaces.Count > 0 && GUILayout.Button("Normal")) {
-                    AlignVertices(vertices, brush.mesh.GetFacesNormal(selectedFaces));
+                    AlignVertices(vertices, brush._mesh.GetFacesNormal(selectedFaces));
                 }
 
                 if (GUILayout.Button("X")) {
@@ -157,16 +157,16 @@ namespace SBR.Editor {
                 Vector3 newPos = EditorGUILayout.Vector3Field("Center", vertexCenter);
 
                 if (vertexCenter != newPos) {
-                    brush.undone = true;
+                    brush._undone = true;
                     Undo.RecordObject(brush, "Brush Edit");
 
                     Vector3 off = newPos - vertexCenter;
                     foreach (int v in vertices) {
-                        brush.mesh.vertices[v].position += off;
+                        brush._mesh._vertices[v]._position += off;
                     }
                     
-                    brush.undone = false;
-                    brush.dirty = true;
+                    brush._undone = false;
+                    brush.Dirty = true;
                     brush.Update();
                 }
 
@@ -192,90 +192,90 @@ namespace SBR.Editor {
         }
 
         private void LoopCut() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Loop Cut");
-            if (brush.mesh.InsertLoop(selectedEdges)) {
+            if (brush._mesh.InsertLoop(selectedEdges)) {
                 selectedEdges.Clear();
-                brush.dirty = true;
+                brush.Dirty = true;
                 brush.Update();
             }
-            brush.undone = false;
+            brush._undone = false;
         }
 
         private void DeleteEdges() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Edge Deletion");
-            brush.mesh.DeleteEdges(selectedEdges);
-            brush.undone = false;
-            brush.dirty = true;
+            brush._mesh.DeleteEdges(selectedEdges);
+            brush._undone = false;
+            brush.Dirty = true;
             brush.Update();
 
             selectedEdges.Clear();
         }
 
         private void DeleteFaces() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Face Deletion");
-            brush.mesh.DeleteFaces(selectedFaces);
-            brush.undone = false;
-            brush.dirty = true;
+            brush._mesh.DeleteFaces(selectedFaces);
+            brush._undone = false;
+            brush.Dirty = true;
             brush.Update();
 
             selectedFaces.Clear();
         }
 
         private void Weld() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Vertex Weld");
-            int nv = brush.mesh.WeldVertices(selectedVertices);
+            int nv = brush._mesh.WeldVertices(selectedVertices);
             selectedVertices.Clear();
             selectedVertices.Add(nv);
-            brush.undone = false;
-            brush.dirty = true;
+            brush._undone = false;
+            brush.Dirty = true;
             brush.Update();
         }
 
         private void CreateFace() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "New Face");
-            if (brush.mesh.AddFace(selectedEdges)) {
+            if (brush._mesh.AddFace(selectedEdges)) {
                 selectedEdges.Clear();
-                selectedFaces.Add(brush.mesh.faces.Count - 1);
-                brush.dirty = true;
+                selectedFaces.Add(brush._mesh._faces.Count - 1);
+                brush.Dirty = true;
                 brush.Update();
             } else {
                 Debug.LogError("Create face requires a contiguous loop of edges, or exactly two edges.");
             }
 
-            brush.undone = false;
+            brush._undone = false;
         }
 
         private void Extrude() {
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Brush Extrude");
-            brush.mesh.ExtrudeFaces(selectedFaces);
-            brush.undone = false;
-            brush.dirty = true;
+            brush._mesh.ExtrudeFaces(selectedFaces);
+            brush._undone = false;
+            brush.Dirty = true;
             brush.Update();
         }
 
         private void AlignVertices(HashSet<int> vertices, Vector3 axis) {
 
-            Vector3 center = brush.mesh.GetVerticesCenter(vertices);
+            Vector3 center = brush._mesh.GetVerticesCenter(vertices);
 
-            brush.undone = true;
+            brush._undone = true;
             Undo.RecordObject(brush, "Brush Align Face");
 
             foreach (int i in vertices) {
-                Vertex vert = brush.mesh.vertices[i];
-                Vector3 off = vert.position - center;
+                Vertex vert = brush._mesh._vertices[i];
+                Vector3 off = vert._position - center;
                 off = Vector3.ProjectOnPlane(off, axis);
 
-                vert.position = center + off;
+                vert._position = center + off;
             }
 
-            brush.undone = false;
-            brush.dirty = true;
+            brush._undone = false;
+            brush.Dirty = true;
             brush.Update();
         }
 
@@ -303,7 +303,7 @@ namespace SBR.Editor {
             }
 
             if (brushMode) {
-                if (brush.type != Brush.Type.Freeform) {
+                if (brush._type != Brush.Type.Freeform) {
                     SizeHandle(Vector3.right, Vector3.right, Handles.xAxisColor);
                     SizeHandle(Vector3.up, Vector3.up, Handles.yAxisColor);
                     SizeHandle(Vector3.forward, Vector3.forward, Handles.zAxisColor);
@@ -320,9 +320,9 @@ namespace SBR.Editor {
         private void UpdateFreeform() {
             int id = GUIUtility.GetControlID(FocusType.Passive);
             
-            selectedFaces.RemoveWhere(i => i < 0 || i >= brush.mesh.faces.Count);
-            selectedVertices.RemoveWhere(i => i < 0 || i >= brush.mesh.vertices.Count);
-            selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush.mesh.vertices.Count || e.Item2 < 0 || e.Item2 >= brush.mesh.vertices.Count);
+            selectedFaces.RemoveWhere(i => i < 0 || i >= brush._mesh._faces.Count);
+            selectedVertices.RemoveWhere(i => i < 0 || i >= brush._mesh._vertices.Count);
+            selectedEdges.RemoveWhere(e => e.Item1 < 0 || e.Item1 >= brush._mesh._vertices.Count || e.Item2 < 0 || e.Item2 >= brush._mesh._vertices.Count);
 
             bool moved = false;
 
@@ -332,18 +332,18 @@ namespace SBR.Editor {
                 HashSet<int> vertices;
 
                 if (selectedFaces.Count > 0) {
-                    vertices = brush.mesh.GetUniqueVertexList(selectedFaces);
+                    vertices = brush._mesh.GetUniqueVertexList(selectedFaces);
                 } else if (selectedVertices.Count > 0) {
                     vertices = selectedVertices;
                 } else {
-                    vertices = brush.mesh.GetUniqueVertexList(selectedEdges);
+                    vertices = brush._mesh.GetUniqueVertexList(selectedEdges);
                 }
-                Vector3 vertexCenter = brush.mesh.GetVerticesCenter(vertices);
+                Vector3 vertexCenter = brush._mesh.GetVerticesCenter(vertices);
 
                 vertexCenter = brush.transform.TransformPoint(vertexCenter);
 
                 if (Tools.pivotRotation == PivotRotation.Local && selectedFaces.Count > 0) {
-                    Vector3 normal = brush.mesh.GetFacesNormal(selectedFaces);
+                    Vector3 normal = brush._mesh.GetFacesNormal(selectedFaces);
                     normalAxis = brush.transform.TransformDirection(normal);
 
                     rightAxis = Vector3.Cross(Vector3.up, normalAxis);
@@ -413,11 +413,11 @@ namespace SBR.Editor {
                             int selVertex, selFace;
                             UnorderedPair<int> selEdge;
 
-                            brush.mesh.Select(brush.transform, v, Camera.current, out selVertex, out selFace, out selEdge);
+                            brush._mesh.Select(brush.transform, v, Camera.current, out selVertex, out selFace, out selEdge);
                             hadSelected = selectedVertices.Count > 0 || selectedEdges.Count > 0 || selectedFaces.Count > 0;
 
                             if (selEdge.Item1 >= 0 && Event.current.clickCount == 2 && selectedEdges.Count > 0) {
-                                brush.mesh.SelectEdgeLoop(selectedEdges,selEdge);
+                                brush._mesh.SelectEdgeLoop(selectedEdges,selEdge);
                             } else {
                                 if (selVertex >= 0) {
                                     selectedFaces.Clear();
@@ -495,10 +495,10 @@ namespace SBR.Editor {
                         break;
 
                     case EventType.Repaint:
-                        foreach (var edge in brush.mesh.GetEdges()) {
+                        foreach (UnorderedPair<int> edge in brush._mesh.GetEdges()) {
 
-                            Vector3 v1 = brush.mesh.vertices[edge.Item1].position;
-                            Vector3 v2 = brush.mesh.vertices[edge.Item2].position;
+                            Vector3 v1 = brush._mesh._vertices[edge.Item1]._position;
+                            Vector3 v2 = brush._mesh._vertices[edge.Item2]._position;
 
                             v1 = brush.transform.TransformPoint(v1);
                             v2 = brush.transform.TransformPoint(v2);
@@ -506,22 +506,22 @@ namespace SBR.Editor {
                             Handles.color = new Color(0, 0, 0, 0.1f);
                             Handles.DrawAAPolyLine(2, v1, v2);
 
-                            var c = Handles.zTest;
+                            CompareFunction c = Handles.zTest;
                             Handles.zTest = UnityEngine.Rendering.CompareFunction.Less;
                             Handles.color = Color.black;
                             Handles.DrawAAPolyLine(2, v1, v2);
                             Handles.zTest = c;
                         }
 
-                        foreach (var vert in brush.mesh.vertices) {
+                        foreach (Vertex vert in brush._mesh._vertices) {
                             Handles.color = new Color(0, 0, 0, 0.5f);
-                            Vector3 v = brush.transform.TransformPoint(vert.position);
+                            Vector3 v = brush.transform.TransformPoint(vert._position);
                             Handles.DotHandleCap(0, v, Quaternion.identity, HandleUtility.GetHandleSize(v) * 0.02f, EventType.Repaint);
                         }
 
-                        foreach (var selectedEdge in selectedEdges) {
-                            Vector3 v1 = brush.mesh.vertices[selectedEdge.Item1].position;
-                            Vector3 v2 = brush.mesh.vertices[selectedEdge.Item2].position;
+                        foreach (UnorderedPair<int> selectedEdge in selectedEdges) {
+                            Vector3 v1 = brush._mesh._vertices[selectedEdge.Item1]._position;
+                            Vector3 v2 = brush._mesh._vertices[selectedEdge.Item2]._position;
 
                             v1 = brush.transform.TransformPoint(v1);
                             v2 = brush.transform.TransformPoint(v2);
@@ -530,8 +530,8 @@ namespace SBR.Editor {
                             Handles.DrawAAPolyLine(4, v1, v2);
                         }
 
-                        foreach (var selectedVertex in selectedVertices) {
-                            Vector3 v = brush.mesh.vertices[selectedVertex].position;
+                        foreach (int selectedVertex in selectedVertices) {
+                            Vector3 v = brush._mesh._vertices[selectedVertex]._position;
                             v = brush.transform.TransformPoint(v);
 
                             Handles.color = Color.blue;
@@ -539,9 +539,9 @@ namespace SBR.Editor {
                         }
 
                         foreach (int selectedFace in selectedFaces) {
-                            Face f = brush.mesh.faces[selectedFace];
+                            Face f = brush._mesh._faces[selectedFace];
 
-                            var points = f.GetPointsArray(brush.transform, brush.mesh);
+                            Vector3[] points = f.GetPointsArray(brush.transform, brush._mesh);
 
                             Handles.color = new Color(0, 0, 1, 0.25f);
                             Handles.DrawAAConvexPolygon(points);
@@ -560,17 +560,17 @@ namespace SBR.Editor {
 
             moved = dragPos != position;
             if (moved) {
-                brush.undone = true;
+                brush._undone = true;
                 Undo.RecordObject(brush, "Brush Edit");
                 Vector3 offset = dragPos - position;
 
-                foreach (var vert in vertices) {
-                    brush.mesh.vertices[vert].position += offset;
+                foreach (int vert in vertices) {
+                    brush._mesh._vertices[vert]._position += offset;
                 }
 
-                brush.undone = false;
+                brush._undone = false;
 
-                brush.dirty = true;
+                brush.Dirty = true;
                 brush.Update();
             }
         }
@@ -580,22 +580,22 @@ namespace SBR.Editor {
             
             moved = dragRot != rotation;
             if (moved) {
-                brush.undone = true;
+                brush._undone = true;
                 Undo.RecordObject(brush, "Brush Edit");
                 Quaternion delta = dragRot * Quaternion.Inverse(rotation);
 
-                Vector3 c = brush.mesh.GetVerticesCenter(vertices);
-                foreach (var vert in vertices) {
-                    Vector3 v = brush.mesh.vertices[vert].position;
+                Vector3 c = brush._mesh.GetVerticesCenter(vertices);
+                foreach (int vert in vertices) {
+                    Vector3 v = brush._mesh._vertices[vert]._position;
                     v -= c;
                     v = delta * v;
                     v += c;
-                    brush.mesh.vertices[vert].position = v;
+                    brush._mesh._vertices[vert]._position = v;
                 }
 
-                brush.undone = false;
+                brush._undone = false;
 
-                brush.dirty = true;
+                brush.Dirty = true;
                 brush.Update();
             }
         }
@@ -609,17 +609,17 @@ namespace SBR.Editor {
 
             moved = delta != Vector3.one;
             if (moved) {
-                brush.undone = true;
+                brush._undone = true;
                 Undo.RecordObject(brush, "Brush Edit");
 
                 Vector3 x = rotation * Vector3.right;
                 Vector3 y = rotation * Vector3.up;
                 Vector3 z = rotation * Vector3.forward;
 
-                Vector3 c = brush.mesh.GetVerticesCenter(vertices);
+                Vector3 c = brush._mesh.GetVerticesCenter(vertices);
 
-                foreach (var vert in vertices) {
-                    Vector3 v = brush.mesh.vertices[vert].position;
+                foreach (int vert in vertices) {
+                    Vector3 v = brush._mesh._vertices[vert]._position;
                     v -= c;
                     Vector3 onX = Vector3.Project(v, x);
                     Vector3 onY = Vector3.Project(v, y);
@@ -630,12 +630,12 @@ namespace SBR.Editor {
                     onZ *= delta.z;
 
                     v = c + onX + onY + onZ;
-                    brush.mesh.vertices[vert].position = v;
+                    brush._mesh._vertices[vert]._position = v;
                 }
 
-                brush.undone = false;
+                brush._undone = false;
 
-                brush.dirty = true;
+                brush.Dirty = true;
                 brush.Update();
             }
         }
@@ -646,9 +646,9 @@ namespace SBR.Editor {
 
             Vector3 worldAxis = transform.TransformDirection(axisN);
 
-            Vector3 center = transform.rotation * (brush.size / 2);
+            Vector3 center = transform.rotation * (brush._size / 2);
 
-            Vector3 handlePos = transform.position + center + Vector3.Dot(axis, brush.size / 2) * worldAxis;
+            Vector3 handlePos = transform.position + center + Vector3.Dot(axis, brush._size / 2) * worldAxis;
             float handleSize = HandleUtility.GetHandleSize(handlePos) * size;
 
             Handles.color = color;
@@ -662,14 +662,14 @@ namespace SBR.Editor {
             diff = (1.0f + diff) / 2.0f;
 
             if (result == CustomHandles.HandleResult.Drag) {
-                brush.undone = true;
+                brush._undone = true;
                 Undo.RecordObject(brush, "Brush Edit");
                 Undo.RecordObject(brush.transform, "Brush Edit");
                 
                 brush.transform.position += worldAxis * drag * diff;
                 
-                brush.size += axis * drag;
-                brush.undone = false;
+                brush._size += axis * drag;
+                brush._undone = false;
 
                 if (drag != 0) {
                     brush.Update();

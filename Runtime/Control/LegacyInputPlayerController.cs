@@ -72,7 +72,7 @@ namespace SBR {
             try {
                 Input.GetAxis(axis + _inputSuffix); // Throw an exception if it doesn't exist.
                 if (!overwrite && _axes.ContainsKey(axis)) {
-                    var tuple = _axes[axis];
+                    (bool raw, Action<float> action) tuple = _axes[axis];
                     tuple.action += listener;
                     _axes[axis] = tuple;
                 } else {
@@ -124,7 +124,7 @@ namespace SBR {
 
         protected override void DoInput() {
             if (enabled) {
-                foreach (var m in _axes) {
+                foreach (KeyValuePair<string, (bool raw, Action<float> action)> m in _axes) {
                     if (InputEnabled) {
                         string key = m.Key + _inputSuffix;
                         float f = m.Value.raw ? Input.GetAxisRaw(key) : Input.GetAxis(key);
@@ -134,19 +134,19 @@ namespace SBR {
                     }
                 }
 
-                foreach (var m in _buttonDown) {
+                foreach (KeyValuePair<string, Action> m in _buttonDown) {
                     if (InputEnabled && Input.GetButtonDown(m.Key + _inputSuffix)) {
                         m.Value?.Invoke();
                     }
                 }
 
-                foreach (var m in _buttonHeld) {
+                foreach (KeyValuePair<string, Action> m in _buttonHeld) {
                     if (InputEnabled && Input.GetButton(m.Key + _inputSuffix)) {
                         m.Value?.Invoke();
                     }
                 }
 
-                foreach (var m in _buttonUp) {
+                foreach (KeyValuePair<string, Action> m in _buttonUp) {
                     string key = m.Key + _inputSuffix;
                     if (InputEnabled && Input.GetButtonDown(key)) {
                         _keysHeld.Add(key);

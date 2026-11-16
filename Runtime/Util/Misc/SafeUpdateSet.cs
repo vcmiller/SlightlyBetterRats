@@ -67,7 +67,7 @@ namespace SBR {
 
         public void Clear() {
             _additions.Clear();
-            foreach (var item in _contents) {
+            foreach (T item in _contents) {
                 _deletions.Add(item);
             }
         }

@@ -30,55 +30,55 @@ namespace SBR {
         /// <summary>
         /// How long after being set the timer expires.
         /// </summary>
-        public float expiration { get; set; }
+        public float Expiration { get; set; }
 
         /// <summary>
         /// Time at which the timer was last used. Comparable to curTime.
         /// </summary>
-        public float lastSet { get; set; }
+        public float LastSet { get; set; }
 
         /// <summary>
         /// Whether to use unscaled time (so it works when the game is paused).
         /// </summary>
-        public bool unscaled { get; set; }
+        public bool Unscaled { get; set; }
 
         /// <summary>
         /// Returns Time.time if scaled, Time.unscaledTime if unscaled.
         /// </summary>
-        public float curTime => unscaled ? Time.unscaledTime : Time.time;
+        public float CurTime => Unscaled ? Time.unscaledTime : Time.time;
 
-        private bool set;
+        private bool _set;
 
         /// <summary>
         /// Returns Time.deltaTime if scaled, Time.unscaledDeltaTie if unscald.
         /// </summary>
-        private float deltaTime => unscaled ? Time.unscaledDeltaTime : Time.deltaTime;
+        private float DeltaTime => Unscaled ? Time.unscaledDeltaTime : Time.deltaTime;
 
         /// <summary>
         /// Whether the timer has expired.
         /// </summary>
-        public bool expired => !set || curTime >= lastSet + expiration;
+        public bool Expired => !_set || CurTime >= LastSet + Expiration;
 
         /// <summary>
         /// Whether the timer expired during the current frame.
         /// </summary>
-        public bool expiredThisFrame => set && expired && curTime - deltaTime <= lastSet + expiration;
+        public bool ExpiredThisFrame => _set && Expired && CurTime - DeltaTime <= LastSet + Expiration;
         
         /// <summary>
         /// How much time remains before the timer expires.
         /// </summary>
-        public float remaining => Mathf.Max(0, expiration - (curTime - lastSet));
+        public float Remaining => Mathf.Max(0, Expiration - (CurTime - LastSet));
 
         /// <summary>
         /// How far the timer is from expiring in the range [0, 1].
         /// If exired, is 0. If just set, is 1.
         /// </summary>
-        public float remainingRatio {
+        public float RemainingRatio {
             get {
-                if (expired) {
+                if (Expired) {
                     return 0;
                 } else {
-                    return 1 - ((curTime - lastSet) / expiration);
+                    return 1 - ((CurTime - LastSet) / Expiration);
                 }
             }
         }
@@ -88,7 +88,7 @@ namespace SBR {
         /// </summary>
         /// <param name="expiration">Expiration value.</param>
         public ExpirationTimer(float expiration) {
-            this.expiration = expiration;
+            this.Expiration = expiration;
             Clear();
         }
 
@@ -96,16 +96,16 @@ namespace SBR {
         /// Set the timer so that expired will be false for expiration seconds.
         /// </summary>
         public void Set() {
-            lastSet = curTime;
-            set = true;
+            LastSet = CurTime;
+            _set = true;
         }
 
         /// <summary>
         /// Clear the timer so that expired will be true until it is set again.
         /// </summary>
         public void Clear() {
-            lastSet = curTime - expiration;
-            set = false;
+            LastSet = CurTime - Expiration;
+            _set = false;
         }
     }
 }

@@ -40,7 +40,7 @@ namespace SBR {
         }
 
         private void Axis_Horizontal(float value) {
-            Vector3 right = ViewTarget ? ViewTarget.flatRight : Vector3.right;
+            Vector3 right = ViewTarget ? ViewTarget.FlatRight : Vector3.right;
             Channels.Movement += right * value;
         }
 

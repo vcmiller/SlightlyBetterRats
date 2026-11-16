@@ -1,7 +1,7 @@
 // The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -22,6 +22,7 @@
 
 using Infohazard.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -31,26 +32,28 @@ namespace SBR {
         /// <summary>
         /// Layers that the projectile collides with.
         /// </summary>
+        [FormerlySerializedAs("hitMask")]
         [Tooltip("Layers that the projectile collides with.")]
-        public LayerMask hitMask = 1;
+        public LayerMask _hitMask = 1;
 
         /// <summary>
         /// Range of the projectile.
         /// </summary>
+        [FormerlySerializedAs("range")]
         [Tooltip("Range of the projectile.")]
-        public float range = Mathf.Infinity;
+        public float _range = Mathf.Infinity;
 
         public override void Fire(GameObject creator, Vector3 direction, bool align = true, object method = null) {
             base.Fire(creator, direction, align, method);
-            RaycastHit2D hit;
 
             bool trig = Physics2D.queriesHitTriggers;
-            Physics2D.queriesHitTriggers = hitsTriggers;
+            Physics2D.queriesHitTriggers = HitsTriggers;
 
-            if (hit = Physics2D.Raycast(transform.position, direction, range, hitMask)) {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, _range, _hitMask);
+            if (hit) {
                 OnHitCollider2D(hit.collider, hit.point, hit.normal);
             } else {
-                Spawnable.Despawn(gameObject, linger);
+                Spawnable.Despawn(gameObject, _linger);
             }
 
             Physics2D.queriesHitTriggers = trig;

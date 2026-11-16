@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -31,91 +32,94 @@ namespace SBR {
         /// <summary>
         /// Whether to follow the pitch of the controller's rotation channel.
         /// </summary>
-        [Tooltip("Whether to follow the pitch of the controller's rotation channel.")]
-        public bool useControlRotationX = true;
+        [FormerlySerializedAs("useControlRotationX"),Tooltip("Whether to follow the pitch of the controller's rotation channel.")]
+        public bool _useControlRotationX = true;
 
         /// <summary>
         /// Whether to follow the yaw of the controller's rotation channel.
         /// </summary>
-        [Tooltip("Whether to follow the yaw of the controller's rotation channel.")]
-        public bool useControlRotationY = true;
+        [FormerlySerializedAs("useControlRotationY"),Tooltip("Whether to follow the yaw of the controller's rotation channel.")]
+        public bool _useControlRotationY = true;
 
         /// <summary>
         /// Whether to follow the roll of the controller's rotation channel.
         /// </summary>
-        [Tooltip("Whether to follow the roll of the controller's rotation channel.")]
-        public bool useControlRotationZ = false;
+        [FormerlySerializedAs("useControlRotationZ"),Tooltip("Whether to follow the roll of the controller's rotation channel.")]
+        public bool _useControlRotationZ = false;
 
         /// <summary>
         /// Layers that the camera cannot be inside.
         /// </summary>
-        [Tooltip("Layers that the camera cannot be inside.")]
-        public LayerMask blocking = 1;
+        [FormerlySerializedAs("blocking"),Tooltip("Layers that the camera cannot be inside.")]
+        public LayerMask _blocking = 1;
 
         /// <summary>
         /// Distance that the camera will be from the player as long as it doesn't collide with anything.
         /// </summary>
-        [Tooltip("Distance that the camera will be from the player as long as it doesn't collide with anything.")]
-        public float targetLength = 6;
+        [FormerlySerializedAs("targetLength"),Tooltip("Distance that the camera will be from the player as long as it doesn't collide with anything.")]
+        public float _targetLength = 6;
 
-        public Transform cameraTransform;
+        [FormerlySerializedAs("cameraTransform")]
+        public Transform _cameraTransform;
 
-        public bool cameraMovement = true;
-        public float cameraRadius = 0.1f;
+        [FormerlySerializedAs("cameraMovement")]
+        public bool _cameraMovement = true;
+        [FormerlySerializedAs("cameraRadius")]
+        public float _cameraRadius = 0.1f;
 
-        private float lastX;
-        private float lastY;
+        private float _lastX;
+        private float _lastY;
 
-        private Quaternion rot;
+        private Quaternion _rot;
 
         protected override void Awake() {
             base.Awake();
 
             Vector3 v = transform.eulerAngles;
-            lastX = v.x;
-            lastY = v.y;
+            _lastX = v.x;
+            _lastY = v.y;
         }
 
         private void UpdateCamera() {
             Vector3 v = transform.eulerAngles;
-            Vector3 r = rot.eulerAngles;
+            Vector3 r = _rot.eulerAngles;
 
-            if (useControlRotationX) {
+            if (_useControlRotationX) {
                 v.x = r.x;
             } else {
-                v.x = lastX;
+                v.x = _lastX;
             }
 
-            if (useControlRotationY) {
+            if (_useControlRotationY) {
                 v.y = r.y;
             } else {
-                v.y = lastY;
+                v.y = _lastY;
             }
 
-            if (useControlRotationZ) {
+            if (_useControlRotationZ) {
                 v.z = r.z;
             } else {
                 v.z = 0;
             }
 
             transform.eulerAngles = v;
-            lastX = v.x;
-            lastY = v.y;
+            _lastX = v.x;
+            _lastY = v.y;
 
-            if (cameraTransform && blocking != 0 && cameraMovement) {
+            if (_cameraTransform && _blocking != 0 && _cameraMovement) {
                 RaycastHit hit;
 
-                if (Physics.SphereCast(transform.position, cameraRadius, -transform.forward, 
-                    out hit, targetLength + cameraRadius, blocking, QueryTriggerInteraction.Ignore)) {
-                    cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
+                if (Physics.SphereCast(transform.position, _cameraRadius, -transform.forward, 
+                    out hit, _targetLength + _cameraRadius, _blocking, QueryTriggerInteraction.Ignore)) {
+                    _cameraTransform.transform.localPosition = new Vector3(0, 0, -hit.distance);
                 } else {
-                    cameraTransform.transform.localPosition = new Vector3(0, 0, -targetLength);
+                    _cameraTransform.transform.localPosition = new Vector3(0, 0, -_targetLength);
                 }
             }
         }
 
         protected override void DoOutput(CharacterChannels c) {
-            rot = c.Rotation;
+            _rot = c.Rotation;
         }
 
         protected override void PostOutput(CharacterChannels c) {

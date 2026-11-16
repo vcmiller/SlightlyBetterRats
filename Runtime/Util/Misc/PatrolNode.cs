@@ -21,13 +21,18 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     public class PatrolNode : MonoBehaviour {
-        public PatrolNode next;
-        public bool lookAround;
-        public float pause;
-        public float radius;
+        [FormerlySerializedAs("next")]
+        public PatrolNode _next;
+        [FormerlySerializedAs("lookAround")]
+        public bool _lookAround;
+        [FormerlySerializedAs("pause")]
+        public float _pause;
+        [FormerlySerializedAs("radius")]
+        public float _radius;
     }
 
 }

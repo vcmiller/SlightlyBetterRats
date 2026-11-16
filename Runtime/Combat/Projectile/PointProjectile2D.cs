@@ -1,7 +1,7 @@
 // The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -30,27 +31,30 @@ namespace SBR {
         /// <summary>
         /// Layers that the projectile collides with.
         /// </summary>
+        [FormerlySerializedAs("hitMask")]
         [Tooltip("Layers that the projectile collides with.")]
-        public LayerMask hitMask = 1;
+        public LayerMask _hitMask = 1;
 
         /// <summary>
         /// Extra length to raycast each frame, to compensate for other objects' velocity.
         /// </summary>
+        [FormerlySerializedAs("offset")]
         [Tooltip("Extra length to raycast each frame, to compensate for other objects' velocity.")]
-        public float offset = 0;
+        public float _offset = 0;
 
         protected override void Update() {
             base.Update();
-            if (velocity.sqrMagnitude > 0) {
+            if (Velocity.sqrMagnitude > 0) {
                 Vector3 oldPosition = transform.position;
-                transform.position += velocity * Time.deltaTime;
+                transform.position += Velocity * Time.deltaTime;
 
-                RaycastHit2D hit;
 
                 bool trig = Physics2D.queriesHitTriggers;
-                Physics2D.queriesHitTriggers = hitsTriggers;
+                Physics2D.queriesHitTriggers = HitsTriggers;
 
-                if (hit = Physics2D.Linecast(oldPosition - velocity.normalized * offset, transform.position, hitMask)) {
+                RaycastHit2D hit =
+                    Physics2D.Linecast(oldPosition - Velocity.normalized * _offset, transform.position, _hitMask);
+                if (hit) {
                     OnHitCollider2D(hit.collider, hit.point, hit.normal);
                 }
 

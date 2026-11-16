@@ -30,42 +30,42 @@ namespace SBR {
         /// <summary>
         /// Delay that must pass between uses.
         /// </summary>
-        public float cooldown { get; set; }
+        public float Cooldown { get; set; }
 
         /// <summary>
         /// Time at which the timer was last used. Comparable to curTime.
         /// </summary>
-        public float lastUse { get; set; }
+        public float LastUse { get; set; }
 
         /// <summary>
         /// Whether to use unscaled time (so it works when the game is paused).
         /// </summary>
-        public bool unscaled { get; set; }
+        public bool Unscaled { get; set; }
 
         /// <summary>
         /// Returns Time.time if scaled, Time.unscaledTime if unscaled.
         /// </summary>
-        public float curTime => unscaled ? Time.unscaledTime : Time.time;
+        public float CurTime => Unscaled ? Time.unscaledTime : Time.time;
 
         /// <summary>
         /// How close the timer is to being ready to use. Has value 1.0 if ready, 0.0 if just used.
         /// </summary>
-        public float chargeRatio {
+        public float ChargeRatio {
             get {
-                if (canUse) {
+                if (CanUse) {
                     return 1.0f;
                 } else {
-                    return (curTime - lastUse) / cooldown;
+                    return (CurTime - LastUse) / Cooldown;
                 }
             }
         }
 
-        public float timeUntilUsable {
+        public float TimeUntilUsable {
             get {
-                if (canUse) {
+                if (CanUse) {
                     return 0.0f;
                 } else {
-                    return cooldown - (curTime - lastUse);
+                    return Cooldown - (CurTime - LastUse);
                 }
             }
         }
@@ -73,7 +73,7 @@ namespace SBR {
         /// <summary>
         /// Whether the timer can currently be used.
         /// </summary>
-        public bool canUse => curTime - lastUse >= cooldown;
+        public bool CanUse => CurTime - LastUse >= Cooldown;
 
         /// <summary>
         /// Create a new CooldownTimer with given cooldown.
@@ -81,8 +81,8 @@ namespace SBR {
         /// </summary>
         /// <param name="cooldown">The cooldown of the timer.</param>
         public CooldownTimer(float cooldown) {
-            this.cooldown = cooldown;
-            this.lastUse = curTime;
+            this.Cooldown = cooldown;
+            this.LastUse = CurTime;
         }
 
         /// <summary>
@@ -91,8 +91,8 @@ namespace SBR {
         /// <param name="cooldown">The cooldown of the timer.</param>
         /// <param name="initial">The time that must pass before the first use.</param>
         public CooldownTimer(float cooldown, float initial) {
-            this.cooldown = cooldown;
-            this.lastUse = curTime - cooldown + initial;
+            this.Cooldown = cooldown;
+            this.LastUse = CurTime - cooldown + initial;
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace SBR {
         /// </summary>
         /// <returns>Whether the timer was used.</returns>
         public bool Use() {
-            if (canUse) {
+            if (CanUse) {
                 Reset();
                 return true;
             } else {
@@ -113,12 +113,12 @@ namespace SBR {
         /// <summary>
         /// Set the timer to be ready to use.
         /// </summary>
-        public void Clear() => lastUse = curTime - cooldown;
+        public void Clear() => LastUse = CurTime - Cooldown;
 
         /// <summary>
         /// Reset the timer to require the cooldown before it can be used.
         /// </summary>
-        public void Reset() => lastUse = curTime;
+        public void Reset() => LastUse = CurTime;
     }
 }
 

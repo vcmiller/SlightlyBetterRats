@@ -32,10 +32,12 @@ namespace SBR {
         private Animator _meshAnimator;
         private GameObject _meshInstance;
 
-        [SerializeField, NoOverrides]
+        [SerializeField]
+        [NoOverrides]
         private GameObject _meshPrefab;
 
-        [SerializeField, NoOverrides]
+        [SerializeField]
+        [NoOverrides]
         private Animator _useAnimator;
         
         public delegate void SwappableMeshChangingListener(GameObject oldPrefab, GameObject oldMesh, GameObject newPrefab, GameObject newMesh);

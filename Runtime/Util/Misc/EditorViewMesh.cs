@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SBR {
     /// <summary>
@@ -30,11 +31,11 @@ namespace SBR {
         /// <summary>
         /// Whether to hide the renderer in game.
         /// </summary>
-        [Tooltip("Whether to hide the renderer in game.")]
-        public bool hideInGame;
+        [FormerlySerializedAs("hideInGame"),Tooltip("Whether to hide the renderer in game.")]
+        public bool _hideInGame;
 
         private void Start() {
-            if (hideInGame) {
+            if (_hideInGame) {
                 GetComponent<Renderer>().enabled = false;
             }
         }
