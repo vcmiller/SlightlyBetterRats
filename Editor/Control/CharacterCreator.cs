@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
-// 
+//
 // Copyright (c) 2026-present Val Miller
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -48,14 +48,14 @@ namespace SBR.Editor {
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
-            motor._rotateMode = CharacterMotor.RotateMode.Movement;
+            motor.RotateMode = CharacterRotateMode.Movement;
 
-            GameObject armObj = new GameObject("Camera Arm");
+            GameObject armObj = new("Camera Arm");
             armObj.transform.parent = charObj.transform;
             armObj.transform.localPosition = Vector3.zero;
             CameraArm arm = armObj.AddComponent<CameraArm>();
 
-            GameObject camObj = new GameObject("Camera");
+            GameObject camObj = new("Camera");
             camObj.tag = "MainCamera";
             camObj.transform.parent = armObj.transform;
             camObj.transform.localPosition = new Vector3(0, 0, -arm._targetLength);
@@ -90,16 +90,16 @@ namespace SBR.Editor {
             charObj.AddComponent<BasicCharacterController>();
 
             CharacterMotor motor = charObj.AddComponent<CharacterMotor>();
-            motor._rotateMode = CharacterMotor.RotateMode.Control;
+            motor.RotateMode = CharacterRotateMode.Control;
 
-            GameObject headObj = new GameObject("Head");
+            GameObject headObj = new("Head");
             headObj.transform.parent = charObj.transform;
             headObj.transform.localPosition = new Vector3(0, 0.5f, 0);
             CameraArm arm = headObj.AddComponent<CameraArm>();
             arm._blocking = 0;
             arm._targetLength = 0;
 
-            GameObject camObj = new GameObject("Camera");
+            GameObject camObj = new("Camera");
             camObj.tag = "MainCamera";
             camObj.transform.parent = headObj.transform;
             camObj.transform.localPosition = Vector3.zero;
@@ -115,7 +115,7 @@ namespace SBR.Editor {
         [MenuItem("Tools/Infohazard/Create/2D (Sprite) Character", priority = 120)]
         [MenuItem("GameObject/Character/2D (Sprite)")]
         public static void Create2D() {
-            GameObject charObj = new GameObject("2D Character");
+            GameObject charObj = new("2D Character");
             charObj.transform.position = new Vector3(0, 1, 0);
 
             BoxCollider2D col = charObj.AddComponent<BoxCollider2D>();
@@ -130,7 +130,7 @@ namespace SBR.Editor {
 
             charObj.AddComponent<CharacterMotor2D>();
 
-            GameObject camObj = new GameObject("Camera");
+            GameObject camObj = new("Camera");
             camObj.tag = "MainCamera";
             camObj.transform.parent = charObj.transform;
             camObj.transform.localPosition = new Vector3(0, 0, -6);
@@ -148,7 +148,7 @@ namespace SBR.Editor {
             Material arrowHeadMat = Resources.Load<Material>("SBR_ArrowHead");
             Material arrowShaftMat = Resources.Load<Material>("SBR_ArrowShaft");
 
-            GameObject arrow = new GameObject();
+            GameObject arrow = new();
             MeshFilter mf = arrow.AddComponent<MeshFilter>();
             MeshRenderer mr = arrow.AddComponent<MeshRenderer>();
             arrow.AddComponent<EditorViewMesh>()._hideInGame = !visibleInGame;
